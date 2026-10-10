@@ -1,3 +1,5 @@
+from starlette.exceptions import HTTPException as StarletteHTTPException
+
 from app.core.config import Settings
 from app.core.errors import NotFoundError
 from app.main import create_app
@@ -70,3 +72,20 @@ async def test_validation_errors_list_the_failing_fields(
     assert errors[0]["loc"] == ["query", "n"]
     assert "secret-journal-text" not in response.text
     assert all("input" not in error for error in errors)
+
+
+async def test_non_standard_status_codes_get_a_generic_title(
+    settings: Settings, make_client: ClientFactory
+) -> None:
+    app = create_app(settings)
+
+    def odd() -> None:
+        raise StarletteHTTPException(status_code=599, detail="odd")
+
+    app.add_api_route("/odd", odd)
+
+    async with make_client(app) as client:
+        response = await client.get("/odd")
+
+    assert response.status_code == 599
+    assert response.json()["title"] == "Error"

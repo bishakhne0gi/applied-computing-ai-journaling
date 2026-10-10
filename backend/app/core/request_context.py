@@ -2,6 +2,7 @@ import re
 import time
 import uuid
 
+import sentry_sdk
 import structlog
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.requests import Request
@@ -36,6 +37,7 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
         request.state.request_id = request_id
         structlog.contextvars.clear_contextvars()
         structlog.contextvars.bind_contextvars(request_id=request_id)
+        sentry_sdk.set_tag("request_id", request_id)
 
         started = time.perf_counter()
         try:

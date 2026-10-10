@@ -22,7 +22,7 @@ TEST_DATABASE_URL = os.environ.get(
 @pytest.fixture(scope="session")
 def _schema() -> None:
     async def reset() -> None:
-        engine = create_async_engine(TEST_DATABASE_URL, poolclass=NullPool)
+        engine = create_async_engine(TEST_DATABASE_URL, poolclass=NullPool, hide_parameters=True)
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.drop_all)
             await conn.run_sync(Base.metadata.create_all)
@@ -34,7 +34,7 @@ def _schema() -> None:
 @pytest.fixture
 async def db_session(_schema: None) -> AsyncIterator[AsyncSession]:
     # Each test runs inside an outer transaction that is rolled back; service commits become savepoints.
-    engine = create_async_engine(TEST_DATABASE_URL, poolclass=NullPool)
+    engine = create_async_engine(TEST_DATABASE_URL, poolclass=NullPool, hide_parameters=True)
     async with engine.connect() as conn:
         transaction = await conn.begin()
         session = AsyncSession(bind=conn, expire_on_commit=False, join_transaction_mode="create_savepoint")

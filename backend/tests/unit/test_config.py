@@ -1,5 +1,5 @@
 import pytest
-from pydantic import SecretStr
+from pydantic import SecretStr, ValidationError
 
 from app.core.config import Settings
 
@@ -32,3 +32,25 @@ def test_environment_variables_override_defaults(monkeypatch: pytest.MonkeyPatch
 
     assert settings.log_format == "json"
     assert settings.cors_origins == ["http://a.test"]
+
+
+def test_sentry_environment_overrides_environment(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("ENVIRONMENT", "staging")
+    monkeypatch.setenv("SENTRY_ENVIRONMENT", "production")
+
+    assert Settings(_env_file=None).environment == "production"
+
+
+def test_environment_variable_alone_still_works(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("ENVIRONMENT", "staging")
+
+    assert Settings(_env_file=None).environment == "staging"
+
+
+def test_environment_can_be_set_by_field_name() -> None:
+    assert Settings(_env_file=None, environment="test").environment == "test"
+
+
+def test_an_unknown_log_level_is_rejected() -> None:
+    with pytest.raises(ValidationError):
+        Settings(_env_file=None, log_level="LOUD")  # type: ignore[arg-type]

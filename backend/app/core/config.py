@@ -1,20 +1,31 @@
 from functools import lru_cache
+from pathlib import Path
 from typing import Literal
 
-from pydantic import Field, SecretStr
+from pydantic import AliasChoices, Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 ProviderName = Literal["anthropic", "fake"]
 
 
-class Settings(BaseSettings):
-    # Root .env first, package-local .env second so `make dev-backend` and `alembic` (run in backend/) agree.
-    model_config = SettingsConfigDict(env_file=("../.env", ".env"), extra="ignore")
+_REPO_ROOT = Path(__file__).resolve().parents[3]
+_BACKEND_DIR = Path(__file__).resolve().parents[2]
 
-    environment: str = "development"
+
+class Settings(BaseSettings):
+    # Anchored to this file rather than the cwd so `make dev-backend` (repo root), `alembic` (backend/) and
+    # pytest all read the same files; the package-local one overrides the root one.
+    model_config = SettingsConfigDict(
+        env_file=(_REPO_ROOT / ".env", _BACKEND_DIR / ".env"), extra="ignore", populate_by_name=True
+    )
+
+    # SENTRY_ENVIRONMENT is what the example env file documents; ENVIRONMENT stays as the fallback.
+    environment: str = Field(
+        "development", validation_alias=AliasChoices("SENTRY_ENVIRONMENT", "ENVIRONMENT")
+    )
     release: str = "dev"
     database_url: str = "postgresql+asyncpg://journal:journal@localhost:5432/journal"
-    log_level: str = "INFO"
+    log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = "INFO"
     log_format: Literal["json", "console"] = "console"
     cors_origins: list[str] = Field(default_factory=lambda: ["http://localhost:5173"])
     sentry_dsn: str | None = None

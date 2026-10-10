@@ -42,6 +42,14 @@ def problem(request: Request, status: int, title: str, detail: str, **extra: Any
     return JSONResponse(body, status_code=status, media_type=PROBLEM_JSON, headers=headers)
 
 
+def _title_for(status: int) -> str:
+    # Starlette accepts any int, and HTTPStatus raises on codes like 599.
+    try:
+        return HTTPStatus(status).phrase
+    except ValueError:
+        return "Error"
+
+
 def register_exception_handlers(app: FastAPI) -> None:
     @app.exception_handler(AppError)
     async def handle_app_error(request: Request, exc: AppError) -> JSONResponse:
@@ -55,7 +63,7 @@ def register_exception_handlers(app: FastAPI) -> None:
 
     @app.exception_handler(StarletteHTTPException)
     async def handle_http_error(request: Request, exc: StarletteHTTPException) -> JSONResponse:
-        return problem(request, exc.status_code, HTTPStatus(exc.status_code).phrase, str(exc.detail))
+        return problem(request, exc.status_code, _title_for(exc.status_code), str(exc.detail))
 
     @app.exception_handler(Exception)
     async def handle_unexpected(request: Request, _exc: Exception) -> JSONResponse:
