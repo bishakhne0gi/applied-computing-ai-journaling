@@ -1,0 +1,104 @@
+import json
+from typing import Any
+
+import pytest
+
+from journal_ai.analyzer import Analyzer
+from journal_ai.providers.base import ProviderError, ProviderTimeoutError
+from journal_ai.providers.fake import FakeProvider
+from journal_ai.schema import FailureCode
+
+TEXT = "Ayer yo es feliz."
+
+
+def _valid(**overrides: Any) -> str:
+    body = {
+        "corrected_text": "Ayer yo soy feliz.",
+        "feedback_summary": "Great start!",
+        "mistakes": [
+            {
+                "kind": "error",
+                "category": "verb_conjugation",
+                "original": "yo es",
+                "correction": "yo soy",
+                "explanation": "Ser with yo is soy.",
+            },
+            {
+                "kind": "error",
+                "category": "spelling",
+                "original": "",
+                "correction": "x",
+                "explanation": "bad",
+            },
+        ],
+        **overrides,
+    }
+    return json.dumps(body)
+
+
+async def test_successful_analysis_is_parsed_aligned_and_tagged() -> None:
+    outcome = await Analyzer(FakeProvider([_valid()])).analyze(TEXT, "es")
+
+    assert outcome.succeeded
+    assert outcome.failure is None
+    assert outcome.result is not None
+    mistake = outcome.result.mistakes[0]
+    assert TEXT[mistake.start : mistake.end] == "yo es"
+    assert outcome.dropped_mistakes == 1
+    assert outcome.prompt_version == "v1"
+    assert outcome.model == "fake"
+    assert outcome.retried is False
+    assert outcome.raw_response == _valid()
+
+
+async def test_invalid_output_is_retried_once_with_the_error() -> None:
+    provider = FakeProvider(["not json", _valid()])
+
+    outcome = await Analyzer(provider).analyze(TEXT, "es")
+
+    assert outcome.succeeded
+    assert outcome.retried is True
+    assert "could not be used" in provider.calls[1][1]
+
+
+async def test_invalid_output_twice_fails_with_the_last_raw_response() -> None:
+    outcome = await Analyzer(FakeProvider(["nope", '{"truncated": '])).analyze(TEXT, "es")
+
+    assert not outcome.succeeded
+    assert outcome.failure is FailureCode.INVALID_OUTPUT
+    assert outcome.raw_response == '{"truncated": '
+    assert outcome.retried is True
+
+
+@pytest.mark.parametrize(
+    ("error", "code"),
+    [
+        (ProviderTimeoutError("slow"), FailureCode.PROVIDER_TIMEOUT),
+        (ProviderError("refused"), FailureCode.PROVIDER_ERROR),
+    ],
+)
+async def test_provider_failures_map_to_failure_codes(error: Exception, code: FailureCode) -> None:
+    outcome = await Analyzer(FakeProvider([error])).analyze(TEXT, "es")
+
+    assert outcome.failure is code
+    assert outcome.result is None
+    assert outcome.raw_response is None
+
+
+async def test_a_provider_failure_on_retry_keeps_the_first_raw_response() -> None:
+    outcome = await Analyzer(FakeProvider(["garbage", ProviderTimeoutError("slow")])).analyze(TEXT, "es")
+
+    assert outcome.failure is FailureCode.PROVIDER_TIMEOUT
+    assert outcome.raw_response == "garbage"
+
+
+async def test_text_is_normalised_before_alignment() -> None:
+    outcome = await Analyzer(FakeProvider([_valid()])).analyze("  Ayer yo es feliz.\r\n", "es")
+
+    assert outcome.result is not None
+    assert outcome.result.mistakes[0].start == 5
+
+
+async def test_unsupported_language_raises() -> None:
+    with pytest.raises(ValueError, match="Unsupported language"):
+        await Analyzer(FakeProvider([])).analyze(TEXT, "xx")
