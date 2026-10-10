@@ -35,6 +35,7 @@ class Settings(BaseSettings):
     ai_effort: Literal["low", "medium", "high"] = "medium"
     ai_timeout_seconds: float = 30.0
     anthropic_api_key: SecretStr | None = None
+    anthropic_workspace_id: str | None = None
 
     @property
     def resolved_ai_provider(self) -> ProviderName:

@@ -30,3 +30,14 @@ def test_invalid_effort_fails_fast(name: Literal["anthropic", "fake"]) -> None:
     common = {"model": "claude-opus-5-5", "timeout_seconds": 30.0}
     with pytest.raises(ValueError, match="AI_EFFORT"):
         build_provider(name, api_key="k", effort="extreme", **common)
+
+
+def test_workspace_id_is_passed_to_the_anthropic_provider() -> None:
+    provider = build_provider("anthropic", api_key="k", workspace_id="wrkspc_9", **COMMON)
+
+    assert isinstance(provider, AnthropicProvider)
+    assert provider._client.default_headers["anthropic-workspace-id"] == "wrkspc_9"
+
+
+def test_workspace_id_is_ignored_by_the_fake_provider() -> None:
+    assert isinstance(build_provider("fake", api_key=None, workspace_id="w", **COMMON), FakeProvider)

@@ -54,3 +54,11 @@ def test_environment_can_be_set_by_field_name() -> None:
 def test_an_unknown_log_level_is_rejected() -> None:
     with pytest.raises(ValidationError):
         Settings(_env_file=None, log_level="LOUD")  # type: ignore[arg-type]
+
+
+def test_workspace_id_defaults_to_unset_and_reads_from_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    assert Settings(_env_file=None).anthropic_workspace_id is None
+
+    monkeypatch.setenv("ANTHROPIC_WORKSPACE_ID", "wrkspc_1")
+
+    assert Settings(_env_file=None).anthropic_workspace_id == "wrkspc_1"

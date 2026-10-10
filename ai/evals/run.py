@@ -39,6 +39,7 @@ def main() -> None:
     provider = build_provider(
         cast(Literal["anthropic", "fake"], args.provider),
         api_key=os.environ.get("ANTHROPIC_API_KEY"),
+        workspace_id=os.environ.get("ANTHROPIC_WORKSPACE_ID"),
         model=os.environ.get("AI_MODEL", "claude-opus-5-5"),
         effort=os.environ.get("AI_EFFORT", "medium"),
         timeout_seconds=float(os.environ.get("AI_TIMEOUT_SECONDS", "30")),

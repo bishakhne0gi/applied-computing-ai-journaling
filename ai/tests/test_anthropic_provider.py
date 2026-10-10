@@ -97,3 +97,17 @@ async def test_status_errors_carry_the_status_code_in_the_message() -> None:
 
     with pytest.raises(ProviderError, match="InternalServerError 500: boom"):
         await _provider(StubMessages(error=error)).complete(system="s", user="u", schema={})
+
+
+def _real_client_provider(**kwargs: Any) -> AnthropicProvider:
+    return AnthropicProvider(api_key="k", model="m", effort="low", timeout_seconds=5.0, **kwargs)
+
+
+def test_workspace_id_is_sent_as_a_default_header() -> None:
+    provider = _real_client_provider(workspace_id="wrkspc_123")
+
+    assert provider._client.default_headers["anthropic-workspace-id"] == "wrkspc_123"
+
+
+def test_no_workspace_header_when_unset() -> None:
+    assert "anthropic-workspace-id" not in _real_client_provider()._client.default_headers

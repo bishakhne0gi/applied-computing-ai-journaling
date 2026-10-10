@@ -14,6 +14,7 @@ def build_provider(
     model: str,
     effort: str,
     timeout_seconds: float,
+    workspace_id: str | None = None,
 ) -> CompletionProvider:
     if effort not in _EFFORTS:
         raise ValueError(f"AI_EFFORT must be one of {', '.join(_EFFORTS)}, got {effort!r}")
@@ -21,4 +22,10 @@ def build_provider(
         return FakeProvider()
     if not api_key:
         raise ValueError("ANTHROPIC_API_KEY is required for the anthropic provider")
-    return AnthropicProvider(api_key=api_key, model=model, effort=effort, timeout_seconds=timeout_seconds)
+    return AnthropicProvider(
+        api_key=api_key,
+        model=model,
+        effort=effort,
+        timeout_seconds=timeout_seconds,
+        workspace_id=workspace_id,
+    )

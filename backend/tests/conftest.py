@@ -11,6 +11,7 @@ from tests.support import ClientFactory
 # Settings tests assert defaults, so a developer's shell must not leak into them.
 _SETTINGS_ENV_VARS = (
     "ANTHROPIC_API_KEY",
+    "ANTHROPIC_WORKSPACE_ID",
     "AI_PROVIDER",
     "AI_MODEL",
     "AI_EFFORT",
