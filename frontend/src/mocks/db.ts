@@ -24,6 +24,21 @@ export function entryDetail(entry: EntryOut): EntryDetailOut {
   return { ...entry, latest_analysis: analysesOf(entry.id)[0] ?? null }
 }
 
+export interface AnalysedEntry {
+  entry: EntryOut
+  analysis: AnalysisOut
+}
+
+// Like the backend: each entry's newest succeeded analysis, even when a later attempt failed or never finished.
+export function analysedEntries(language: string | null): AnalysedEntry[] {
+  return store.entries
+    .filter((entry) => !language || entry.language === language)
+    .flatMap((entry) => {
+      const analysis = analysesOf(entry.id).find((item) => item.status === 'succeeded')
+      return analysis ? [{ entry, analysis }] : []
+    })
+}
+
 export function createEntry(language: string, text: string): EntryOut {
   const now = new Date().toISOString()
   const entry = { id: crypto.randomUUID(), language, text, word_count: countWords(text), created_at: now, updated_at: now }

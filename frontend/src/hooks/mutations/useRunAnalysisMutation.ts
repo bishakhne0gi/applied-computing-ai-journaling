@@ -22,6 +22,8 @@ export function useRunAnalysisMutation() {
       queryClient.setQueryData<AnalysisOut[]>(journalKeys.analyses(id), (old) => old && [analysis, ...old])
       void queryClient.invalidateQueries({ queryKey: journalKeys.analyses(id) })
       void queryClient.invalidateQueries({ queryKey: journalKeys.entryLists })
+      // Any new analysis can move every insights view, filtered or not.
+      void queryClient.invalidateQueries({ queryKey: journalKeys.insightsAll })
     },
   })
 }

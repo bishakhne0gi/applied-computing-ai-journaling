@@ -5,6 +5,7 @@ import { journalKeys } from '@/hooks/queries/journalKeys'
 import { useAnalysesQuery } from '@/hooks/queries/useAnalysesQuery'
 import { useEntriesQuery } from '@/hooks/queries/useEntriesQuery'
 import { useEntryQuery } from '@/hooks/queries/useEntryQuery'
+import { useInsightsQuery } from '@/hooks/queries/useInsightsQuery'
 import { SEEDED } from '@/mocks/seed'
 import { apiUrl, failWith, setMockMode } from '@/test/helpers'
 import { renderHookWithProviders } from '@/test/renderWithProviders'
@@ -165,5 +166,15 @@ describe('mutation hooks', () => {
     const entry = await act(() => result.current.create.mutateAsync({ language: 'es', text: 'Hola mundo' }))
     // Assert
     await waitFor(() => expect(result.current.list.data?.[0]?.id).toBe(entry.id))
+  })
+
+  it('running an analysis refreshes insights, which are otherwise cached', async () => {
+    // Arrange
+    const { result } = renderHookWithProviders(() => ({ insights: useInsightsQuery('es'), analyze: useRunAnalysisMutation() }))
+    await waitFor(() => expect(result.current.insights.data?.entry_count).toBe(8))
+    // Act
+    await act(() => result.current.analyze.mutateAsync(SEEDED.unanalysed))
+    // Assert
+    await waitFor(() => expect(result.current.insights.data?.entry_count).toBe(9))
   })
 })

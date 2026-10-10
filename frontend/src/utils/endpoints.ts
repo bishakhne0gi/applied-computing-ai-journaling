@@ -4,4 +4,5 @@ export const ENDPOINTS = {
   entries: 'entries',
   entry: (id: string) => `entries/${id}`,
   analyses: (entryId: string) => `entries/${entryId}/analyses`,
+  insights: 'insights',
 } as const

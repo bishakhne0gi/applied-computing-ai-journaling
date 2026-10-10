@@ -7,6 +7,7 @@ import { toErrorMessage } from '@/utils/errorMessage'
 import { useAnalysesQuery } from './useAnalysesQuery'
 import { useEntriesQuery } from './useEntriesQuery'
 import { useEntryQuery } from './useEntryQuery'
+import { useInsightsQuery } from './useInsightsQuery'
 import { useLanguagesQuery } from './useLanguagesQuery'
 
 describe('query hooks', () => {
@@ -74,5 +75,14 @@ describe('query hooks', () => {
     await waitFor(() => expect(result.current.isError).toBe(true))
     // Assert
     expect(toErrorMessage(result.current.error)).toMatch(/^Something went wrong on our side/)
+  })
+
+  it('loads insights for one language', async () => {
+    // Arrange
+    const { result } = renderHookWithProviders(() => useInsightsQuery('fr'))
+    // Act
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+    // Assert
+    expect(result.current.data).toMatchObject({ status: 'totals_only', entry_count: 3 })
   })
 })

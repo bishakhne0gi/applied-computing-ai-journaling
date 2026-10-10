@@ -54,14 +54,21 @@ export const badEntryId = (entryId: string): Response | null =>
 
 export type ListQuery = { language: string | null; cursor: string | null; limit: number } | Response
 
+// Mirrors the backend's supported-language check on `?language=`.
+export function parseLanguage(params: URLSearchParams): string | null | Response {
+  const language = params.get('language')
+  if (language !== null && !LANGUAGES.some((item) => item.code === language)) {
+    return invalidParam('query', 'language', 'Unsupported language')
+  }
+  return language
+}
+
 // Mirrors the backend's Query(ge=1, le=50) and supported-language check.
 export function parseListQuery(params: URLSearchParams): ListQuery {
   const rawLimit = params.get('limit') ?? '20'
   const limit = /^[+-]?\d+$/u.test(rawLimit) ? Number(rawLimit) : Number.NaN
   if (!(limit >= 1 && limit <= 50)) return invalidParam('query', 'limit', 'limit must be an integer between 1 and 50')
-  const language = params.get('language')
-  if (language !== null && !LANGUAGES.some((item) => item.code === language)) {
-    return invalidParam('query', 'language', 'Unsupported language')
-  }
+  const language = parseLanguage(params)
+  if (language instanceof Response) return language
   return { language, cursor: params.get('cursor'), limit }
 }

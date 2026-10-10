@@ -2,8 +2,9 @@ import { delay, http, HttpResponse } from 'msw'
 import { API_BASE } from '@/utils/constants'
 import { ENDPOINTS } from '@/utils/endpoints'
 import { analyzeText, failedAnalysis } from './analyzer'
-import { addAnalysis, analysesOf, createEntry, entryDetail, findEntry, listEntries, updateEntry } from './db'
-import { badEntryId, cleanLanguage, cleanText, invalid, LANGUAGES, notFound, parseListQuery, problem } from './responses'
+import { addAnalysis, analysedEntries, analysesOf, createEntry, entryDetail, findEntry, listEntries, updateEntry } from './db'
+import { computeInsights } from './insights'
+import { badEntryId, cleanLanguage, cleanText, invalid, LANGUAGES, notFound, parseLanguage, parseListQuery, problem } from './responses'
 
 // `?mock=slow|error|empty|analysis-fail` forces UI states in dev, e2e and ui-qa runs.
 const mockMode = () => (typeof location === 'undefined' ? '' : (new URLSearchParams(location.search).get('mock') ?? ''))
@@ -66,6 +67,13 @@ function history(entryId: string): Response {
   return findEntry(entryId) ? HttpResponse.json(analysesOf(entryId)) : notFound()
 }
 
+function insights(requestUrl: string): Response {
+  const language = parseLanguage(new URL(requestUrl).searchParams)
+  if (language instanceof Response) return language
+  return HttpResponse.json(computeInsights(mockMode() === 'empty' ? [] : analysedEntries(language)))
+}
+
+
 export const handlers = [
   http.get(url(ENDPOINTS.languages), async () => (await forcedResponse()) ?? HttpResponse.json(LANGUAGES)),
   http.get(url(ENDPOINTS.entries), async ({ request }) => (await forcedResponse()) ?? list(request.url)),
@@ -74,4 +82,5 @@ export const handlers = [
   http.patch(ENTRY, async ({ params, request }) => (await forcedResponse()) ?? update(String(params.entryId), await request.json())),
   http.post(ANALYSES, async ({ params }) => (await forcedResponse()) ?? analyze(String(params.entryId))),
   http.get(ANALYSES, async ({ params }) => (await forcedResponse()) ?? history(String(params.entryId))),
+  http.get(url(ENDPOINTS.insights), async ({ request }) => (await forcedResponse()) ?? insights(request.url)),
 ]
