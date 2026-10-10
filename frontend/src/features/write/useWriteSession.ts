@@ -15,15 +15,17 @@ function phaseOf(saving: boolean, entryId: string | null, analyzing: boolean): W
 // Save first, analyse second (spec §2): the entry exists before the model is called.
 export function useWriteSession(onSaved: () => void) {
   const [entryId, setEntryId] = useState<string | null>(null)
-  const [retrying, setRetrying] = useState(false)
   // A ref, not state: the second click of a double click lands before React re-renders the disabled button.
   const submitting = useRef(false)
   const create = useCreateEntryMutation()
   const analyze = useRunAnalysisMutation()
+  // A second instance so "retrying" is just its pending state, not a flag kept beside the first.
+  const reanalyze = useRunAnalysisMutation()
   const entry = useEntryQuery(entryId).data ?? null
   const analysis = entry?.latest_analysis ?? null
   // Until the first result or error arrives the entry is still being analysed, even before isPending flips.
-  const analyzing = analyze.isPending || (analysis === null && analyze.error === null)
+  const analyzeError = reanalyze.isIdle ? analyze.error : reanalyze.error
+  const analyzing = analyze.isPending || reanalyze.isPending || (analysis === null && analyzeError === null)
 
   const submit = (body: EntryCreate) => {
     if (submitting.current || entryId) return
@@ -41,13 +43,13 @@ export function useWriteSession(onSaved: () => void) {
   }
   const retry = () => {
     if (!entryId) return
-    setRetrying(true)
-    analyze.mutate(entryId, { onSettled: () => setRetrying(false) })
+    reanalyze.mutate(entryId)
   }
   const reset = () => {
     setEntryId(null)
     create.reset()
     analyze.reset()
+    reanalyze.reset()
   }
 
   return {
@@ -55,8 +57,8 @@ export function useWriteSession(onSaved: () => void) {
     analysis,
     phase: phaseOf(create.isPending, entryId, analyzing),
     saveError: create.error,
-    analyzeError: analyze.error,
-    isRetrying: retrying,
+    analyzeError,
+    isRetrying: reanalyze.isPending,
     submit,
     retry,
     reset,
