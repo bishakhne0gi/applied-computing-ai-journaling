@@ -120,3 +120,56 @@ def test_keeps_deletions_with_an_empty_correction() -> None:
     parsed = parse_analysis(_payload(_mistake(original="muy", correction="", category="other")))
 
     assert parsed.mistakes[0].correction == ""
+
+
+@pytest.mark.parametrize(
+    "wrap",
+    [
+        lambda s: f"Note {{see below}}\n{s}",
+        lambda s: f"{s}\nThat is {{it}}",
+        lambda s: f'{{"note": 1}} {s}',
+    ],
+    ids=["braces-before", "braces-after", "unrelated-object-before"],
+)
+def test_finds_the_payload_amid_stray_braces_and_objects(wrap: Any) -> None:
+    parsed = parse_analysis(wrap(_payload(_mistake())))
+
+    assert parsed.corrected_text == "Tengo el problema."
+    assert len(parsed.mistakes) == 1
+
+
+def test_first_valid_object_wins_when_two_are_present() -> None:
+    first = _payload(_mistake(), corrected_text="First.")
+    second = _payload(_mistake(), corrected_text="Second.")
+
+    parsed = parse_analysis(f"{first}\n{second}")
+
+    assert parsed.corrected_text == "First."
+
+
+@pytest.mark.parametrize(
+    "raw",
+    [
+        '{"mistakes": ' + "[" * 100000,
+        '{"mistakes": ' + "[" * 100000 + "]" * 100000 + "}",
+    ],
+    ids=["unterminated", "closed"],
+)
+def test_deeply_nested_input_raises_invalid_output(raw: str) -> None:
+    with pytest.raises(InvalidOutputError):
+        parse_analysis(raw)
+
+
+@pytest.mark.parametrize(
+    ("kind", "expected"),
+    [
+        ("Error", MistakeKind.ERROR),
+        ("Vocab Help", MistakeKind.VOCAB_HELP),
+        (" suggestion ", MistakeKind.SUGGESTION),
+    ],
+)
+def test_normalises_kind_spelling(kind: str, expected: MistakeKind) -> None:
+    parsed = parse_analysis(_payload(_mistake(kind=kind)))
+
+    assert parsed.mistakes[0].kind is expected
+    assert parsed.dropped == 0

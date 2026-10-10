@@ -32,25 +32,40 @@ def parse_analysis(raw: str) -> ParsedAnalysis:
     return ParsedAnalysis(corrected.strip(), summary.strip(), mistakes, dropped=len(items) - len(mistakes))
 
 
+_REQUIRED_KEYS = frozenset({"corrected_text", "feedback_summary", "mistakes"})
+
+
 def _load_json_object(raw: str) -> dict[str, Any]:
-    # Slicing from the first "{" to the last "}" tolerates code fences and prose around the JSON.
-    start, end = raw.find("{"), raw.rfind("}")
-    if start == -1 or end <= start:
-        raise InvalidOutputError("no JSON object found")
-    try:
-        payload = json.loads(raw[start : end + 1])
-    except json.JSONDecodeError as exc:
-        raise InvalidOutputError(f"invalid JSON: {exc.msg}") from exc
-    if not isinstance(payload, dict):
-        raise InvalidOutputError("top-level JSON must be an object")
-    return payload
+    # Try every "{" so prose with braces, or a second object, cannot hide the real payload.
+    decoder = json.JSONDecoder()
+    error = "no JSON object found"
+    start = raw.find("{")
+    while start != -1:
+        try:
+            payload, _ = decoder.raw_decode(raw, start)
+        except json.JSONDecodeError as exc:
+            error = f"invalid JSON: {exc.msg}"
+        except RecursionError:
+            raise InvalidOutputError("JSON nested too deeply") from None
+        else:
+            if isinstance(payload, dict) and payload.keys() >= _REQUIRED_KEYS:
+                return payload
+            error = "corrected_text, feedback_summary and mistakes are required"
+        start = raw.find("{", start + 1)
+    raise InvalidOutputError(error)
 
 
 def _parse_mistake(item: Any) -> Mistake | None:
     if not isinstance(item, dict):
         return None
     try:
-        mistake = Mistake.model_validate({**item, "category": _coerce_category(item.get("category"))})
+        mistake = Mistake.model_validate(
+            {
+                **item,
+                "kind": _normalise(item.get("kind")),
+                "category": _coerce_category(item.get("category")),
+            }
+        )
     except ValidationError:
         return None
     if mistake.original == mistake.correction:
@@ -60,10 +75,16 @@ def _parse_mistake(item: Any) -> Mistake | None:
     return mistake
 
 
-def _coerce_category(value: Any) -> Category:
+def _normalise(value: Any) -> Any:
     if not isinstance(value, str):
+        return value
+    return re.sub(r"[\s-]+", "_", value.strip().lower())
+
+
+def _coerce_category(value: Any) -> Category:
+    key = _normalise(value)
+    if not isinstance(key, str):
         return Category.OTHER
-    key = re.sub(r"[\s-]+", "_", value.strip().lower())
     try:
         return Category(key)
     except ValueError:
