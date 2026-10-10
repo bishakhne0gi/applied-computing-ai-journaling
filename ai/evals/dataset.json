@@ -1,0 +1,16 @@
+[
+  {"id": "es-gender-1", "language": "es", "text": "Hoy tengo la problema con mi coche.", "expected": [{"original": "la problema", "category": "gender_agreement"}]},
+  {"id": "es-ser-1", "language": "es", "text": "Ayer yo es muy cansado después del trabajo.", "expected": [{"original": "yo es", "category": "verb_conjugation"}]},
+  {"id": "es-article-1", "language": "es", "text": "Fui a el mercado para comprar fruta.", "expected": [{"original": "a el", "category": "article"}]},
+  {"id": "es-tense-1", "language": "es", "text": "Mañana fui al cine con mis amigos.", "expected": [{"original": "fui", "category": "verb_tense"}]},
+  {"id": "es-number-1", "language": "es", "text": "Mis hermanos es muy simpático.", "expected": [{"original": "es", "category": "verb_conjugation"}, {"original": "simpático", "category": "number_agreement"}]},
+  {"id": "es-preposition-1", "language": "es", "text": "Pienso de ti todos los días.", "expected": [{"original": "de", "category": "preposition"}]},
+  {"id": "es-clean-1", "language": "es", "text": "Hoy hace sol y estoy contento porque voy a la playa.", "expected": []},
+  {"id": "es-clean-2", "language": "es", "text": "Me gusta leer novelas antes de dormir.", "expected": []},
+  {"id": "fr-article-1", "language": "fr", "text": "Je suis allé à le marché ce matin.", "expected": [{"original": "à le", "category": "article"}]},
+  {"id": "fr-gender-1", "language": "fr", "text": "J'ai acheté une livre intéressant.", "expected": [{"original": "une livre", "category": "gender_agreement"}]},
+  {"id": "fr-conj-1", "language": "fr", "text": "Nous allez au cinéma ce soir.", "expected": [{"original": "allez", "category": "verb_conjugation"}]},
+  {"id": "fr-spelling-1", "language": "fr", "text": "Il fait tres beau aujourd'hui.", "expected": [{"original": "tres", "category": "spelling"}]},
+  {"id": "fr-clean-1", "language": "fr", "text": "Ce week-end, je vais rendre visite à mes grands-parents.", "expected": []},
+  {"id": "fr-clean-2", "language": "fr", "text": "J'aime beaucoup cuisiner avec des légumes frais.", "expected": []}
+]
