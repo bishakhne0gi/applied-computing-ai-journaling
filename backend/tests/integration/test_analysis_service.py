@@ -8,7 +8,7 @@ from app.core.errors import NotFoundError
 from app.db.models import AnalysisStatus
 from app.services.analyses import AnalysisService
 from app.services.entries import EntryService
-from journal_ai import Analyzer, FailureCode
+from journal_ai import AnalysisOutcome, Analyzer, FailureCode
 from journal_ai.providers.base import ProviderTimeoutError
 from journal_ai.providers.fake import FakeProvider
 from tests.support import YO_ES, model_reply
@@ -113,3 +113,34 @@ async def test_invalid_output_is_reported_to_sentry_as_a_warning(
 
     assert captured[0][0] == "analysis_invalid_output"
     assert captured[0][1]["level"] == "warning"
+    assert captured[0][1]["tags"].keys() == {"analysis_id", "prompt_version"}
+
+
+class _CrashingAnalyzer:
+    async def analyze(self, text: str, language: str) -> AnalysisOutcome:
+        raise RuntimeError(f"boom while reading {text}")
+
+
+async def test_an_analyzer_crash_leaves_a_failed_row_and_propagates(db_session: AsyncSession) -> None:
+    entry_id = await _entry_id(db_session)
+
+    with pytest.raises(RuntimeError):
+        await AnalysisService(db_session, _CrashingAnalyzer()).run(entry_id)
+
+    [stored] = await _service(db_session).list_for_entry(entry_id)
+    assert stored.status is AnalysisStatus.FAILED
+    assert stored.error_code is FailureCode.PROVIDER_ERROR
+    assert stored.error_detail == "RuntimeError"
+    assert stored.completed_at is not None
+
+
+async def test_a_failed_run_logs_no_entry_text(db_session: AsyncSession) -> None:
+    entry_id = await _entry_id(db_session, text="Mi secreto: yo es feliz.")
+
+    with capture_logs() as logs, pytest.raises(RuntimeError):
+        await AnalysisService(db_session, _CrashingAnalyzer()).run(entry_id)
+
+    line = next(log for log in logs if log["event"] == "analysis_completed")
+    assert line["status"] == "failed"
+    assert line["error_code"] == "provider_error"
+    assert "secreto" not in str(logs)

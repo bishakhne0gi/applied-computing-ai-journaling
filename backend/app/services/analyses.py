@@ -42,11 +42,26 @@ class AnalysisService:
         self._analyses.add(analysis)
         await self._session.commit()
 
-        outcome = await self._analyzer.analyze(entry.text, entry.language)
+        try:
+            outcome = await self._analyzer.analyze(entry.text, entry.language)
+        except Exception as exc:
+            # The Analyzer reports expected failures as outcomes; anything raised here is a bug or an
+            # unmapped provider error, and must not leave the committed pending row behind forever.
+            # Only the class name is stored so entry text can never leak through an exception message.
+            await self._fail(analysis, exc)
+            raise
         _apply(analysis, outcome)
         await self._session.commit()
         _report(analysis, outcome)
         return analysis
+
+    async def _fail(self, analysis: Analysis, exc: Exception) -> None:
+        analysis.status = AnalysisStatus.FAILED
+        analysis.error_code = FailureCode.PROVIDER_ERROR
+        analysis.error_detail = type(exc).__name__
+        analysis.completed_at = utcnow()
+        await self._session.commit()
+        _report(analysis, outcome=None)
 
     async def list_for_entry(self, entry_id: uuid.UUID) -> list[Analysis]:
         if await self._entries.get(entry_id) is None:
@@ -87,7 +102,18 @@ def _apply(analysis: Analysis, outcome: AnalysisOutcome) -> None:
     )
 
 
-def _report(analysis: Analysis, outcome: AnalysisOutcome) -> None:
+def _report(analysis: Analysis, outcome: AnalysisOutcome | None) -> None:
+    if outcome is None:
+        logger.info(
+            "analysis_completed",
+            analysis_id=str(analysis.id),
+            entry_id=str(analysis.entry_id),
+            status=analysis.status.value,
+            error_code=analysis.error_code.value if analysis.error_code else None,
+            error_detail=analysis.error_detail,
+            prompt_version=analysis.prompt_version,
+        )
+        return
     logger.info(
         "analysis_completed",
         analysis_id=str(analysis.id),
