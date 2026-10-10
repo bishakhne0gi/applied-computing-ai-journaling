@@ -2,7 +2,7 @@ import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { SEEDED } from '@/mocks/seed'
-import { failWith } from '@/test/helpers'
+import { failWith, setMockMode } from '@/test/helpers'
 import { ENDPOINTS } from '@/utils/endpoints'
 import { renderWithProviders } from '@/test/renderWithProviders'
 import { HistoryList } from './HistoryList'
@@ -53,6 +53,30 @@ describe('history rows', () => {
     await user.click(within(row).getByRole('button', { name: /^Retry analysis/ }))
     // Assert
     await waitFor(() => expect(within(rowContaining('Mañana voy a el cine')).getByText('1 error')).toBeInTheDocument())
+  })
+
+  it('moves focus to the row’s link and announces it when a retry succeeds', async () => {
+    // Arrange
+    const user = await renderRows()
+    const row = rowContaining('Mañana voy a el cine')
+    // Act
+    await user.click(within(row).getByRole('button', { name: /^Retry analysis/ }))
+    // Assert
+    await waitFor(() => expect(within(rowContaining('Mañana voy a el cine')).getByText('1 error')).toBeInTheDocument())
+    expect(within(rowContaining('Mañana voy a el cine')).getByRole('link')).toHaveFocus()
+    expect(within(rowContaining('Mañana voy a el cine')).getByRole('status')).toHaveTextContent('Feedback ready')
+  })
+
+  it('announces that the analysis failed again and keeps focus on the retry button', async () => {
+    // Arrange
+    const user = await renderRows()
+    setMockMode('analysis-fail')
+    const row = rowContaining('Escribo esto antes de dormir')
+    // Act
+    await user.click(within(row).getByRole('button', { name: /^Get feedback/ }))
+    // Assert
+    await waitFor(() => expect(within(row).getByRole('status')).toHaveTextContent('Analysis failed again'))
+    expect(within(row).getByRole('button', { name: /^Get feedback/ })).toHaveFocus()
   })
 
   it('mark an interrupted analysis as retryable', async () => {
