@@ -20,6 +20,12 @@
   --color-success: #15803d;
   --color-warning: #a16207;
   --color-scrim: rgb(15 23 42 / 50%);
+  --color-mark-error: #b91c1c;
+  --color-mark-error-bg: #fef2f2;
+  --color-mark-suggestion: #92400e;
+  --color-mark-suggestion-bg: #fffbeb;
+  --color-mark-vocab: #6d28d9;
+  --color-mark-vocab-bg: #f5f3ff;
 
   --radius-sm: 0.25rem;
   --radius-md: 0.5rem;
@@ -50,5 +56,11 @@
     --color-success: #4ade80;
     --color-warning: #facc15;
     --color-scrim: rgb(0 0 0 / 60%);
+    --color-mark-error: #f87171;
+    --color-mark-error-bg: #3b1219;
+    --color-mark-suggestion: #fbbf24;
+    --color-mark-suggestion-bg: #3a2a0a;
+    --color-mark-vocab: #c4b5fd;
+    --color-mark-vocab-bg: #2e1f5e;
   }
 }

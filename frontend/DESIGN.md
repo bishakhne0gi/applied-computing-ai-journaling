@@ -6,10 +6,13 @@ Three layers. Always use the lowest layer that already solves the problem.
 | Group | Token | Utility |
 |---|---|---|
 | Color roles | `--color-bg, surface, border, fg, muted, primary, primary-contrast, danger, success, warning, scrim` (modal backdrop) | `bg-surface`, `text-muted`, `border-border`, `bg-primary text-primary-contrast` |
+| Feedback marks | `--color-mark-error`, `mark-suggestion`, `mark-vocab` (+ `-bg` tints) | `bg-mark-error-bg decoration-mark-error` — kind is shown by colour **and** underline style (error wavy, suggestion dashed, word help dotted) |
 | Space / type | Tailwind default rem scale | `p-4`, `gap-3`, `text-sm`, `font-bold` |
 | Shape | `--radius-sm, md, full`, `--shadow-sm, md` | `rounded-md`, `shadow-sm` |
 | Layers | `--z-index-dropdown, sticky, overlay, toast` | `z-overlay` — never `z-10` |
 | Layout | `--container-content`, `--font-sans` | `max-w-content`, `font-sans` |
+
+Mark contrast (computed): text `fg` on each tint ≥12.6:1; underline colour on its tint ≥5.9:1 (light) / ≥5.9:1 (dark) — above the 4.5:1 text and 3:1 non-text bars.
 
 Tailwind's default palette, radius and shadow scales are wiped — only these roles exist.
 Dark mode is handled by tokens (`prefers-color-scheme`) — no `dark:` classes.
@@ -22,6 +25,9 @@ element's props, `ref` as a plain prop (React 19), Tailwind token utilities merg
 | Primitive | Variants | Notes |
 |---|---|---|
 | `TextLink` | — | React Router `Link` in the primary role, underlined; `className` merges last |
+| `Button` | `primary`, `secondary` (default), `ghost`, `inline` (highlights inside text) | the only raw `<button>`; `type="button"` by default; `min-h-11` touch target except `inline`; pointer / not-allowed cursor |
+| `Badge` | `tone`: `neutral` (default), `danger`, `success`, `warning` | status and count chips on `bg-surface` (all tones ≥4.7:1) |
+| `ErrorState` | — | `role="alert"` message + retry `Button`; `retryLabel`, `retrying` |
 
 ## 3. Composition
 Features compose primitives. Prefer compound components (`<Tabs><Tabs.List/><Tabs.Panel/></Tabs>`) and
