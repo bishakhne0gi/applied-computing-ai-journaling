@@ -13,6 +13,7 @@ Spec: `docs/superpowers/specs/2026-10-10-ai-language-journal-design.md` · Plans
 - Frontend rules: `frontend/CLAUDE.md`. Backend: `backend/CLAUDE.md`. AI: `ai/CLAUDE.md`.
 - Comments explain why, never what. No comments restating code, no commented-out code, no docstrings on obvious functions.
 - Never log entry text or send it to Sentry. Never print or commit `.env`; `.env.example` documents every variable.
+- `.env` is guarded by a PreToolUse hook (`.claude/hooks/guard-secrets.sh`); never try to work around it.
 - Failing test first. One commit per plan step, then `git push`.
 - Commits and PRs carry no AI attribution: no `Co-Authored-By` trailers, no "Generated with" lines.
 - No new dependency without a one-line reason in the commit body and the phase plan.
