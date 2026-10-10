@@ -1,7 +1,46 @@
 from collections.abc import Callable
 from contextlib import AbstractAsyncContextManager
+from datetime import datetime
 
 from fastapi import FastAPI
 from httpx import AsyncClient
 
+from app.db.models import Analysis, AnalysisStatus, Entry, Mistake
+from journal_ai import Category, MistakeKind
+
 ClientFactory = Callable[[FastAPI], AbstractAsyncContextManager[AsyncClient]]
+
+
+def entry_at(created_at: datetime, language: str = "es", text: str = "Hola mundo") -> Entry:
+    return Entry(
+        language=language,
+        text=text,
+        word_count=len(text.split()),
+        created_at=created_at,
+        updated_at=created_at,
+    )
+
+
+def analysis_for(
+    entry: Entry, *, status: AnalysisStatus, created_at: datetime, errors: int = 0, suggestions: int = 0
+) -> Analysis:
+    kinds = [MistakeKind.ERROR] * errors + [MistakeKind.SUGGESTION] * suggestions
+    mistakes = [
+        Mistake(
+            kind=kind,
+            category=Category.OTHER,
+            original="x",
+            correction="y",
+            explanation="z",
+            position=index,
+        )
+        for index, kind in enumerate(kinds)
+    ]
+    return Analysis(
+        entry=entry,
+        status=status,
+        input_text=entry.text,
+        prompt_version="v1",
+        created_at=created_at,
+        mistakes=mistakes,
+    )
