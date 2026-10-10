@@ -70,6 +70,7 @@ class AnalysisOutcome(BaseModel):
     model_config = ConfigDict(frozen=True)
 
     result: AnalysisResult | None
+    analyzed_text: str
     failure: FailureCode | None
     raw_response: str | None
     model: str

@@ -3,6 +3,7 @@ from typing import Any
 
 import pytest
 
+from journal_ai import Usage
 from journal_ai.analyzer import Analyzer
 from journal_ai.providers.base import ProviderError, ProviderTimeoutError
 from journal_ai.providers.fake import FakeProvider
@@ -97,8 +98,53 @@ async def test_text_is_normalised_before_alignment() -> None:
 
     assert outcome.result is not None
     assert outcome.result.mistakes[0].start == 5
+    assert outcome.analyzed_text == "Ayer yo es feliz."
 
 
 async def test_unsupported_language_raises() -> None:
     with pytest.raises(ValueError, match="Unsupported language"):
         await Analyzer(FakeProvider([])).analyze(TEXT, "xx")
+
+
+async def test_unexpected_provider_exception_maps_to_provider_error() -> None:
+    outcome = await Analyzer(FakeProvider([RuntimeError("boom")])).analyze(TEXT, "es")
+
+    assert outcome.failure is FailureCode.PROVIDER_ERROR
+    assert outcome.result is None
+    assert outcome.analyzed_text == TEXT
+
+
+async def test_alignment_crash_maps_to_invalid_output(monkeypatch: pytest.MonkeyPatch) -> None:
+    def _boom(*_args: Any, **_kwargs: Any) -> None:
+        raise RuntimeError("boom")
+
+    monkeypatch.setattr("journal_ai.analyzer.align_mistakes", _boom)
+
+    outcome = await Analyzer(FakeProvider([_valid()])).analyze(TEXT, "es")
+
+    assert outcome.failure is FailureCode.INVALID_OUTPUT
+    assert outcome.result is None
+    assert outcome.raw_response == _valid()
+
+
+async def test_alignment_duplicates_count_as_dropped() -> None:
+    mistake = {
+        "kind": "error",
+        "category": "spelling",
+        "original": "la problema",
+        "correction": "el problema",
+        "explanation": "Problema is masculine.",
+    }
+    body = json.dumps(
+        {"corrected_text": "el problema", "feedback_summary": "ok", "mistakes": [mistake, mistake]}
+    )
+
+    outcome = await Analyzer(FakeProvider([body])).analyze("la problema", "es")
+
+    assert outcome.result is not None
+    assert len(outcome.result.mistakes) == 1
+    assert outcome.dropped_mistakes == 1
+
+
+def test_usage_is_exported_from_the_package() -> None:
+    assert Usage().input_tokens == 0

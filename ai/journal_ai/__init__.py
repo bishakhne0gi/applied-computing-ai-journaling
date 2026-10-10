@@ -9,6 +9,7 @@ from journal_ai.schema import (
     Category,
     FailureCode,
     MistakeKind,
+    Usage,
 )
 from journal_ai.text import normalize_text
 
@@ -22,6 +23,7 @@ __all__ = [
     "Category",
     "FailureCode",
     "MistakeKind",
+    "Usage",
     "build_provider",
     "normalize_text",
 ]

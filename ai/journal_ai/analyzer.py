@@ -13,6 +13,7 @@ MAX_ATTEMPTS = 2
 
 @dataclass
 class _Run:
+    text: str
     started: float = field(default_factory=time.perf_counter)
     attempts: int = 0
     usage: Usage = field(default_factory=Usage)
@@ -24,35 +25,47 @@ class Analyzer:
         self._provider = provider
 
     async def analyze(self, text: str, language: str) -> AnalysisOutcome:
+        # Callers rely on analyze() never raising for provider or output problems; only a bad language does.
         text = normalize_text(text)
         system, user = build_messages(text, language)
-        run = _Run()
+        run = _Run(text=text)
         prompt = user
 
         while run.attempts < MAX_ATTEMPTS:
             run.attempts += 1
-            try:
-                completion = await self._provider.complete(
-                    system=system, user=prompt, schema=RESPONSE_JSON_SCHEMA
-                )
-            except ProviderTimeoutError:
-                return self._outcome(run, failure=FailureCode.PROVIDER_TIMEOUT)
-            except ProviderError:
-                return self._outcome(run, failure=FailureCode.PROVIDER_ERROR)
-
-            run.usage += completion.usage
-            run.raw_response = completion.text
-            try:
-                parsed = parse_analysis(completion.text)
-            except InvalidOutputError as exc:
-                prompt = build_retry_prompt(user, str(exc))
-                continue
-            return self._success(run, text, parsed)
+            step = await self._attempt(run, system, prompt)
+            if isinstance(step, AnalysisOutcome):
+                return step
+            prompt = build_retry_prompt(user, step)
 
         return self._outcome(run, failure=FailureCode.INVALID_OUTPUT)
 
-    def _success(self, run: _Run, text: str, parsed: ParsedAnalysis) -> AnalysisOutcome:
-        alignment = align_mistakes(text, parsed.mistakes)
+    async def _attempt(self, run: _Run, system: str, prompt: str) -> AnalysisOutcome | str:
+        """Return a finished outcome, or the parse error text when the reply should be retried."""
+        try:
+            completion = await self._provider.complete(
+                system=system, user=prompt, schema=RESPONSE_JSON_SCHEMA
+            )
+        except ProviderTimeoutError:
+            return self._outcome(run, failure=FailureCode.PROVIDER_TIMEOUT)
+        except ProviderError:
+            return self._outcome(run, failure=FailureCode.PROVIDER_ERROR)
+        except Exception:
+            return self._outcome(run, failure=FailureCode.PROVIDER_ERROR)
+
+        run.usage += completion.usage
+        run.raw_response = completion.text
+        try:
+            parsed = parse_analysis(completion.text)
+        except InvalidOutputError as exc:
+            return str(exc)
+        try:
+            return self._success(run, parsed)
+        except Exception:
+            return self._outcome(run, failure=FailureCode.INVALID_OUTPUT)
+
+    def _success(self, run: _Run, parsed: ParsedAnalysis) -> AnalysisOutcome:
+        alignment = align_mistakes(run.text, parsed.mistakes)
         result = AnalysisResult(
             corrected_text=parsed.corrected_text,
             feedback_summary=parsed.feedback_summary,
@@ -71,6 +84,7 @@ class Analyzer:
         return AnalysisOutcome(
             result=result,
             failure=failure,
+            analyzed_text=run.text,
             raw_response=run.raw_response,
             model=self._provider.model,
             prompt_version=PROMPT_VERSION,
