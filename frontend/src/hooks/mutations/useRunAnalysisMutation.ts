@@ -10,8 +10,13 @@ export function useRunAnalysisMutation() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (entryId: string) => client.post(ENDPOINTS.analyses(entryId)).json<AnalysisOut>(),
-    onSuccess: (analysis) => {
+    onSuccess: async (analysis) => {
       const id = analysis.entry_id
+      // An older refetch still in flight would land after the write below and restore the previous analysis.
+      await Promise.all([
+        queryClient.cancelQueries({ queryKey: journalKeys.entry(id), exact: true }),
+        queryClient.cancelQueries({ queryKey: journalKeys.analyses(id), exact: true }),
+      ])
       // Written straight into the cache so the new feedback shows without a flash of the previous analysis.
       queryClient.setQueryData<EntryDetailOut>(journalKeys.entry(id), (old) => old && { ...old, latest_analysis: analysis })
       queryClient.setQueryData<AnalysisOut[]>(journalKeys.analyses(id), (old) => old && [analysis, ...old])

@@ -1,12 +1,14 @@
 import { act, waitFor } from '@testing-library/react'
+import { delay, http, HttpResponse } from 'msw'
 import { describe, expect, it } from 'vitest'
 import { journalKeys } from '@/hooks/queries/journalKeys'
 import { useAnalysesQuery } from '@/hooks/queries/useAnalysesQuery'
 import { useEntriesQuery } from '@/hooks/queries/useEntriesQuery'
 import { useEntryQuery } from '@/hooks/queries/useEntryQuery'
 import { SEEDED } from '@/mocks/seed'
-import { failWith, setMockMode } from '@/test/helpers'
+import { apiUrl, failWith, setMockMode } from '@/test/helpers'
 import { renderHookWithProviders } from '@/test/renderWithProviders'
+import { server } from '@/test/server'
 import { ENDPOINTS } from '@/utils/endpoints'
 import type { AnalysisOut } from '@/types/analysis'
 import type { EntryDetailOut } from '@/types/entry'
@@ -75,6 +77,27 @@ describe('mutation hooks', () => {
     // Assert
     expect(client.getQueryData<EntryDetailOut>(journalKeys.entry(id))?.latest_analysis?.id).toBe(analysis.id)
     expect(client.getQueryData<AnalysisOut[]>(journalKeys.analyses(id))?.map((item) => item.id)).toEqual([analysis.id])
+  })
+
+  it('an entry refetch still in flight cannot overwrite the new analysis with a stale one', async () => {
+    // Arrange
+    const id = SEEDED.unanalysed
+    const detail: EntryDetailOut = { id, language: 'es', text: 'Escribo', word_count: 1, created_at: '', updated_at: '', latest_analysis: null }
+    server.use(
+      http.get(apiUrl(ENDPOINTS.entry(id)), async () => {
+        await delay(200)
+        return HttpResponse.json(detail)
+      }),
+    )
+    const { result, client } = renderHookWithProviders(() => ({ entry: useEntryQuery(id), analyze: useRunAnalysisMutation() }))
+    await waitFor(() => expect(result.current.entry.isSuccess).toBe(true))
+    const staleRefetch = client.refetchQueries({ queryKey: journalKeys.entry(id), exact: true })
+    // Act
+    const analysis = await act(() => result.current.analyze.mutateAsync(id))
+    await staleRefetch
+    await delay(300)
+    // Assert
+    expect(client.getQueryData<EntryDetailOut>(journalKeys.entry(id))?.latest_analysis?.id).toBe(analysis.id)
   })
 
   it('updating an entry refreshes the history list', async () => {
