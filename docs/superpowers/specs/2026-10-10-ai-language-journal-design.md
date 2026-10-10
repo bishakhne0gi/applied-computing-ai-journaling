@@ -156,7 +156,7 @@ expected-mistake recall, category accuracy, false-positive rate, p50 latency; op
 
 Kit conventions: `components/` pure library · `features/` composition · data only via `hooks/queries|mutations` ·
 semantic Tailwind tokens · loading/empty/error/ready states · keyboard operable · 375px and 1280px ·
-`prefers-reduced-motion`. React Router for three routes. MSW mocks back dev and tests (`?mock=error|empty|slow`).
+`prefers-reduced-motion`. React Router for three routes. MSW mocks back dev and tests (`?mock=error|empty|slow|analysis-fail`).
 
 **Write (`/`)** — language picker (last used remembered), textarea with live word count and bracket hint, draft
 autosaved to localStorage, "Get feedback" (button or ⌘/Ctrl+Enter) → create then analyze; disabled while pending;
@@ -241,5 +241,5 @@ Each phase: failing tests first, small commits per step, `make verify` output sh
 
 `DATABASE_URL, AI_PROVIDER (anthropic|fake), AI_MODEL, AI_EFFORT, AI_TIMEOUT_SECONDS, ANTHROPIC_API_KEY,
 LOG_LEVEL, LOG_FORMAT (json|console), SENTRY_DSN, SENTRY_ENVIRONMENT, RELEASE,
-LANGFUSE_PUBLIC_KEY, LANGFUSE_SECRET_KEY, LANGFUSE_HOST, CORS_ORIGINS`; frontend `VITE_API_BASE_URL,
+LANGFUSE_PUBLIC_KEY, LANGFUSE_SECRET_KEY, LANGFUSE_HOST, CORS_ORIGINS`; frontend `VITE_API_BASE, VITE_API_MOCKS,
 VITE_SENTRY_DSN`. `.env.example` documents all; Compose defaults to `AI_PROVIDER=fake` when no key is set.
