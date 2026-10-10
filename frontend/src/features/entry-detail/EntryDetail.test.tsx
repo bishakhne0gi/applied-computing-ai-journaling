@@ -74,7 +74,9 @@ describe('EntryDetail', () => {
     // Arrange + Act
     renderDetail('ffffffff-ffff-4fff-8fff-ffffffffffff')
     // Assert
-    expect(await screen.findByRole('alert')).toHaveTextContent("We couldn't find that entry.")
+    expect(await screen.findByText("We couldn't find that entry. It may have been removed.")).toBeInTheDocument()
+    // The route already moves focus to the heading, which announces this; a second alert would read it twice.
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   })
 
   it.each([
