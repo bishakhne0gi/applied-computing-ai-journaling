@@ -46,11 +46,9 @@ async def list_entries(
 @router.get("/{entry_id}", response_model=EntryDetailOut)
 async def get_entry(entry_id: uuid.UUID, service: EntryServiceDep) -> EntryDetailOut:
     entry, latest = await service.get_detail(entry_id)
-    return EntryDetailOut.model_validate(
-        {
-            **EntryOut.model_validate(entry).model_dump(),
-            "latest_analysis": AnalysisOut.model_validate(latest) if latest else None,
-        }
+    return EntryDetailOut(
+        **EntryOut.model_validate(entry).model_dump(),
+        latest_analysis=AnalysisOut.model_validate(latest) if latest else None,
     )
 
 
