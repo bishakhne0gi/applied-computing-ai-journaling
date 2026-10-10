@@ -45,4 +45,35 @@ describe('useLocalStorage', () => {
     // Assert
     expect(result.current[0]).toBe('hola')
   })
+
+  it('reports whether the last write reached storage', () => {
+    // Arrange
+    const { result } = renderHook(() => useLocalStorage('k'))
+    const setItem = vi.spyOn(Storage.prototype, 'setItem')
+    // Act
+    act(() => result.current[1]('hola'))
+    const afterGoodWrite = result.current[2]
+    setItem.mockImplementation(() => {
+      throw new Error('QuotaExceededError')
+    })
+    act(() => result.current[1]('adiós'))
+    // Assert
+    expect(afterGoodWrite).toBe(true)
+    expect(result.current[2]).toBe(false)
+  })
+
+  it('recovers when a later write succeeds', () => {
+    // Arrange
+    const setItem = vi.spyOn(Storage.prototype, 'setItem').mockImplementationOnce(() => {
+      throw new Error('QuotaExceededError')
+    })
+    const { result } = renderHook(() => useLocalStorage('k'))
+    act(() => result.current[1]('hola'))
+    expect(result.current[2]).toBe(false)
+    // Act
+    act(() => result.current[1]('hola otra vez'))
+    // Assert
+    expect(setItem).toHaveBeenCalledTimes(2)
+    expect(result.current[2]).toBe(true)
+  })
 })

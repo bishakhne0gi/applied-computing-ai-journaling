@@ -1,6 +1,7 @@
 import { useId, useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { useFocusOnMount } from '@/hooks/misc/useFocusOnMount'
+import { isSubmittableEntry } from '@/utils/text'
 import { toErrorMessage } from '@/utils/errorMessage'
 import { EntryTextField } from './EntryTextField'
 import { useReviseEntry } from './useReviseEntry'
@@ -17,7 +18,7 @@ export function ReviseEditor({ entryId, initialText, onDone, onCancel }: ReviseE
   const revise = useReviseEntry(entryId)
   const fieldId = useId()
   const focusRef = useFocusOnMount<HTMLTextAreaElement>()
-  const canSubmit = text.trim() !== '' && !revise.isPending
+  const canSubmit = isSubmittableEntry(text) && !revise.isPending
   const submit = () => {
     if (canSubmit) revise.submit(text, onDone)
   }

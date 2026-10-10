@@ -2,6 +2,7 @@ import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { listEntries } from '@/mocks/db'
+import { seedStore } from '@/mocks/seed'
 import { failWith, setMockMode, slowDown, waitForLanguages } from '@/test/helpers'
 import { renderWithProviders } from '@/test/renderWithProviders'
 import { STORAGE_KEYS } from '@/utils/constants'
@@ -52,7 +53,7 @@ describe('WriteScreen submitting', () => {
     await user.dblClick(getFeedback())
     await screen.findByRole('heading', { name: 'Feedback' })
     // Assert
-    expect(listEntries(null, null, 50)?.items).toHaveLength(15)
+    expect(listEntries(null, null, 50)?.items).toHaveLength(seedStore().entries.length + 1)
   })
 
   it('keeps the entry and offers a retry when the analysis fails', async () => {

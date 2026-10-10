@@ -21,9 +21,9 @@ export function WriteScreen() {
 
   return (
     <div className="flex flex-col gap-4">
-      <WriteStatus phase={phase} hasDraft={draft.text.trim() !== ''} />
+      <WriteStatus phase={phase} hasDraft={draft.text.trim() !== ''} draftPersisted={draft.persisted} />
       {succeeded && entry && analysis ? (
-        <RevisableFeedback entry={entry} analysis={analysis} extraActions={newEntryButton} />
+        <RevisableFeedback entry={entry} analysis={analysis} extraActions={newEntryButton} focusFeedback />
       ) : (
         <WriteEditor draft={draft} session={session} focusOnMount={focusEditor} newEntryButton={newEntryButton} />
       )}

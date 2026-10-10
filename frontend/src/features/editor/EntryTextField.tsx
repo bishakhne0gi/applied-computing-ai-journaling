@@ -3,7 +3,8 @@ import { Field } from '@/components/ui/Field'
 import { Textarea } from '@/components/ui/Textarea'
 import { MAX_ENTRY_CHARS } from '@/utils/constants'
 import { pluralize } from '@/utils/formatter'
-import { countWords } from '@/utils/text'
+import { countWords, entryLength } from '@/utils/text'
+import { cn } from '@/utils/utils'
 
 export interface EntryTextFieldProps {
   id: string
@@ -18,8 +19,12 @@ export interface EntryTextFieldProps {
 export function EntryTextField({ id, label, value, onChange, onSubmitShortcut, readOnly = false, textareaRef }: EntryTextFieldProps) {
   const hintId = `${id}-hint`
   const countId = `${id}-count`
+  const overId = `${id}-over`
+  const length = entryLength(value)
+  const over = length - MAX_ENTRY_CHARS
   const onKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (event.key !== 'Enter' || !(event.metaKey || event.ctrlKey)) return
+    // Enter confirms an IME candidate while composing; treating it as submit would send half-typed text.
+    if (event.nativeEvent.isComposing || event.key !== 'Enter' || !(event.metaKey || event.ctrlKey)) return
     event.preventDefault()
     onSubmitShortcut()
   }
@@ -30,15 +35,23 @@ export function EntryTextField({ id, label, value, onChange, onSubmitShortcut, r
         ref={textareaRef}
         value={value}
         readOnly={readOnly}
-        maxLength={MAX_ENTRY_CHARS}
-        aria-describedby={`${hintId} ${countId}`}
+        aria-describedby={over > 0 ? `${hintId} ${countId} ${overId}` : `${hintId} ${countId}`}
+        aria-invalid={over > 0}
         onChange={(event) => onChange(event.target.value)}
         onKeyDown={onKeyDown}
       />
       <div className="flex flex-wrap justify-between gap-2 text-sm text-muted">
         <p id={hintId}>Stuck on a word? Write it in English in [brackets] and the feedback will suggest it.</p>
-        <p id={countId}>{pluralize(countWords(value), 'word')}</p>
+        <p id={countId} className="flex gap-3">
+          <span>{pluralize(countWords(value), 'word')}</span>
+          <span className={cn(over > 0 && 'font-medium text-danger')}>{`${length} / ${MAX_ENTRY_CHARS}`}</span>
+        </p>
       </div>
+      {over > 0 && (
+        <p id={overId} className="text-sm text-danger">
+          {`${pluralize(over, 'character')} too long — shorten the entry to get feedback.`}
+        </p>
+      )}
     </Field>
   )
 }

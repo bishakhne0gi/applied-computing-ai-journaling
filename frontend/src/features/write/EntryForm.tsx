@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/Button'
 import { EntryTextField } from '@/features/editor/EntryTextField'
 import { LanguageSelect } from '@/features/languages/LanguageSelect'
+import { isSubmittableEntry } from '@/utils/text'
 import { useFocusOnMount } from '@/hooks/misc/useFocusOnMount'
 import type { WritePhase } from './useWriteSession'
 
@@ -24,7 +25,7 @@ export interface EntryFormProps {
 export function EntryForm({ language, onLanguageChange, text, onTextChange, phase, focusOnMount, onSubmit }: EntryFormProps) {
   const focusRef = useFocusOnMount<HTMLTextAreaElement>()
   const locked = phase !== 'editing'
-  const canSubmit = !locked && language !== '' && text.trim() !== ''
+  const canSubmit = !locked && language !== '' && isSubmittableEntry(text)
   const submit = () => {
     if (canSubmit) onSubmit()
   }

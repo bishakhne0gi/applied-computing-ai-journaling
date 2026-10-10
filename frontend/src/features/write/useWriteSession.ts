@@ -15,6 +15,7 @@ function phaseOf(saving: boolean, entryId: string | null, analyzing: boolean): W
 // Save first, analyse second (spec §2): the entry exists before the model is called.
 export function useWriteSession(onSaved: () => void) {
   const [entryId, setEntryId] = useState<string | null>(null)
+  const [retrying, setRetrying] = useState(false)
   // A ref, not state: the second click of a double click lands before React re-renders the disabled button.
   const submitting = useRef(false)
   const create = useCreateEntryMutation()
@@ -39,7 +40,9 @@ export function useWriteSession(onSaved: () => void) {
     })
   }
   const retry = () => {
-    if (entryId) analyze.mutate(entryId)
+    if (!entryId) return
+    setRetrying(true)
+    analyze.mutate(entryId, { onSettled: () => setRetrying(false) })
   }
   const reset = () => {
     setEntryId(null)
@@ -53,6 +56,7 @@ export function useWriteSession(onSaved: () => void) {
     phase: phaseOf(create.isPending, entryId, analyzing),
     saveError: create.error,
     analyzeError: analyze.error,
+    isRetrying: retrying,
     submit,
     retry,
     reset,

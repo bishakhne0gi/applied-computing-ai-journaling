@@ -1,5 +1,6 @@
 import { useCallback, useId, useRef, useState, type ReactNode } from 'react'
 import { Button } from '@/components/ui/Button'
+import { useFocusOnMount } from '@/hooks/misc/useFocusOnMount'
 import type { AnalysisOut, MistakeOut } from '@/types/analysis'
 import { AnnotatedText } from './AnnotatedText'
 import { Legend } from './Legend'
@@ -10,14 +11,16 @@ import { placeMistakes } from './segmentText'
 export interface FeedbackViewProps {
   analysis: AnalysisOut
   actions?: ReactNode
+  focusHeading?: boolean
 }
 
 // Callers key this by analysis id, so switching analyses resets the open panel and the toggle.
-export function FeedbackView({ analysis, actions }: FeedbackViewProps) {
+export function FeedbackView({ analysis, actions, focusHeading = false }: FeedbackViewProps) {
   const [selected, setSelected] = useState<MistakeOut | null>(null)
   const [showCorrected, setShowCorrected] = useState(false)
   const triggerRef = useRef<HTMLButtonElement | null>(null)
   const headingId = useId()
+  const headingRef = useFocusOnMount<HTMLHeadingElement>()
   const panelId = useId()
   const { placed, unplaced } = placeMistakes(analysis.input_text, analysis.mistakes)
 
@@ -37,7 +40,7 @@ export function FeedbackView({ analysis, actions }: FeedbackViewProps) {
 
   return (
     <section aria-labelledby={headingId} className="flex flex-col gap-4">
-      <h2 id={headingId} className="text-xl font-semibold">
+      <h2 id={headingId} ref={focusHeading ? headingRef : undefined} tabIndex={-1} className="text-xl font-semibold">
         Feedback
       </h2>
       <p>{analysis.feedback_summary}</p>

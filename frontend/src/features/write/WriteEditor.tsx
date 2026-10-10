@@ -31,9 +31,9 @@ export function WriteEditor({ draft, session, focusOnMount, newEntryButton }: Wr
           {toErrorMessage(session.saveError)} Your draft is still here.
         </p>
       ) : null}
-      {phase === 'done' && (
+      {(phase === 'done' || session.isRetrying) && (
         <div className="flex flex-col items-start gap-3">
-          <AnalysisFailure analysis={session.analysis} requestError={session.analyzeError} isRetrying={false} onRetry={session.retry} />
+          <AnalysisFailure analysis={session.analysis} requestError={session.analyzeError} isRetrying={session.isRetrying} onRetry={session.retry} />
           {newEntryButton}
         </div>
       )}
