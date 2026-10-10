@@ -1,0 +1,24 @@
+@import './tokens.css';
+
+@layer base {
+  body {
+    margin: 0;
+    font-family: var(--font-sans);
+    color: var(--color-fg);
+    background: var(--color-bg);
+  }
+
+  :focus-visible {
+    outline: 0.125rem solid var(--color-primary);
+    outline-offset: 0.125rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    /* stylelint-disable-next-line declaration-no-important -- user preference must win */
+    animation-duration: 0s !important;
+    /* stylelint-disable-next-line declaration-no-important -- user preference must win */
+    transition-duration: 0s !important;
+  }
+}
