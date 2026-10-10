@@ -1,0 +1,53 @@
+[project]
+name = "applied-computing-journal"
+version = "0.1.0"
+requires-python = ">=3.13"
+dependencies = ["journal-ai", "journal-backend"]
+
+[tool.uv]
+package = false
+
+[tool.uv.workspace]
+members = ["ai", "backend"]
+
+[tool.uv.sources]
+journal-ai = { workspace = true }
+journal-backend = { workspace = true }
+
+[tool.ruff]
+line-length = 110
+target-version = "py313"
+extend-exclude = ["frontend"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "C90", "N", "ASYNC", "S", "RUF", "PT", "TID", "PL", "ARG", "RET"]
+# ARG002: unused method args are Protocol conformance.
+ignore = ["PLR0913", "ARG002"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[tool.ruff.lint.per-file-ignores]
+"**/tests/**" = ["S101", "PLR2004", "ARG001"]
+"backend/migrations/**" = ["N999", "E501"]
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
+plugins = ["pydantic.mypy"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+addopts = "--import-mode=importlib -q"
+pythonpath = ["backend"]
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28.1",
+    "import-linter>=2.15",
+    "mypy>=2.4.0",
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+    "pytest-cov>=7.1.0",
+    "ruff>=0.17.0",
+]
