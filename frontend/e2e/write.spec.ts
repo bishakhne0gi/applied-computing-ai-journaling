@@ -80,3 +80,50 @@ test('a draft survives a reload', async ({ page }) => {
   await expect(page.getByLabel('Your entry')).toHaveValue(ENTRY)
   await expect(page.getByRole('status')).toHaveText('Draft kept on this device')
 })
+
+test('Ctrl/⌘+Enter submits from the text box and focus lands on the feedback', async ({ page }) => {
+  // Arrange
+  await writeEntry(page)
+  await page.getByLabel('Your entry').press('ControlOrMeta+Enter')
+  // Act
+  const heading = page.getByRole('heading', { name: 'Feedback' })
+  // Assert
+  await expect(heading).toBeFocused()
+  await expectHealthy(page)
+})
+
+test('"New entry" starts a fresh, focused editor', async ({ page }) => {
+  // Arrange
+  await writeEntry(page)
+  await page.getByRole('button', { name: 'Get feedback' }).click()
+  await expect(page.getByRole('heading', { name: 'Feedback' })).toBeVisible()
+  // Act
+  await page.getByRole('button', { name: 'New entry' }).click()
+  // Assert
+  await expect(page.getByLabel('Your entry')).toHaveValue('')
+  await expect(page.getByLabel('Your entry')).toBeFocused()
+  await expect(page.getByRole('button', { name: 'Get feedback' })).toBeDisabled()
+  await expectHealthy(page)
+})
+
+test('the language last used is remembered across a reload', async ({ page }) => {
+  // Arrange
+  await page.goto('/')
+  await page.getByLabel('Language').selectOption('de')
+  // Act
+  await page.reload()
+  // Assert
+  await expect(page.getByLabel('Language')).toHaveValue('de')
+  await expectHealthy(page)
+})
+
+test('an entry over the limit explains itself and cannot be submitted', async ({ page }) => {
+  // Arrange
+  await page.goto('/')
+  // Act
+  await page.getByLabel('Your entry').fill('a'.repeat(5001))
+  // Assert
+  await expect(page.getByText('1 character too long', { exact: false })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Get feedback' })).toBeDisabled()
+  await expectHealthy(page)
+})

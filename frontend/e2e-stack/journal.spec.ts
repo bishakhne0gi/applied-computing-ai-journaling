@@ -26,3 +26,35 @@ test('the real stack saves an entry, returns demo feedback and lists it in histo
   await expect(page.getByText(DEMO_SUMMARY)).toBeVisible()
   await expectNoA11yViolations(page)
 })
+
+test('the real stack keeps a revision and the analysis it replaced', async ({ page }, testInfo) => {
+  // Arrange — unique per run and project, like the first journey.
+  const tag = `(${testInfo.project.name} ${Date.now()})`
+  const original = `Ayer yo es feliz. ${tag}`
+  const revised = `Hoy la problema es grande. ${tag}`
+  await page.goto('/')
+  await page.getByLabel('Language').selectOption('es')
+  await page.getByLabel('Your entry').fill(original)
+  await page.getByRole('button', { name: 'Get feedback' }).click()
+  await expect(page.getByRole('button', { name: /yo es/ })).toBeVisible()
+  // Act
+  await page.getByRole('button', { name: 'Revise & re-check' }).click()
+  await page.getByLabel('Revise your entry').fill(revised)
+  await page.getByRole('button', { name: 'Re-check' }).click()
+  await expect(page.getByRole('button', { name: /la problema/ })).toBeVisible()
+  await page.reload()
+  await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'History' }).click()
+  await page.getByRole('listitem').filter({ hasText: tag }).getByRole('link').click()
+  // Assert
+  await expect(page.getByRole('button', { name: /la problema/ })).toBeVisible()
+  const options = page.getByLabel('Analysis').getByRole('option')
+  await expect(options).toHaveCount(2)
+  await expect(options.first()).toContainText('(latest)')
+  await expect(options.last()).not.toContainText('(latest)')
+  await expectNoA11yViolations(page)
+  await page.getByLabel('Analysis').selectOption({ index: 1 })
+  await expect(page.getByRole('button', { name: /yo es/ })).toBeVisible()
+  await expect(page.getByRole('region', { name: 'Feedback' })).toContainText(original)
+  await expectNoA11yViolations(page)
+  await expectButtonsShowPointer(page)
+})

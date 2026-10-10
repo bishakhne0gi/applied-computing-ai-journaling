@@ -38,3 +38,27 @@ test('history shows an empty state when there are no entries', async ({ page }) 
   await expect(link).toBeVisible()
   await expectHealthy(page)
 })
+
+test('an interrupted analysis is flagged in History and can be retried in place', async ({ page }) => {
+  // Arrange
+  await page.goto('/entries')
+  const row = page.getByRole('listitem').filter({ hasText: 'Hier, je suis allé' })
+  await expect(row.getByText('Analysis interrupted')).toBeVisible()
+  await expectHealthy(page)
+  // Act
+  await row.getByRole('button', { name: /^Retry analysis/ }).click()
+  // Assert
+  await expect(row.getByText('1 error')).toBeVisible()
+  await expect(row.getByRole('button', { name: /^Retry analysis/ })).toBeHidden()
+  await expectHealthy(page)
+})
+
+test('an unknown entry offers the way back to History', async ({ page }) => {
+  // Arrange
+  await page.goto('/entries/ffffffff-ffff-4fff-8fff-ffffffffffff')
+  // Act
+  await page.getByRole('link', { name: 'Back to history' }).click()
+  // Assert
+  await expect(page.getByRole('heading', { level: 1, name: 'History' })).toBeFocused()
+  await expectHealthy(page)
+})
