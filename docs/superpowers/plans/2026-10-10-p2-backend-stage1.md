@@ -1742,6 +1742,7 @@ In `backend/app/main.py`: add imports `from app.api.v1 import api_router` and `f
             model=settings.ai_model,
             effort=settings.ai_effort,
             timeout_seconds=settings.ai_timeout_seconds,
+            workspace_id=settings.anthropic_workspace_id,
         )
     )
     app.include_router(health.router)
