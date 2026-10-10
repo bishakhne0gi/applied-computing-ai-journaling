@@ -51,7 +51,13 @@
       "Bash(pnpm -C frontend add:*)",
       "Bash(pnpm -C frontend remove:*)",
       "Bash(pnpm -C frontend up:*)",
-      "Bash(pnpm -C frontend update:*)"
+      "Bash(pnpm -C frontend update:*)",
+      "Bash(pnpm -C frontend install:*)",
+      "Bash(pnpm -C frontend i:*)",
+      "Bash(pnpm -C frontend rm:*)",
+      "Bash(pnpm -C frontend uninstall:*)",
+      "Bash(pnpm -C frontend un:*)",
+      "Bash(pnpm -C frontend upgrade:*)"
     ],
     "deny": [
       "Bash(git push --force:*)",
@@ -63,14 +69,13 @@
       "Read(**/.env.local)",
       "Read(**/.env.production)",
       "Read(**/.env.development)",
-      "Bash(cat .env:*)",
-      "Bash(head .env:*)",
-      "Bash(tail .env:*)",
-      "Bash(less .env:*)",
       "Bash(git push --force-with-lease:*)",
       "Bash(git push origin main --force:*)",
       "Bash(git push origin main -f:*)",
-      "Bash(git push origin --force:*)"
+      "Bash(git push origin --force:*)",
+      "Bash(head .env)",
+      "Bash(tail .env)",
+      "Bash(less .env)"
     ]
   },
   "hooks": {
