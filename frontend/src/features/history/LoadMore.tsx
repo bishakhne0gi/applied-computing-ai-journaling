@@ -4,9 +4,10 @@ import { toErrorMessage } from '@/utils/errorMessage'
 
 export interface LoadMoreProps {
   entries: ReturnType<typeof useEntriesQuery>
+  onLoadMore: () => void
 }
 
-export function LoadMore({ entries }: LoadMoreProps) {
+export function LoadMore({ entries, onLoadMore }: LoadMoreProps) {
   if (!entries.hasNextPage) return null
   return (
     <div className="flex flex-col items-start gap-2">
@@ -15,7 +16,7 @@ export function LoadMore({ entries }: LoadMoreProps) {
           {toErrorMessage(entries.error)}
         </p>
       )}
-      <Button onClick={() => void entries.fetchNextPage()} disabled={entries.isFetchingNextPage}>
+      <Button onClick={onLoadMore} disabled={entries.isFetchingNextPage}>
         {entries.isFetchingNextPage ? 'Loading…' : 'Load more'}
       </Button>
     </div>

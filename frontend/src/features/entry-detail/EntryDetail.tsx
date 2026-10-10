@@ -6,6 +6,8 @@ import { useEntryQuery } from '@/hooks/queries/useEntryQuery'
 import type { AnalysisOut } from '@/types/analysis'
 import type { EntryDetailOut } from '@/types/entry'
 import { toErrorMessage } from '@/utils/errorMessage'
+import { EntryNotFound } from './EntryNotFound'
+import { isMissing } from './isMissing'
 import { AnalysisSwitcher } from './AnalysisSwitcher'
 import { DetailAnalysis } from './DetailAnalysis'
 import { EntryHeader } from './EntryHeader'
@@ -30,8 +32,14 @@ function EntryDetailReady({ entry, analyses }: { entry: EntryDetailOut; analyses
 export function EntryDetail({ entryId }: EntryDetailProps) {
   const entry = useEntryQuery(entryId)
   const analyses = useAnalysesQuery(entryId)
-  if (entry.isError) return <ErrorState message={toErrorMessage(entry.error)} onRetry={() => void entry.refetch()} />
-  if (analyses.isError) return <ErrorState message={toErrorMessage(analyses.error)} onRetry={() => void analyses.refetch()} />
-  if (entry.isPending || analyses.isPending) return <LoadingState label="Loading entry…" />
+  // Cached data outranks a failed background refresh: only a first load with nothing to show is an error screen.
+  if (entry.isError && !entry.data) {
+    if (isMissing(entry.error)) return <EntryNotFound />
+    return <ErrorState message={toErrorMessage(entry.error)} onRetry={() => void entry.refetch()} />
+  }
+  if (analyses.isError && !analyses.data) {
+    return <ErrorState message={toErrorMessage(analyses.error)} onRetry={() => void analyses.refetch()} />
+  }
+  if (!entry.data || !analyses.data) return <LoadingState label="Loading entry…" />
   return <EntryDetailReady entry={entry.data} analyses={analyses.data} />
 }

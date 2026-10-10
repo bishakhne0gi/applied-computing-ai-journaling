@@ -7,6 +7,7 @@ import { toErrorMessage } from '@/utils/errorMessage'
 import { pluralize } from '@/utils/formatter'
 import { EntryRow } from './EntryRow'
 import { LoadMore } from './LoadMore'
+import { useFocusNewRows } from './useFocusNewRows'
 
 export interface HistoryResultsProps {
   entries: ReturnType<typeof useEntriesQuery>
@@ -14,6 +15,7 @@ export interface HistoryResultsProps {
 }
 
 export function HistoryResults({ entries, filtered }: HistoryResultsProps) {
+  const { listRef, expectRowsAfter } = useFocusNewRows(entries.data?.length ?? 0)
   if (entries.isPending) return <LoadingState label="Loading entries…" />
   // With pages already loaded, a failed "Load more" is reported next to its button instead.
   if (entries.isError && !entries.data) {
@@ -29,7 +31,7 @@ export function HistoryResults({ entries, filtered }: HistoryResultsProps) {
   }
   return (
     <div className="flex flex-col gap-4">
-      <ul aria-label="Entries" className="flex flex-col gap-3">
+      <ul ref={listRef} aria-label="Entries" className="flex flex-col gap-3">
         {items.map((entry) => (
           <EntryRow key={entry.id} entry={entry} />
         ))}
@@ -37,7 +39,13 @@ export function HistoryResults({ entries, filtered }: HistoryResultsProps) {
       <p role="status" className="text-sm text-muted">
         Showing {pluralize(items.length, 'entry', 'entries')}
       </p>
-      <LoadMore entries={entries} />
+      <LoadMore
+        entries={entries}
+        onLoadMore={() => {
+          expectRowsAfter(items.length)
+          void entries.fetchNextPage()
+        }}
+      />
     </div>
   )
 }

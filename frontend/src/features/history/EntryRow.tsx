@@ -1,4 +1,3 @@
-import { useId } from 'react'
 import { Link } from 'react-router'
 import { Badge } from '@/components/ui/Badge'
 import { useLanguageName } from '@/features/languages/useLanguageName'
@@ -21,11 +20,9 @@ function EntryStatus({ entry }: EntryRowProps) {
 
 export function EntryRow({ entry }: EntryRowProps) {
   const languageName = useLanguageName(entry.language)
-  // The row's link describes its retry button, so several "Retry analysis" buttons stay distinguishable.
-  const linkId = useId()
   return (
     <li className="flex flex-col gap-3 rounded-md border border-border p-4 md:flex-row md:items-center md:justify-between">
-      <Link id={linkId} to={`/entries/${entry.id}`} className="flex min-w-0 flex-col gap-1 hover:underline">
+      <Link to={`/entries/${entry.id}`} className="flex min-w-0 flex-col gap-1 hover:underline">
         <span className="text-sm text-muted">
           {formatDateTime(entry.created_at)} · {languageName}
         </span>
@@ -34,7 +31,7 @@ export function EntryRow({ entry }: EntryRowProps) {
       <div className="flex shrink-0 flex-wrap items-center gap-2">
         <EntryStatus entry={entry} />
         {entry.latest_status !== 'succeeded' && (
-          <RetryAnalysisButton entryId={entry.id} label={entry.latest_status === null ? 'Get feedback' : 'Retry analysis'} describedBy={linkId} />
+          <RetryAnalysisButton entryId={entry.id} label={entry.latest_status === null ? 'Get feedback' : 'Retry analysis'} preview={entry.preview} />
         )}
       </div>
     </li>

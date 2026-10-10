@@ -1,7 +1,13 @@
-import { screen, within } from '@testing-library/react'
+import { act, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
+import { http, HttpResponse } from 'msw'
+import { journalKeys } from '@/hooks/queries/journalKeys'
+import { analysesOf } from '@/mocks/db'
 import { SEEDED } from '@/mocks/seed'
+import { apiUrl, failWith } from '@/test/helpers'
+import { server } from '@/test/server'
+import { ENDPOINTS } from '@/utils/endpoints'
 import { renderWithProviders } from '@/test/renderWithProviders'
 import { EntryDetail } from './EntryDetail'
 
@@ -30,6 +36,7 @@ describe('EntryDetail', () => {
     await user.selectOptions(switcher, older?.value ?? '')
     // Assert
     expect(await screen.findByRole('button', { name: /à le/ })).toBeInTheDocument()
+    expect(screen.getByRole('region', { name: 'Feedback' })).toHaveTextContent('Je suis allé à le marché avec ma sœur.')
   })
 
   it('retries a failed analysis', async () => {
@@ -70,6 +77,44 @@ describe('EntryDetail', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent("We couldn't find that entry.")
   })
 
+  it.each([
+    ['a missing entry', 'ffffffff-ffff-4fff-8fff-ffffffffffff'],
+    ['an id that is not a UUID', 'not-an-id'],
+  ])('offers the way back to History, not a retry, for %s', async (_label, id) => {
+    // Arrange + Act
+    renderDetail(id)
+    // Assert
+    expect(await screen.findByRole('link', { name: 'Back to history' })).toHaveAttribute('href', '/entries')
+    expect(screen.queryByRole('button', { name: 'Try again' })).not.toBeInTheDocument()
+  })
+
+  it('keeps showing the entry when a background refresh fails', async () => {
+    // Arrange
+    const { client } = renderWithProviders(<EntryDetail entryId={SEEDED.revisedFrench} />)
+    await screen.findByText('Great job — no mistakes found!')
+    failWith('get', ENDPOINTS.entry(':entryId'))
+    failWith('get', ENDPOINTS.analyses(':entryId'))
+    // Act
+    await act(() => client.refetchQueries({ queryKey: journalKeys.entry(SEEDED.revisedFrench) }))
+    await waitFor(() => expect(client.getQueryState(journalKeys.entry(SEEDED.revisedFrench))?.status).toBe('error'))
+    // Assert
+    expect(screen.getByText('Great job — no mistakes found!')).toBeInTheDocument()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  })
+
+  it('lists analyses newest first and marks only the newest as latest, whatever order the API used', async () => {
+    // Arrange
+    const [newer, older] = analysesOf(SEEDED.revisedFrench)
+    server.use(http.get(apiUrl(ENDPOINTS.analyses(':entryId')), () => HttpResponse.json([older, newer])))
+    renderDetail(SEEDED.revisedFrench)
+    // Act
+    const options = within(await screen.findByLabelText('Analysis')).getAllByRole('option')
+    // Assert
+    expect(options.map((option) => option.getAttribute('value'))).toEqual([newer?.id, older?.id])
+    expect(options[0]).toHaveTextContent(/\(latest\)$/)
+    expect(options[1]).not.toHaveTextContent('(latest)')
+  })
+
   it('revises the entry and selects the new analysis', async () => {
     // Arrange
     const user = renderDetail(SEEDED.emoji)
@@ -81,6 +126,10 @@ describe('EntryDetail', () => {
     await user.click(screen.getByRole('button', { name: 'Re-check' }))
     // Assert
     expect(await screen.findByText('Great job — no mistakes found!')).toBeInTheDocument()
+    const options = within(screen.getByLabelText('Analysis')).getAllByRole('option')
+    expect(options).toHaveLength(2)
+    expect(options[0]).toHaveTextContent(/\(latest\)$/)
+    expect(options.slice(1).some((option) => option.textContent?.includes('(latest)'))).toBe(false)
     expect(screen.getByLabelText('Analysis')).toHaveDisplayValue(/\(latest\)$/)
   })
 })
