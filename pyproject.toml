@@ -17,7 +17,7 @@ journal-backend = { workspace = true }
 [tool.ruff]
 line-length = 110
 target-version = "py313"
-extend-exclude = ["frontend"]
+extend-exclude = ["frontend", "docs", ".superpowers"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "B", "UP", "SIM", "C90", "N", "ASYNC", "S", "RUF", "PT", "TID", "PL", "ARG", "RET"]
