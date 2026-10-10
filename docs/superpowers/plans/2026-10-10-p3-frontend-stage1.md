@@ -1797,7 +1797,7 @@ describe('routes', () => {
 
   it('opens an entry at /entries/:entryId', () => {
     // Arrange
-    const route = '/entries/entry-es-emoji'
+    const route = `/entries/${SEEDED.emoji}`
     // Act
     renderWithProviders(<AppRoutes />, { route })
     // Assert
