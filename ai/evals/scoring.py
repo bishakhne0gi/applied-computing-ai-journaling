@@ -9,7 +9,8 @@ from journal_ai.schema import AlignedMistake, Category, MistakeKind
 @dataclass(frozen=True)
 class Expected:
     original: str
-    category: Category
+    # More than one only where the taxonomy genuinely overlaps (contractions, subject-verb number).
+    categories: frozenset[Category]
 
 
 @dataclass(frozen=True)
@@ -41,7 +42,7 @@ def score_case(
         matches = [p for p in errors if _overlaps(item.original, p.original)]
         if matches:
             caught += 1
-            category_correct += any(p.category is item.category for p in matches)
+            category_correct += any(p.category in item.categories for p in matches)
     return CaseScore(
         expected=len(expected),
         caught=caught,
@@ -70,10 +71,14 @@ def summarise(all_scores: Sequence[CaseScore]) -> Report:
     )
 
 
+def contains_phrase(text: str, phrase: str) -> bool:
+    # Word-bounded so a short label like "es" never matches inside "después".
+    return re.search(rf"(?<!\w){re.escape(phrase.casefold())}(?!\w)", text.casefold()) is not None
+
+
 def _overlaps(expected: str, predicted: str) -> bool:
-    a, b = expected.casefold(), predicted.casefold()
-    short, long = sorted((a, b), key=len)
-    return re.search(rf"(?<!\w){re.escape(short)}(?!\w)", long) is not None
+    short, long = sorted((expected, predicted), key=len)
+    return contains_phrase(long, short)
 
 
 def _ratio(numerator: int, denominator: int) -> float:

@@ -1,39 +1,34 @@
 import argparse
 import asyncio
-import json
 import os
 import sys
-from pathlib import Path
+from collections.abc import Sequence
 from typing import Literal, cast
 
+from evals.dataset import EvalCase, interleave, load_dataset
 from evals.scoring import CaseScore, Expected, failed_case, score_case, summarise
-from journal_ai import Analyzer, Category, build_provider
-
-DATASET = Path(__file__).with_name("dataset.json")
+from journal_ai import Analyzer, build_provider
 
 
-async def _score_all(analyzer: Analyzer, cases: list[dict[str, object]]) -> list[CaseScore]:
+async def _score_all(analyzer: Analyzer, cases: Sequence[EvalCase]) -> list[CaseScore]:
     scores = []
     for case in cases:
-        outcome = await analyzer.analyze(str(case["text"]), str(case["language"]))
-        expected = [
-            Expected(original=e["original"], category=Category(e["category"]))
-            for e in cast(list[dict[str, str]], case["expected"])
-        ]
+        outcome = await analyzer.analyze(case.text, case.language)
+        expected = [Expected(original=e.original, categories=frozenset(e.categories)) for e in case.expected]
         predicted = outcome.result.mistakes if outcome.result else ()
         if outcome.succeeded:
             scores.append(score_case(expected, predicted, outcome.latency_ms))
         else:
             scores.append(failed_case(len(expected)))
         status = "ok" if outcome.succeeded else f"FAILED ({outcome.failure}) {outcome.error_detail}"
-        print(f"{case['id']:<20} {status}")
+        print(f"{case.id:<20} {status}")
     return scores
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Score the analyzer against the labelled dataset.")
     parser.add_argument("--provider", choices=["anthropic", "fake"], default="anthropic")
-    parser.add_argument("--limit", type=int, default=None)
+    parser.add_argument("--limit", type=int, default=None, help="first N cases, languages interleaved")
     args = parser.parse_args()
 
     provider = build_provider(
@@ -44,7 +39,7 @@ def main() -> None:
         effort=os.environ.get("AI_EFFORT", "medium"),
         timeout_seconds=float(os.environ.get("AI_TIMEOUT_SECONDS", "30")),
     )
-    cases = json.loads(DATASET.read_text(encoding="utf-8"))[: args.limit]
+    cases = interleave(load_dataset())[: args.limit]
     report = summarise(asyncio.run(_score_all(Analyzer(provider), cases)))
 
     print(
