@@ -93,10 +93,24 @@ async def test_previews_are_truncated(client: AsyncClient) -> None:
     assert item["preview"].endswith("…")
 
 
+async def test_previews_collapse_whitespace(client: AsyncClient) -> None:
+    await _create(client, text="Hola\n\n  mundo\t\tfeliz")
+
+    item = (await client.get("/api/v1/entries")).json()["items"][0]
+
+    assert item["preview"] == "Hola mundo feliz"
+
+
 @pytest.mark.parametrize(
     ("params", "status"),
-    [({"cursor": "garbage!"}, 400), ({"limit": 0}, 422), ({"limit": 51}, 422), ({"language": "xx"}, 422)],
-    ids=["bad-cursor", "limit-0", "limit-51", "bad-language"],
+    [
+        ({"cursor": "garbage!"}, 400),
+        ({"cursor": ""}, 400),
+        ({"limit": 0}, 422),
+        ({"limit": 51}, 422),
+        ({"language": "xx"}, 422),
+    ],
+    ids=["bad-cursor", "empty-cursor", "limit-0", "limit-51", "bad-language"],
 )
 async def test_bad_list_parameters_are_client_errors(
     client: AsyncClient, params: dict[str, object], status: int
@@ -104,4 +118,20 @@ async def test_bad_list_parameters_are_client_errors(
     response = await client.get("/api/v1/entries", params=params)
 
     assert response.status_code == status
+    assert response.headers["content-type"] == "application/problem+json"
+
+
+async def test_patching_an_unknown_entry_is_404(client: AsyncClient) -> None:
+    response = await client.patch(f"/api/v1/entries/{uuid.uuid4()}", json={"text": "Hola"})
+
+    assert response.status_code == 404
+    assert response.headers["content-type"] == "application/problem+json"
+
+
+async def test_patching_blank_text_is_422(client: AsyncClient) -> None:
+    entry = await _create(client)
+
+    response = await client.patch(f"/api/v1/entries/{entry['id']}", json={"text": "   "})
+
+    assert response.status_code == 422
     assert response.headers["content-type"] == "application/problem+json"

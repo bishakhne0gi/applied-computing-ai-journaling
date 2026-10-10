@@ -70,8 +70,8 @@ class EntryService:
         items = [
             EntrySummary(
                 entry=e,
-                latest_status=summaries[e.id].status if e.id in summaries else None,
-                error_count=summaries[e.id].error_count if e.id in summaries else 0,
+                latest_status=summary.status if (summary := summaries.get(e.id)) else None,
+                error_count=summary.error_count if summary else 0,
             )
             for e in entries
         ]

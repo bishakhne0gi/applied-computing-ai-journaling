@@ -56,3 +56,11 @@ async def test_analysing_an_unknown_entry_is_404(make_api: ApiFactory) -> None:
         response = await client.post(f"/api/v1/entries/{uuid.uuid4()}/analyses")
 
     assert response.status_code == 404
+
+
+async def test_listing_analyses_of_an_unknown_entry_is_404(make_api: ApiFactory) -> None:
+    async with make_api() as client:
+        response = await client.get(f"/api/v1/entries/{uuid.uuid4()}/analyses")
+
+    assert response.status_code == 404
+    assert response.headers["content-type"] == "application/problem+json"

@@ -35,7 +35,7 @@ async def list_entries(
     limit: Annotated[int, Query(ge=1, le=50)] = 20,
 ) -> EntryPageOut:
     page = await service.list_page(
-        language=language, cursor=decode_cursor(cursor) if cursor else None, limit=limit
+        language=language, cursor=decode_cursor(cursor) if cursor is not None else None, limit=limit
     )
     return EntryPageOut(
         items=[_summary(item) for item in page.items],
@@ -60,7 +60,7 @@ async def update_entry(entry_id: uuid.UUID, body: EntryUpdate, service: EntrySer
 
 
 def _summary(item: EntrySummary) -> EntrySummaryOut:
-    text = item.entry.text
+    text = " ".join(item.entry.text.split())
     preview = text if len(text) <= PREVIEW_LENGTH else text[:PREVIEW_LENGTH].rstrip() + "…"
     return EntrySummaryOut(
         id=item.entry.id,

@@ -23,6 +23,10 @@ def decode_cursor(raw: str) -> EntryCursor:
     try:
         padded = raw + "=" * (-len(raw) % 4)
         payload = json.loads(base64.urlsafe_b64decode(padded.encode()))
-        return EntryCursor(created_at=datetime.fromisoformat(payload["c"]), id=uuid.UUID(payload["i"]))
-    except (binascii.Error, UnicodeDecodeError, ValueError, KeyError, TypeError) as exc:
+        created_at = datetime.fromisoformat(payload["c"])
+        # A naive timestamp would fail later against timestamptz comparisons, so reject it here as a 400.
+        if created_at.tzinfo is None:
+            raise InvalidCursorError("Invalid cursor")
+        return EntryCursor(created_at=created_at, id=uuid.UUID(payload["i"]))
+    except (binascii.Error, UnicodeDecodeError, ValueError, KeyError, TypeError, RecursionError) as exc:
         raise InvalidCursorError("Invalid cursor") from exc

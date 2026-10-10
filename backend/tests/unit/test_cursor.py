@@ -1,3 +1,4 @@
+import base64
 import uuid
 from datetime import UTC, datetime
 
@@ -19,7 +20,23 @@ def test_encoded_cursors_are_url_safe() -> None:
     assert set(raw) <= set("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_")
 
 
-@pytest.mark.parametrize("raw", ["", "not-base64!", "e30", "eyJjIjogMX0", "aGVsbG8"])
+def _raw(payload: str) -> str:
+    return base64.urlsafe_b64encode(payload.encode()).decode().rstrip("=")
+
+
+@pytest.mark.parametrize(
+    "raw",
+    [
+        "",
+        "not-base64!",
+        "e30",
+        "eyJjIjogMX0",
+        "aGVsbG8",
+        _raw(f'{{"c": "2026-10-01T09:00:00", "i": "{uuid.uuid4()}"}}'),
+        _raw("[" * 100_000),
+    ],
+    ids=["empty", "not-base64", "empty-object", "bad-fields", "not-json", "naive-datetime", "deeply-nested"],
+)
 def test_garbage_cursors_are_rejected(raw: str) -> None:
     with pytest.raises(InvalidCursorError):
         decode_cursor(raw)
