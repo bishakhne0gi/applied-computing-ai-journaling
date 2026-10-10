@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { RatePointOut } from '@/types/insights'
-import { CHART, highestRate, plotRates, polylinePoints } from './chartGeometry'
+import { CHART, highestRate, plotRates, plotRuns, polylinePoints } from './chartGeometry'
 
 const points = (...rates: (number | null)[]): RatePointOut[] =>
   rates.map((rate, index) => ({ entry_id: `e${index}`, created_at: '2026-10-09T18:00:00Z', word_count: 10, error_count: 1, rate }))
@@ -28,7 +28,7 @@ describe('chart geometry', () => {
     expect(line).toBe('8,192 320,192 632,192')
   })
 
-  it('leaves a gap for an entry without a rate but keeps the others in place', () => {
+  it('keeps the other entries in place when one has no rate', () => {
     // Arrange
     const rates = points(1, null, 2)
     // Act
@@ -38,6 +38,20 @@ describe('chart geometry', () => {
       ['e0', 8],
       ['e2', 632],
     ])
+  })
+
+  it('splits the line into runs at every unmeasured entry', () => {
+    // Arrange
+    const rates = points(1, 2, null, 3, null, 4, 5)
+    // Act
+    const runs = plotRuns(rates)
+    // Assert
+    expect(runs.map((run) => run.map((point) => point.id))).toEqual([['e0', 'e1'], ['e3'], ['e5', 'e6']])
+  })
+
+  it('has no runs when nothing was measured', () => {
+    // Arrange + Act + Assert
+    expect(plotRuns(points(null, null))).toEqual([])
   })
 
   it('centres a single entry', () => {

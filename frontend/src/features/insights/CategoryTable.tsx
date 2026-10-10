@@ -34,7 +34,7 @@ function CategoryRow({ item, recurringWindow }: { item: CategoryInsightOut; recu
       <td className={cellClass}>
         <TrendBadge trend={item.trend} />
       </td>
-      <td className={cellClass}>
+      <td className={cn(cellClass, 'wrap-anywhere')}>
         <Correction original={item.latest_example.original} correction={item.latest_example.correction} />
       </td>
     </tr>

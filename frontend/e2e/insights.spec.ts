@@ -85,3 +85,30 @@ test('insights show loading, a single retry on failure and an empty state', asyn
   await expect(page.getByText('Not enough entries yet')).toBeVisible()
   await expectHealthy(page)
 })
+
+// The mock analyser cannot produce a long unbroken snippet, so the response is rewritten in the page, after MSW has answered.
+async function withLongExample(page: Page): Promise<void> {
+  await page.addInitScript(() => {
+    const original = window.fetch.bind(window)
+    window.fetch = async (...args) => {
+      const response = await original(...args)
+      const target = args[0] instanceof Request ? args[0].url : String(args[0])
+      if (!target.includes('/insights')) return response
+      const body = await response.json()
+      const long = 'x'.repeat(120)
+      for (const category of body.categories) category.latest_example = { original: long, correction: long }
+      return new Response(JSON.stringify(body), { status: response.status, headers: { 'content-type': 'application/json' } })
+    }
+  })
+}
+
+test('a long unbroken example wraps instead of scrolling the page sideways on a phone', async ({ page }) => {
+  // Arrange
+  await page.setViewportSize({ width: 375, height: 800 })
+  await withLongExample(page)
+  // Act
+  await page.goto('/insights')
+  // Assert
+  await expect(page.getByRole('row', { name: /Verb conjugation/ })).toContainText('x'.repeat(120))
+  await expectNoHorizontalScroll(page)
+})

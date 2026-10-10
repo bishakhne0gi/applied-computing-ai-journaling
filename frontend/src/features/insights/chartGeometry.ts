@@ -27,3 +27,20 @@ export function plotRates(points: RatePointOut[]): PlottedPoint[] {
 export function polylinePoints(plotted: PlottedPoint[]): string {
   return plotted.map((point) => `${point.x},${point.y}`).join(' ')
 }
+
+// A null rate means "not measured", not zero: the line stops there rather than bridging two real readings.
+export function plotRuns(points: RatePointOut[]): PlottedPoint[][] {
+  const plotted = new Map(plotRates(points).map((point) => [point.id, point]))
+  const runs: PlottedPoint[][] = []
+  let open = false
+  for (const entry of points) {
+    const point = plotted.get(entry.entry_id)
+    if (!point) open = false
+    else if (open) runs.at(-1)?.push(point)
+    else {
+      runs.push([point])
+      open = true
+    }
+  }
+  return runs
+}

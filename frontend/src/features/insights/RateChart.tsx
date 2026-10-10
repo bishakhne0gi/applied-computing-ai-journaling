@@ -1,6 +1,6 @@
 import type { RatePointOut, Trend } from '@/types/insights'
 import { formatDate } from '@/utils/formatter'
-import { CHART, highestRate, plotRates, polylinePoints } from './chartGeometry'
+import { CHART, highestRate, plotRates, plotRuns, polylinePoints } from './chartGeometry'
 import { describeRates, formatRate } from './format'
 import { RateTable } from './RateTable'
 
@@ -15,6 +15,7 @@ const baseline = CHART.height - CHART.inset
 // so the visible axis labels are hidden from them to avoid reading everything twice.
 export function RateChart({ points, trend }: RateChartProps) {
   const plotted = plotRates(points)
+  const runs = plotRuns(points)
   const first = points[0]
   const last = points.at(-1)
   return (
@@ -25,7 +26,12 @@ export function RateChart({ points, trend }: RateChartProps) {
       </p>
       <svg role="img" aria-label={describeRates(points, trend)} viewBox={`0 0 ${CHART.width} ${CHART.height}`} className="h-auto w-full overflow-visible">
         <line x1={CHART.inset} x2={CHART.width - CHART.inset} y1={baseline} y2={baseline} vectorEffect="non-scaling-stroke" className="stroke-border stroke-1" />
-        <polyline points={polylinePoints(plotted)} strokeLinejoin="round" vectorEffect="non-scaling-stroke" className="fill-none stroke-primary stroke-2" />
+        <text x={CHART.inset + 12} y={baseline - 6} aria-hidden="true" className="fill-muted text-xs">0</text>
+        {runs
+          .filter((run) => run.length > 1)
+          .map((run) => (
+            <polyline key={run[0]?.id} points={polylinePoints(run)} strokeLinejoin="round" vectorEffect="non-scaling-stroke" className="fill-none stroke-primary stroke-2" />
+          ))}
         {plotted.map((point) => (
           <circle key={point.id} cx={point.x} cy={point.y} r={5} className="fill-primary" />
         ))}
