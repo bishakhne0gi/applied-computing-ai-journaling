@@ -5,3 +5,5 @@
 - 2026-10-10 — Relative screenshot paths are not saved in cwd; always use absolute paths. Default browser is dark scheme; `set media light|dark` works (not `media`).
 - 2026-10-10 — History "Load more": mouse click via ref/find did nothing in 4 tries but focus+Enter worked (flaky or real bug); Language select via `select "select" "French"`.
 - 2026-10-10 — Mock transient states (Saved. Analyzing…, alert after fail) vanish fast; poll with snapshot right after click. Mock data resets on each page load.
+- 2026-10-11 — A hung `screenshot`/`pkill agent-browser` wedges the daemon; recover with pkill -9 -f ".agent-browser/browsers" then retry. No `timeout` binary on macOS. `eval` worked early then got denied (compound/chained eval blocked); simple `eval` single call sometimes OK.
+- 2026-10-11 — `agent-browser open` of the same URL doesn't reset SPA state (a re-submit looked saved but wasn't); open a different route first. `select select <Label>` and `get count "svg circle"` / `get html svg` work well for Insights.
