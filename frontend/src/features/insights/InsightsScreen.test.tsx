@@ -68,6 +68,28 @@ describe('InsightsScreen', () => {
     expect(await summary()).not.toHaveLength(0)
   })
 
+  it('shows one alert and no results for a deep-linked language when the languages cannot load', async () => {
+    // Arrange
+    setMockMode('error')
+    // Act
+    renderInsights('/insights?language=xx')
+    // Assert
+    expect(await screen.findByRole('alert')).toHaveTextContent(/on our side/)
+    expect(screen.getAllByRole('alert')).toHaveLength(1)
+    expect(screen.queryByRole('region', { name: 'Summary' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('status')).not.toBeInTheDocument()
+  })
+
+  it('makes no trend claims for three entries', async () => {
+    // Arrange + Act
+    renderInsights('/insights?language=fr')
+    // Assert
+    expect(await screen.findByText('Trends start at 4 entries with feedback.')).toBeInTheDocument()
+    expect(screen.queryByText(/Improving|Getting worse|Stable/)).not.toBeInTheDocument()
+    expect(screen.queryByRole('columnheader', { name: /Trend/ })).not.toBeInTheDocument()
+    expect(screen.getByRole('img', { name: /across 3 entries/ })).not.toHaveAccessibleName(/Overall/)
+  })
+
   it('shows a single retry when the languages cannot load either', async () => {
     // Arrange
     setMockMode('error')
