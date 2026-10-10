@@ -1,3 +1,4 @@
 # reviewer memory
 
 <!-- One line per learning: date — lesson. Keep under 50 lines; merge duplicates. -->
+- [Recurring review issues](feedback_recurring_issues.md) — demo fake retaining entry text, outcome/DB type mismatch, isinstance-tuple detail drops
