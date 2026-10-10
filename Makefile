@@ -1,4 +1,4 @@
-.PHONY: eval install db migrate migrate-check revision dev-backend dev-frontend up down lint typecheck test-ai test-backend test hygiene verify-fast verify
+.PHONY: e2e-stack eval install db migrate migrate-check revision dev-backend dev-frontend up down lint typecheck test-ai test-backend test hygiene verify-fast verify
 
 install:
 	uv sync --all-packages
@@ -55,3 +55,11 @@ verify-fast: lint typecheck
 
 verify: hygiene lint typecheck test migrate-check
 	pnpm -C frontend verify
+
+# Own compose project and volume, so the run never touches the dev database; still needs ports 5432/8000/8080 free.
+E2E_STACK := docker compose -p journal-e2e -f docker-compose.yml -f docker-compose.e2e.yml
+
+e2e-stack:
+	$(E2E_STACK) up -d --build
+	./scripts/wait-for-url.sh http://localhost:8080/health 240 || { $(E2E_STACK) logs; $(E2E_STACK) down -v; exit 1; }
+	pnpm -C frontend e2e:stack; status=$$?; [ $$status -eq 0 ] || $(E2E_STACK) logs backend; $(E2E_STACK) down -v; exit $$status

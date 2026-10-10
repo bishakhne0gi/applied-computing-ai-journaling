@@ -96,7 +96,7 @@ export default tseslint.config(
     rules: { 'no-restricted-syntax': ['error', STYLE_ATTR] },
   },
   {
-    files: ['**/*.test.{ts,tsx}', 'e2e/**/*.ts'],
+    files: ['**/*.test.{ts,tsx}', 'e2e/**/*.ts', 'e2e-stack/**/*.ts'],
     rules: { 'max-lines-per-function': 'off', 'sonarjs/no-duplicate-string': 'off' },
   },
 )

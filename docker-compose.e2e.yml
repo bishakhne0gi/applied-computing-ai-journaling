@@ -1,0 +1,5 @@
+# Overlay for `make e2e-stack`: always the deterministic demo provider, whatever keys the local env file holds.
+services:
+  backend:
+    environment:
+      AI_PROVIDER: fake
