@@ -1,10 +1,15 @@
 import uuid
 
 from httpx import AsyncClient
+from sqlalchemy.ext.asyncio import AsyncSession
 from structlog.testing import capture_logs
 
+from app.api.deps import get_analyzer, get_session
+from app.core.config import Settings
+from app.main import create_app
+from journal_ai import AnalysisOutcome
 from journal_ai.providers.base import ProviderTimeoutError
-from tests.support import YO_ES, ApiFactory, model_reply
+from tests.support import YO_ES, ApiFactory, ClientFactory, model_reply
 
 
 async def _entry(client: AsyncClient, text: str = "Ayer yo es feliz.") -> str:
@@ -67,9 +72,20 @@ async def test_listing_analyses_of_an_unknown_entry_is_404(make_api: ApiFactory)
     assert response.headers["content-type"] == "application/problem+json"
 
 
-async def test_a_crashing_analyzer_is_a_failed_201_and_leaks_no_entry_text(make_api: ApiFactory) -> None:
+class _CrashingAnalyzer:
+    async def analyze(self, text: str, language: str) -> AnalysisOutcome:
+        raise RuntimeError(f"boom while reading {text}")
+
+
+async def test_a_crashing_analyzer_is_a_failed_201_and_leaks_no_entry_text(
+    settings: Settings, db_session: AsyncSession, make_client: ClientFactory
+) -> None:
+    # Bypasses journal_ai so the exception reaches the service unmapped, as a genuine bug would.
+    app = create_app(settings)
+    app.dependency_overrides[get_session] = lambda: db_session
+    app.dependency_overrides[get_analyzer] = _CrashingAnalyzer
     diary_text = "Mi secreto: yo es feliz."
-    async with make_api([RuntimeError(f"boom while reading {diary_text}")]) as client:
+    async with make_client(app) as client:
         entry_id = await _entry(client, diary_text)
         with capture_logs() as logs:
             response = await client.post(f"/api/v1/entries/{entry_id}/analyses")
