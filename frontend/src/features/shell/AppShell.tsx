@@ -1,10 +1,10 @@
 import { Link, NavLink, Outlet } from 'react-router'
 import { useFocusOnRouteChange } from '@/hooks/misc/useFocusOnRouteChange'
 
-// One list so a later phase adds a section (Insights) as one item.
 const NAV_ITEMS = [
   { to: '/', label: 'Write', end: true },
   { to: '/entries', label: 'History', end: false },
+  { to: '/insights', label: 'Insights', end: false },
 ] as const
 
 const navLinkClass =

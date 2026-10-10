@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatDateTime, pluralize } from './formatter'
+import { formatDate, formatDateTime, pluralize } from './formatter'
 
 describe('pluralize', () => {
   it.each([
@@ -33,5 +33,16 @@ describe('formatDateTime', () => {
     const label = formatDateTime(iso)
     // Assert
     expect(label).toMatch(/^Oct \d{1,2}, 2026, \d{1,2}:\d{2}\s?[AP]M$/)
+  })
+})
+
+describe('formatDate', () => {
+  it('shows a short, readable date without the time', () => {
+    // Arrange
+    const iso = '2026-10-09T12:00:00Z'
+    // Act
+    const label = formatDate(iso)
+    // Assert
+    expect(label).toMatch(/^Oct \d{1,2}, 2026$/)
   })
 })

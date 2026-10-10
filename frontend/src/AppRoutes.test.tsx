@@ -36,6 +36,16 @@ describe('routes', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'Entry' })).toBeInTheDocument()
   })
 
+  it('opens Insights at /insights and marks it current in the navigation', () => {
+    // Arrange
+    const route = '/insights'
+    // Act
+    renderWithProviders(<AppRoutes />, { route })
+    // Assert
+    expect(screen.getByRole('heading', { level: 1, name: 'Insights' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Insights' })).toHaveAttribute('aria-current', 'page')
+  })
+
   it('shows a not-found page with a way back for unknown paths', () => {
     // Arrange
     const route = '/nowhere'
@@ -91,6 +101,7 @@ describe('routes', () => {
     ['/', 'Write · Language Journal'],
     ['/entries', 'History · Language Journal'],
     [`/entries/${SEEDED.emoji}`, 'Entry · Language Journal'],
+    ['/insights', 'Insights · Language Journal'],
     ['/nowhere', 'Page not found · Language Journal'],
   ])('titles the document for %s', async (route, title) => {
     // Arrange

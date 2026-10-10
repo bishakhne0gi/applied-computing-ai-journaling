@@ -38,3 +38,7 @@ element's props, `ref` as a plain prop (React 19), Tailwind token utilities merg
 ## 3. Composition
 Features compose primitives. Prefer compound components (`<Tabs><Tabs.List/><Tabs.Panel/></Tabs>`) and
 `children` over boolean props (`isCompact`, `hasIcon`, …). A new variant is a prop value, not a new component.
+
+Charts are plain SVG (no chart library): colour-role utilities `stroke-primary`, `fill-primary`, `stroke-border`,
+`fill-none`, widths `stroke-1`/`stroke-2`, `vectorEffect="non-scaling-stroke"` on lines. The `<svg>` is
+`role="img"` with an `aria-label` that states the numbers in words, and an `sr-only` table carries every value.

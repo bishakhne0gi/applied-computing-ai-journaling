@@ -7,3 +7,9 @@ const dateTime = new Intl.DateTimeFormat('en', { dateStyle: 'medium', timeStyle:
 export function formatDateTime(iso: string): string {
   return dateTime.format(new Date(iso))
 }
+
+const dateOnly = new Intl.DateTimeFormat('en', { dateStyle: 'medium' })
+
+export function formatDate(iso: string): string {
+  return dateOnly.format(new Date(iso))
+}
