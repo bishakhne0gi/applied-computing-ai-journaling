@@ -27,7 +27,7 @@ Success for us:
 | Presentation | Inline highlights on the original text + detail panel; toggle for full corrected version; unplaceable items under "Other notes" | Learner sees mistakes in their own words; nothing silently dropped |
 | Save model | Save first, analyze second; auto-saved, no Save button | Writing is never lost if the AI fails |
 | Revision loop | "Revise & re-check" edits text and creates a new analysis | Encourages self-correction; analyses stay historical |
-| Languages | Multiple: `es, fr, de, it, pt` (config list) | Language is a column; universal taxonomy keeps insights comparable |
+| Languages | Multiple: `es, fr, de, it, pt` (`journal_ai.SUPPORTED_LANGUAGES`) | Language is a column; universal taxonomy keeps insights comparable |
 | Taxonomy | Fixed enum (below); unknown → `other` | Free-form categories cannot be aggregated |
 | Insights summary | Deterministic sentences from numbers | Testable, cannot hallucinate |
 
@@ -129,20 +129,23 @@ the analysis is a resource and its outcome is data.
 2. `provider.complete(system, user, json_schema)` → raw text + usage.
    - `AnthropicProvider`: async `anthropic` SDK, `AI_MODEL` default `claude-opus-5-5`, explicit
      `output_config.effort` (default `medium`, tuned by evals), structured outputs via `output_config.format` with
-     a JSON schema generated from the Pydantic model; SDK `max_retries=2`; request timeout 30s; checks
+     an explicit JSON schema; SDK `max_retries=1`; request timeout 30s; checks
      `stop_reason == "refusal"` first. Server-side model fallbacks are intentionally off.
    - `FakeProvider`: scripted outputs (valid, fenced, truncated, wrong types, unknown category, unfindable snippet,
      timeout). Selected by `AI_PROVIDER=fake`.
 3. `parse_analysis(raw)` — provider-agnostic defensive layer: strip code fences/stray text, `json.loads`, validate
    top-level (`corrected_text`, `feedback_summary`, `mistakes[]`) or raise `InvalidOutput`; validate each mistake
-   independently, drop invalid ones (counted + logged), map unknown category → `other`, drop `original == correction`,
-   de-duplicate.
-4. `align_mistakes(text, mistakes)` — left-to-right cursor search so repeated snippets map to the right occurrence;
-   fallback whitespace/case-normalised match; else offsets `null`.
+   independently, drop invalid ones (counted + logged), map unknown category → `other`, drop `original == correction`.
+4. `align_mistakes(text, mistakes)` — text and snippets are NFC-normalised; each mistake takes the first occurrence
+   that does not overlap an already placed one, so repeated snippets map to distinct occurrences. Fallback
+   whitespace/case-insensitive match. A snippet whose only occurrences are already taken by the identical span is a
+   duplicate and is dropped; one that only overlaps other highlights, or is not found, keeps offsets `null`.
+   Offsets are Unicode code-point indices (the frontend slices with `Array.from(text)`); highlights never overlap.
 5. On `InvalidOutput`: one retry with the validation error appended; then failure `invalid_output`.
    Timeout → `provider_timeout`; API errors and refusals → `provider_error`. Raw response stored whenever present.
 
-Tracing: Langfuse wraps `analyze()` only when `LANGFUSE_PUBLIC_KEY` is set. Model, latency and tokens are always logged.
+Tracing (P5): Langfuse wraps `analyze()` only when `LANGFUSE_PUBLIC_KEY` is set. Model, latency and tokens are always logged.
+Supported languages are defined once in `journal_ai` (`SUPPORTED_LANGUAGES`) and reused by the backend.
 
 Evals (`ai/evals`, `make eval`): ~15 labelled entries per language (es, fr initially) plus clean sentences; reports
 expected-mistake recall, category accuracy, false-positive rate, p50 latency; optional Langfuse push. Results go in the README.
@@ -235,6 +238,6 @@ Each phase: failing tests first, small commits per step, `make verify` output sh
 ## 14. Configuration
 
 `DATABASE_URL, AI_PROVIDER (anthropic|fake), AI_MODEL, AI_EFFORT, AI_TIMEOUT_SECONDS, ANTHROPIC_API_KEY,
-SUPPORTED_LANGUAGES, LOG_LEVEL, LOG_FORMAT (json|console), SENTRY_DSN, SENTRY_ENVIRONMENT, RELEASE,
+LOG_LEVEL, LOG_FORMAT (json|console), SENTRY_DSN, SENTRY_ENVIRONMENT, RELEASE,
 LANGFUSE_PUBLIC_KEY, LANGFUSE_SECRET_KEY, LANGFUSE_HOST, CORS_ORIGINS`; frontend `VITE_API_BASE_URL,
 VITE_SENTRY_DSN`. `.env.example` documents all; Compose defaults to `AI_PROVIDER=fake` when no key is set.
