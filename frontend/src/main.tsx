@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './styles/global.css'
 import App from './App.tsx'
+import { AppProviders } from './providers/AppProviders'
 import { initMonitoring } from './utils/monitoring'
 
 // Mocks run in dev (unless VITE_API_MOCKS=off, which talks to `make dev-backend` through the Vite proxy) and in the
@@ -22,7 +23,9 @@ void initMonitoring()
 void enableMocks().then(() => {
   createRoot(root).render(
     <StrictMode>
-      <App />
+      <AppProviders>
+        <App />
+      </AppProviders>
     </StrictMode>,
   )
 })
