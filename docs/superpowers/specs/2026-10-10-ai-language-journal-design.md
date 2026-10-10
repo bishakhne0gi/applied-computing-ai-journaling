@@ -175,6 +175,10 @@ category table (earlier vs recent rate, trend arrow, recurring badge, latest exa
 Pure functions in `backend/app/services/insights/calculations.py`; a single repository query supplies, per entry
 with a latest succeeded analysis: `created_at, word_count, error counts by category, latest example per category`.
 Only `kind = error` counts.
+- "Latest succeeded" is literal: a newer `failed` or `pending` attempt never hides an entry's last good feedback;
+  entries with no succeeded analysis are left out.
+- Words are counted on the analysed snapshot (`analyses.input_text`), so an edit that was never re-checked does
+  not change the denominator.
 
 - Rate = errors per 100 words, pooled per window (Σ errors / Σ words × 100).
 - Order entries by `created_at`; `recent` = last ⌈n/2⌉ (cap 5), `earlier` = the ⌊n/2⌋ before it (cap 5).

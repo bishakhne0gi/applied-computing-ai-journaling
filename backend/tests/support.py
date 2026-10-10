@@ -29,28 +29,42 @@ def entry_at(created_at: datetime, language: str = "es", text: str = "Hola mundo
     )
 
 
+def mistake(
+    category: Category,
+    *,
+    kind: MistakeKind = MistakeKind.ERROR,
+    original: str = "x",
+    correction: str = "y",
+    position: int = 0,
+) -> Mistake:
+    return Mistake(
+        kind=kind,
+        category=category,
+        original=original,
+        correction=correction,
+        explanation="z",
+        position=position,
+    )
+
+
 def analysis_for(
-    entry: Entry, *, status: AnalysisStatus, created_at: datetime, errors: int = 0, suggestions: int = 0
+    entry: Entry,
+    *,
+    status: AnalysisStatus,
+    created_at: datetime,
+    errors: int = 0,
+    suggestions: int = 0,
+    mistakes: Sequence[Mistake] = (),
 ) -> Analysis:
     kinds = [MistakeKind.ERROR] * errors + [MistakeKind.SUGGESTION] * suggestions
-    mistakes = [
-        Mistake(
-            kind=kind,
-            category=Category.OTHER,
-            original="x",
-            correction="y",
-            explanation="z",
-            position=index,
-        )
-        for index, kind in enumerate(kinds)
-    ]
+    generated = [mistake(Category.OTHER, kind=kind, position=index) for index, kind in enumerate(kinds)]
     return Analysis(
         entry=entry,
         status=status,
         input_text=entry.text,
         prompt_version="v1",
         created_at=created_at,
-        mistakes=mistakes,
+        mistakes=[*generated, *mistakes],
     )
 
 

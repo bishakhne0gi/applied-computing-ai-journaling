@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.services.analyses import AnalysisService, AnalyzerPort
 from app.services.entries import EntryService
+from app.services.insights.service import InsightsService
 
 
 async def get_session(request: Request) -> AsyncIterator[AsyncSession]:
@@ -30,5 +31,10 @@ def get_analysis_service(
     return AnalysisService(session, analyzer)
 
 
+def get_insights_service(session: SessionDep) -> InsightsService:
+    return InsightsService(session)
+
+
 EntryServiceDep = Annotated[EntryService, Depends(get_entry_service)]
 AnalysisServiceDep = Annotated[AnalysisService, Depends(get_analysis_service)]
+InsightsServiceDep = Annotated[InsightsService, Depends(get_insights_service)]
