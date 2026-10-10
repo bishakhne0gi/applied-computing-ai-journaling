@@ -9,6 +9,11 @@ from journal_ai.schema import RESPONSE_JSON_SCHEMA, AnalysisOutcome, AnalysisRes
 from journal_ai.text import normalize_text
 
 MAX_ATTEMPTS = 2
+MAX_DETAIL_CHARS = 300
+
+
+def _detail(exc: Exception) -> str:
+    return f"{type(exc).__name__}: {exc}"[:MAX_DETAIL_CHARS]
 
 
 @dataclass
@@ -18,6 +23,7 @@ class _Run:
     attempts: int = 0
     usage: Usage = field(default_factory=Usage)
     raw_response: str | None = None
+    error_detail: str | None = None
 
 
 class Analyzer:
@@ -46,11 +52,14 @@ class Analyzer:
             completion = await self._provider.complete(
                 system=system, user=prompt, schema=RESPONSE_JSON_SCHEMA
             )
-        except ProviderTimeoutError:
+        except ProviderTimeoutError as exc:
+            run.error_detail = _detail(exc)
             return self._outcome(run, failure=FailureCode.PROVIDER_TIMEOUT)
-        except ProviderError:
+        except ProviderError as exc:
+            run.error_detail = _detail(exc)
             return self._outcome(run, failure=FailureCode.PROVIDER_ERROR)
-        except Exception:
+        except Exception as exc:
+            run.error_detail = _detail(exc)
             return self._outcome(run, failure=FailureCode.PROVIDER_ERROR)
 
         run.usage += completion.usage
@@ -58,10 +67,12 @@ class Analyzer:
         try:
             parsed = parse_analysis(completion.text)
         except InvalidOutputError as exc:
+            run.error_detail = _detail(exc)
             return str(exc)
         try:
             return self._success(run, parsed)
-        except Exception:
+        except Exception as exc:
+            run.error_detail = _detail(exc)
             return self._outcome(run, failure=FailureCode.INVALID_OUTPUT)
 
     def _success(self, run: _Run, parsed: ParsedAnalysis) -> AnalysisOutcome:
@@ -92,4 +103,5 @@ class Analyzer:
             latency_ms=round((time.perf_counter() - run.started) * 1000),
             retried=run.attempts > 1,
             dropped_mistakes=dropped,
+            error_detail=run.error_detail if failure else None,
         )

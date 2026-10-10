@@ -11,6 +11,12 @@ from journal_ai.schema import Usage
 MAX_TOKENS = 16_000
 
 
+def _describe(exc: anthropic.APIError) -> str:
+    if isinstance(exc, anthropic.APIStatusError):
+        return f"{type(exc).__name__} {exc.status_code}: {exc.message}"
+    return f"{type(exc).__name__}: {exc}"
+
+
 class AnthropicProvider:
     def __init__(
         self,
@@ -44,9 +50,9 @@ class AnthropicProvider:
                 output_config=output_config,
             )
         except anthropic.APITimeoutError as exc:
-            raise ProviderTimeoutError(str(exc)) from exc
+            raise ProviderTimeoutError(_describe(exc)) from exc
         except anthropic.APIError as exc:
-            raise ProviderError(str(exc)) from exc
+            raise ProviderError(_describe(exc)) from exc
 
         if response.stop_reason == "refusal":
             raise ProviderError("model refused the request")

@@ -84,6 +84,8 @@ async def test_provider_failures_map_to_failure_codes(error: Exception, code: Fa
     assert outcome.failure is code
     assert outcome.result is None
     assert outcome.raw_response is None
+    assert outcome.error_detail is not None
+    assert type(error).__name__ in outcome.error_detail
 
 
 async def test_a_provider_failure_on_retry_keeps_the_first_raw_response() -> None:
@@ -112,6 +114,7 @@ async def test_unexpected_provider_exception_maps_to_provider_error() -> None:
     assert outcome.failure is FailureCode.PROVIDER_ERROR
     assert outcome.result is None
     assert outcome.analyzed_text == TEXT
+    assert outcome.error_detail == "RuntimeError: boom"
 
 
 async def test_alignment_crash_maps_to_invalid_output(monkeypatch: pytest.MonkeyPatch) -> None:

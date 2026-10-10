@@ -21,7 +21,7 @@ async def _score_all(analyzer: Analyzer, cases: list[dict[str, object]]) -> list
         ]
         predicted = outcome.result.mistakes if outcome.result else ()
         scores.append(score_case(expected, predicted, outcome.latency_ms))
-        status = "ok" if outcome.succeeded else f"FAILED ({outcome.failure})"
+        status = "ok" if outcome.succeeded else f"FAILED ({outcome.failure}) {outcome.error_detail}"
         print(f"{case['id']:<20} {status}")
     return scores
 

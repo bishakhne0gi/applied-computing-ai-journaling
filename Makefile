@@ -45,7 +45,7 @@ test-backend:
 test: test-ai test-backend
 
 eval:
-	cd ai && uv run --env-file ../.env python -m evals.run --provider $(or $(provider),anthropic)
+	cd ai && uv run --env-file ../.env python -m evals.run --provider $(or $(provider),anthropic) $(args)
 
 hygiene:
 	./scripts/check-hygiene.sh

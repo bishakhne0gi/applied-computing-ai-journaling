@@ -79,6 +79,7 @@ class AnalysisOutcome(BaseModel):
     latency_ms: int
     retried: bool
     dropped_mistakes: int
+    error_detail: str | None = None
 
     @property
     def succeeded(self) -> bool:

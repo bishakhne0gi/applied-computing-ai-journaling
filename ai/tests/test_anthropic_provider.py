@@ -90,3 +90,10 @@ async def test_timeouts_become_provider_timeouts() -> None:
 async def test_api_errors_become_provider_errors(error: Exception) -> None:
     with pytest.raises(ProviderError):
         await _provider(StubMessages(error=error)).complete(system="s", user="u", schema={})
+
+
+async def test_status_errors_carry_the_status_code_in_the_message() -> None:
+    error = anthropic.InternalServerError("boom", response=httpx.Response(500, request=REQUEST), body=None)
+
+    with pytest.raises(ProviderError, match="InternalServerError 500: boom"):
+        await _provider(StubMessages(error=error)).complete(system="s", user="u", schema={})
