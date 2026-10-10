@@ -1,6 +1,6 @@
 import unicodedata
 
-from journal_ai.alignment import align_mistakes
+from journal_ai.alignment import _find_spans, align_mistakes
 from journal_ai.schema import Category, Mistake, MistakeKind
 
 
@@ -90,3 +90,26 @@ def test_results_are_ordered_by_position_with_unaligned_last() -> None:
     alignment = align_mistakes(text, [_m("tres"), _m("nada"), _m("uno")])
 
     assert [m.original for m in alignment.mistakes] == ["uno", "tres", "nada"]
+
+
+def test_word_bounded_match_wins_over_an_in_word_occurrence() -> None:
+    text = "Voy a la plaza con la amiga"
+
+    assert _spans(text, _m("la"), _m("la")) == [(6, 8), (19, 21)]
+
+
+def test_snippet_found_only_inside_a_word_still_aligns() -> None:
+    assert _spans("superbien", _m("bien")) == [(5, 9)]
+
+
+def test_exact_case_match_is_preferred_over_a_case_only_match() -> None:
+    assert _spans("Casa y casa", _m("casa")) == [(7, 11)]
+
+
+def test_accented_word_boundary_is_respected() -> None:
+    assert _spans("él está", _m("está")) == [(3, 7)]
+
+
+def test_whitespace_only_snippet_yields_no_span() -> None:
+    # Mistake and AlignedMistake both reject whitespace-only originals, so guard the helper directly.
+    assert _find_spans("Hola mundo", "   ") == []

@@ -36,11 +36,23 @@ def align_mistakes(text: str, mistakes: Sequence[Mistake]) -> Alignment:
 
 def _find_spans(text: str, snippet: str) -> list[Span]:
     snippet = unicodedata.normalize("NFC", snippet)
-    exact = [(m.start(), m.end()) for m in re.finditer(re.escape(snippet), text)]
-    if exact:
-        return exact
-    loose = re.compile(r"\s+".join(re.escape(part) for part in snippet.split()), re.IGNORECASE)
-    return [(m.start(), m.end()) for m in loose.finditer(text)]
+    if not snippet.split():
+        return []
+    # Word-bounded matches outrank in-word ones; exact outranks case/whitespace-insensitive.
+    for loose, bounded in ((False, True), (False, False), (True, True), (True, False)):
+        spans = [(m.start(), m.end()) for m in _pattern(snippet, loose=loose, bounded=bounded).finditer(text)]
+        if spans:
+            return spans
+    return []
+
+
+def _pattern(snippet: str, *, loose: bool, bounded: bool) -> re.Pattern[str]:
+    body = r"\s+".join(re.escape(part) for part in snippet.split()) if loose else re.escape(snippet)
+    if bounded and re.match(r"\w", snippet):
+        body = rf"(?<!\w){body}"
+    if bounded and re.search(r"\w\Z", snippet):
+        body = rf"{body}(?!\w)"
+    return re.compile(body, re.IGNORECASE if loose else 0)
 
 
 def _overlaps(a: Span, b: Span) -> bool:
