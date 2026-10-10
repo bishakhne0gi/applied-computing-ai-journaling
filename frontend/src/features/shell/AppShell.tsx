@@ -1,4 +1,5 @@
 import { Link, NavLink, Outlet } from 'react-router'
+import { useFocusOnRouteChange } from '@/hooks/misc/useFocusOnRouteChange'
 
 // One list so a later phase adds a section (Insights) as one item.
 const NAV_ITEMS = [
@@ -12,6 +13,7 @@ const skipLinkClass =
   'sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-toast focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-contrast'
 
 export function AppShell() {
+  useFocusOnRouteChange()
   return (
     <div className="min-h-screen bg-bg text-fg">
       <a href="#main" className={skipLinkClass}>

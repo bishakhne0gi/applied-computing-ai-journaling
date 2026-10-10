@@ -47,6 +47,17 @@ describe('FeedbackView detail panel', () => {
     expect(highlight).toHaveFocus()
   })
 
+  it('closes when its own highlight is clicked again', async () => {
+    // Arrange
+    const { user, highlight } = await openPanel()
+    // Act
+    await user.click(highlight)
+    // Assert
+    expect(screen.queryByRole('region', { name: /should be/ })).not.toBeInTheDocument()
+    expect(highlight).toHaveAttribute('aria-expanded', 'false')
+    expect(highlight).toHaveFocus()
+  })
+
   it('opens from the keyboard', async () => {
     // Arrange
     const user = userEvent.setup()

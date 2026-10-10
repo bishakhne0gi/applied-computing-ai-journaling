@@ -1,4 +1,5 @@
-import { screen } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { SEEDED } from '@/mocks/seed'
 import { renderWithProviders } from '@/test/renderWithProviders'
@@ -53,5 +54,60 @@ describe('routes', () => {
     // Assert
     expect(screen.getByRole('link', { name: 'Skip to content' })).toHaveAttribute('href', '#main')
     expect(screen.getByRole('main')).toHaveAttribute('id', 'main')
+  })
+
+  it('leaves focus alone on first load', () => {
+    // Arrange
+    const route = '/entries'
+    // Act
+    renderWithProviders(<AppRoutes />, { route })
+    // Assert
+    expect(document.body).toHaveFocus()
+  })
+
+  it('moves focus to the new page heading when the route changes', async () => {
+    // Arrange
+    const user = userEvent.setup()
+    renderWithProviders(<AppRoutes />, { route: '/' })
+    // Act
+    await user.click(screen.getByRole('link', { name: 'History' }))
+    // Assert
+    expect(await screen.findByRole('heading', { level: 1, name: 'History' })).toHaveFocus()
+  })
+
+  it('does not steal focus when only the query string changes', async () => {
+    // Arrange
+    const user = userEvent.setup()
+    renderWithProviders(<AppRoutes />, { route: '/entries' })
+    const filter = await screen.findByLabelText('Language')
+    await screen.findByRole('option', { name: 'Spanish' })
+    // Act
+    await user.selectOptions(filter, 'es')
+    // Assert
+    expect(filter).toHaveFocus()
+  })
+
+  it.each([
+    ['/', 'Write · Language Journal'],
+    ['/entries', 'History · Language Journal'],
+    [`/entries/${SEEDED.emoji}`, 'Entry · Language Journal'],
+    ['/nowhere', 'Page not found · Language Journal'],
+  ])('titles the document for %s', async (route, title) => {
+    // Arrange
+    renderWithProviders(<AppRoutes />, { route })
+    // Act
+    await waitFor(() => expect(document.title).toBe(title))
+    // Assert
+    expect(document.title).toBe(title)
+  })
+
+  it('retitles the document when the route changes', async () => {
+    // Arrange
+    const user = userEvent.setup()
+    renderWithProviders(<AppRoutes />, { route: '/' })
+    // Act
+    await user.click(screen.getByRole('link', { name: 'History' }))
+    // Assert
+    await waitFor(() => expect(document.title).toBe('History · Language Journal'))
   })
 })

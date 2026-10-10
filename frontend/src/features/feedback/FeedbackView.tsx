@@ -21,14 +21,15 @@ export function FeedbackView({ analysis, actions }: FeedbackViewProps) {
   const panelId = useId()
   const { placed, unplaced } = placeMistakes(analysis.input_text, analysis.mistakes)
 
-  const open = (mistake: MistakeOut, trigger: HTMLButtonElement) => {
-    triggerRef.current = trigger
-    setSelected(mistake)
-  }
   const close = useCallback(() => {
     setSelected(null)
     triggerRef.current?.focus()
   }, [])
+  const open = (mistake: MistakeOut, trigger: HTMLButtonElement) => {
+    if (selected?.id === mistake.id) return close()
+    triggerRef.current = trigger
+    setSelected(mistake)
+  }
   const toggleCorrected = () => {
     setSelected(null)
     setShowCorrected((shown) => !shown)

@@ -47,6 +47,8 @@ describe('placeMistakes + segmentText', () => {
     ['an end past the text', { start: 5, end: 99 }],
     ['an empty span', { start: 5, end: 5 }],
     ['a negative start', { start: -1, end: 3 }],
+    ['a fractional start', { start: 1.5, end: 4 }],
+    ['a fractional end', { start: 1, end: 4.5 }],
   ])('sends a mistake with %s to the unplaced list', (_label, offsets) => {
     // Arrange
     const mistake = buildMistake({ id: 'bad', ...offsets })
@@ -83,5 +85,29 @@ describe('placeMistakes + segmentText', () => {
     const result = parts(text, [])
     // Assert
     expect(result).toEqual([])
+  })
+
+  it('places the longer of two spans that start together, whatever order they arrive in', () => {
+    // Arrange
+    const short = buildMistake({ id: 'short', start: 5, end: 7 })
+    const long = buildMistake({ id: 'long', start: 5, end: 10 })
+    // Act
+    const forward = placeMistakes('Ayer yo es feliz.', [short, long])
+    const backward = placeMistakes('Ayer yo es feliz.', [long, short])
+    // Assert
+    expect(forward.placed.map((m) => m.id)).toEqual(['long'])
+    expect(backward.placed.map((m) => m.id)).toEqual(['long'])
+    expect(backward.unplaced.map((m) => m.id)).toEqual(['short'])
+  })
+
+  it('breaks an exact tie by id so the result never depends on input order', () => {
+    // Arrange
+    const b = buildMistake({ id: 'b', start: 5, end: 10 })
+    const a = buildMistake({ id: 'a', start: 5, end: 10 })
+    // Act
+    const result = placeMistakes('Ayer yo es feliz.', [b, a])
+    // Assert
+    expect(result.placed.map((m) => m.id)).toEqual(['a'])
+    expect(result.unplaced.map((m) => m.id)).toEqual(['b'])
   })
 })

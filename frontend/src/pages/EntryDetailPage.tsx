@@ -1,4 +1,5 @@
 import { useParams } from 'react-router'
+import { PageHeading } from '@/components/ui/PageHeading'
 import { EntryDetail } from '@/features/entry-detail/EntryDetail'
 
 export function EntryDetailPage() {
@@ -6,7 +7,7 @@ export function EntryDetailPage() {
   return (
     <div className="flex flex-col gap-6">
       <title>Entry · Language Journal</title>
-      <h1 className="text-2xl font-bold">Entry</h1>
+      <PageHeading>Entry</PageHeading>
       <EntryDetail key={entryId} entryId={entryId} />
     </div>
   )

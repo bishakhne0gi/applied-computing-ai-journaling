@@ -8,25 +8,20 @@ function createTestClient(): QueryClient {
   return new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } })
 }
 
-function Providers({ client, route, children }: { client: QueryClient; route: string; children: ReactNode }) {
-  return (
-    <QueryClientProvider client={client}>
-      <MemoryRouter initialEntries={[route]}>{children}</MemoryRouter>
-    </QueryClientProvider>
-  )
-}
+// A plain function, not a component: this file also exports helpers, which fast refresh only tolerates without components.
+const wrap = (client: QueryClient, route: string, children: ReactNode) => (
+  <QueryClientProvider client={client}>
+    <MemoryRouter initialEntries={[route]}>{children}</MemoryRouter>
+  </QueryClientProvider>
+)
 
 export function renderWithProviders(ui: ReactElement, { route = '/' }: { route?: string } = {}) {
   const client = createTestClient()
-  return { client, ...render(<Providers client={client} route={route}>{ui}</Providers>) }
+  return { client, ...render(wrap(client, route, ui)) }
 }
 
 export function renderHookWithProviders<T>(hook: () => T) {
   const client = createTestClient()
-  const wrapper = ({ children }: { children: ReactNode }) => (
-    <Providers client={client} route="/">
-      {children}
-    </Providers>
-  )
+  const wrapper = ({ children }: { children: ReactNode }) => wrap(client, '/', children)
   return { client, ...renderHook(hook, { wrapper }) }
 }

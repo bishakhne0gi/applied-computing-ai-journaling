@@ -7,11 +7,13 @@ export interface Segment {
 }
 
 const LAST = Number.MAX_SAFE_INTEGER
-const byStart = (a: MistakeOut, b: MistakeOut) => (a.start ?? LAST) - (b.start ?? LAST)
+// Start, then the longer span first, then id: the winner of an overlap must not depend on the order the API listed them.
+const byPosition = (a: MistakeOut, b: MistakeOut) =>
+  (a.start ?? LAST) - (b.start ?? LAST) || (b.end ?? 0) - (a.end ?? 0) || a.id.localeCompare(b.id)
 
 function fits(mistake: MistakeOut, cursor: number, length: number): mistake is PlacedMistake {
   const { start, end } = mistake
-  return start !== null && end !== null && start >= cursor && start < end && end <= length
+  return Number.isInteger(start) && Number.isInteger(end) && start !== null && end !== null && start >= cursor && start < end && end <= length
 }
 
 // Offsets are Unicode code points (spec §6). Anything that cannot be drawn safely — null, out of range, empty or
@@ -21,7 +23,7 @@ export function placeMistakes(text: string, mistakes: readonly MistakeOut[]) {
   const placed: PlacedMistake[] = []
   const unplaced: MistakeOut[] = []
   let cursor = 0
-  for (const mistake of [...mistakes].sort(byStart)) {
+  for (const mistake of [...mistakes].sort(byPosition)) {
     if (fits(mistake, cursor, length)) {
       placed.push(mistake)
       cursor = mistake.end
