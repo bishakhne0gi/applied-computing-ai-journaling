@@ -45,7 +45,7 @@ describe('RateChart', () => {
     expect(container.querySelectorAll('circle')).toHaveLength(1)
   })
 
-  it('draws equal rates as a flat line and labels the zero baseline', () => {
+  it('draws equal rates as a flat line and labels the zero baseline outside the SVG', () => {
     // Arrange
     const flat = [rated('a', 3), rated('b', 3)]
     // Act
@@ -53,7 +53,8 @@ describe('RateChart', () => {
     // Assert
     const [line] = container.querySelectorAll('polyline')
     expect(line?.getAttribute('points')).toBe('8,8 632,8')
-    expect(container.querySelector('svg text')).toHaveTextContent('0')
+    expect(container.querySelector('svg text')).toBeNull()
+    expect(screen.getByText('Baseline: 0')).toBeInTheDocument()
   })
 
   it('lists every entry’s numbers in a table for screen readers', () => {

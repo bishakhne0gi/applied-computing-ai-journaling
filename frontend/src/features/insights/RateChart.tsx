@@ -21,12 +21,12 @@ export function RateChart({ points, trend }: RateChartProps) {
   return (
     <figure className="flex flex-col gap-2">
       <figcaption className="font-medium">Errors per 100 words, oldest entry to newest</figcaption>
-      <p aria-hidden="true" className="text-xs text-muted">
-        Highest: {formatRate(highestRate(points))}
+      <p aria-hidden="true" className="flex justify-between text-xs text-muted">
+        <span>Highest: {formatRate(highestRate(points))}</span>
+        <span>Baseline: 0</span>
       </p>
       <svg role="img" aria-label={describeRates(points, trend)} viewBox={`0 0 ${CHART.width} ${CHART.height}`} className="h-auto w-full overflow-visible">
         <line x1={CHART.inset} x2={CHART.width - CHART.inset} y1={baseline} y2={baseline} vectorEffect="non-scaling-stroke" className="stroke-border stroke-1" />
-        <text x={CHART.inset + 12} y={baseline - 6} aria-hidden="true" className="fill-muted text-xs">0</text>
         {runs
           .filter((run) => run.length > 1)
           .map((run) => (
