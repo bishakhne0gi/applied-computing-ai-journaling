@@ -5,7 +5,7 @@ import pytest
 
 from journal_ai import Usage
 from journal_ai.analyzer import Analyzer
-from journal_ai.providers.base import ProviderError, ProviderTimeoutError
+from journal_ai.providers.base import Completion, ProviderError, ProviderTimeoutError
 from journal_ai.providers.fake import FakeProvider
 from journal_ai.schema import AnalysisResult, FailureCode
 
@@ -86,6 +86,8 @@ async def test_provider_failures_map_to_failure_codes(error: Exception, code: Fa
     assert outcome.raw_response is None
     assert outcome.error_detail is not None
     assert type(error).__name__ in outcome.error_detail
+    if isinstance(error, ProviderTimeoutError):
+        assert "slow" in outcome.error_detail
 
 
 async def test_a_provider_failure_on_retry_keeps_the_first_raw_response() -> None:
@@ -181,3 +183,24 @@ async def test_error_detail_for_unknown_exceptions_is_the_class_name_only(
     outcome = await Analyzer(FakeProvider([_valid()])).analyze(TEXT, "es")
 
     assert outcome.error_detail == "ValueError"
+
+
+class _ServedModelProvider:
+    model = "claude-configured"
+
+    async def complete(self, *, system: str, user: str, schema: Any) -> Completion:
+        return Completion(text=_valid(), usage=Usage(), model="claude-served-x")
+
+
+async def test_outcome_reports_the_model_that_served_the_request() -> None:
+    outcome = await Analyzer(_ServedModelProvider()).analyze(TEXT, "es")
+
+    assert outcome.model == "claude-served-x"
+
+
+async def test_outcome_falls_back_to_the_configured_model_without_a_completion() -> None:
+    provider = FakeProvider([ProviderError("down")])
+
+    outcome = await Analyzer(provider).analyze(TEXT, "es")
+
+    assert outcome.model == provider.model

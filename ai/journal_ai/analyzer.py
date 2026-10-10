@@ -16,7 +16,7 @@ MAX_DETAIL_CHARS = 300
 
 def _detail(exc: Exception) -> str:
     """Only provider and decoder messages are safe to keep; anything else may embed the learner's text."""
-    if isinstance(exc, ProviderError | InvalidOutputError):
+    if isinstance(exc, ProviderError | ProviderTimeoutError | InvalidOutputError):
         text = f"{type(exc).__name__}: {exc}"
     elif isinstance(exc, ValidationError):
         fields = "; ".join(f"{'.'.join(map(str, e['loc']))}:{e['type']}" for e in exc.errors())
@@ -34,6 +34,7 @@ class _Run:
     usage: Usage = field(default_factory=Usage)
     raw_response: str | None = None
     error_detail: str | None = None
+    served_model: str | None = None
 
 
 class Analyzer:
@@ -65,14 +66,12 @@ class Analyzer:
         except ProviderTimeoutError as exc:
             run.error_detail = _detail(exc)
             return self._outcome(run, failure=FailureCode.PROVIDER_TIMEOUT)
-        except ProviderError as exc:
-            run.error_detail = _detail(exc)
-            return self._outcome(run, failure=FailureCode.PROVIDER_ERROR)
         except Exception as exc:
             run.error_detail = _detail(exc)
             return self._outcome(run, failure=FailureCode.PROVIDER_ERROR)
 
         run.usage += completion.usage
+        run.served_model = completion.model
         run.raw_response = completion.text
         try:
             parsed = parse_analysis(completion.text)
@@ -107,7 +106,7 @@ class Analyzer:
             failure=failure,
             analyzed_text=run.text,
             raw_response=run.raw_response,
-            model=self._provider.model,
+            model=run.served_model or self._provider.model,
             prompt_version=PROMPT_VERSION,
             usage=run.usage,
             latency_ms=round((time.perf_counter() - run.started) * 1000),

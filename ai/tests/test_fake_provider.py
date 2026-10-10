@@ -47,3 +47,20 @@ async def test_demo_mode_flags_every_occurrence_of_a_rule() -> None:
     originals = [m["original"] for m in payload["mistakes"] if m["kind"] == "error"]
     assert originals == ["yo es", "Yo es"]
     assert "yo es" not in payload["corrected_text"].lower()
+
+
+async def test_demo_mode_records_no_calls() -> None:
+    system, user = build_messages("Ayer yo es feliz.", "es")
+    provider = FakeProvider()
+
+    await provider.complete(system=system, user=user, schema=RESPONSE_JSON_SCHEMA)
+
+    assert provider.calls == []
+
+
+async def test_demo_corrections_keep_the_case_of_the_first_letter() -> None:
+    system, user = build_messages("La problema es grande.", "es")
+
+    completion = await FakeProvider().complete(system=system, user=user, schema=RESPONSE_JSON_SCHEMA)
+
+    assert json.loads(completion.text)["corrected_text"].startswith("El problema")

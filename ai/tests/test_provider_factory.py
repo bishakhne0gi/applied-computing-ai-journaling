@@ -1,3 +1,5 @@
+from typing import Literal
+
 import pytest
 
 from journal_ai.providers.anthropic import AnthropicProvider
@@ -24,7 +26,7 @@ def test_anthropic_without_a_key_fails_fast() -> None:
 
 
 @pytest.mark.parametrize("name", ["fake", "anthropic"])
-def test_invalid_effort_fails_fast(name: str) -> None:
+def test_invalid_effort_fails_fast(name: Literal["anthropic", "fake"]) -> None:
     common = {"model": "claude-opus-5-5", "timeout_seconds": 30.0}
     with pytest.raises(ValueError, match="AI_EFFORT"):
-        build_provider(name, api_key="k", effort="extreme", **common)  # type: ignore[arg-type]  # name narrowed to Literal at runtime
+        build_provider(name, api_key="k", effort="extreme", **common)
