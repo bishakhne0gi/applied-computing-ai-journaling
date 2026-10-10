@@ -9,13 +9,13 @@ try:
     ti = json.load(sys.stdin).get("tool_input") or {}
 except Exception:
     sys.exit(0)
-pat = re.compile(r"(?<![\w.-])\.env(\.[\w.-]+)?(?![\w-])")
-for key in ("command", "file_path", "path", "pattern"):
+pat = re.compile(r"(?<![\w.-])\.env(\.[\w.-]+)?(?![\w-])", re.I)
+for key in ("command", "file_path", "path", "pattern", "glob"):
     val = ti.get(key)
     if not isinstance(val, str):
         continue
     for m in pat.finditer(val):
-        if m.group(1) != ".example":
+        if (m.group(1) or "").lower() != ".example":
             sys.stderr.write("Blocked: access to a real env file is not allowed (only .env.example is readable).\n")
             sys.exit(2)
 ' 

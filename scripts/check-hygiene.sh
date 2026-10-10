@@ -10,12 +10,21 @@ terms="${HYGIENE_TERMS:-}"
 if [ -f .hygiene-terms ]; then terms="$terms"$'\n'"$(cat .hygiene-terms)"; fi
 extra="$(printf '%s\n' "$terms" | tr '|' '\n' | sed '/^[[:space:]]*$/d' | paste -sd '|' -)"
 if [ -n "$extra" ]; then pattern="$pattern|$extra"; fi
-matches="$(git ls-files -z -- . ':(exclude)docs/superpowers' ':(exclude)scripts/check-hygiene.sh' \
-  | xargs -0 grep -nIiE "$pattern" -- 2>/dev/null || true)"
+# git grep exits 0 on match, 1 on none and >1 on error; collapsing the last two would let a broken scan pass.
+set +e
+matches="$(git grep -nIiE "$pattern" -- . ':(exclude)docs/superpowers' ':(exclude)scripts/check-hygiene.sh')"
+status=$?
+set -e
 
-if [ -n "$matches" ]; then
-  echo "$matches" >&2
-  echo "hygiene: forbidden wording or secret found" >&2
-  exit 1
-fi
-echo "hygiene: clean"
+case "$status" in
+  0)
+    echo "$matches" >&2
+    echo "hygiene: forbidden wording or secret found" >&2
+    exit 1
+    ;;
+  1) echo "hygiene: clean" ;;
+  *)
+    echo "hygiene: scan failed (git grep exit $status)" >&2
+    exit 1
+    ;;
+esac
