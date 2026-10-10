@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { InlineAlert } from '@/components/ui/InlineAlert'
 import { AnalysisFailure } from '@/features/feedback/AnalysisFailure'
 import { toErrorMessage } from '@/utils/errorMessage'
 import { EntryForm } from './EntryForm'
@@ -27,9 +28,7 @@ export function WriteEditor({ draft, session, focusOnMount, newEntryButton }: Wr
         onSubmit={() => session.submit({ language: draft.language, text: draft.text })}
       />
       {session.saveError ? (
-        <p role="alert" className="text-sm text-danger">
-          {toErrorMessage(session.saveError)} Your draft is still here.
-        </p>
+        <InlineAlert>{toErrorMessage(session.saveError)} Your draft is still here.</InlineAlert>
       ) : null}
       {(phase === 'done' || session.isRetrying) && (
         <div className="flex flex-col items-start gap-3">

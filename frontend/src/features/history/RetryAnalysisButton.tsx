@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/Button'
+import { InlineAlert } from '@/components/ui/InlineAlert'
 import { useRunAnalysisMutation } from '@/hooks/mutations/useRunAnalysisMutation'
 import { toErrorMessage } from '@/utils/errorMessage'
 
@@ -18,9 +19,7 @@ export function RetryAnalysisButton({ entryId, label, preview }: RetryAnalysisBu
         {text}
       </Button>
       {analyze.isError && (
-        <span role="alert" className="text-sm text-danger">
-          {toErrorMessage(analyze.error)}
-        </span>
+        <InlineAlert>{toErrorMessage(analyze.error)}</InlineAlert>
       )}
     </>
   )

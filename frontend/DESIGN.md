@@ -28,6 +28,7 @@ element's props, `ref` as a plain prop (React 19), Tailwind token utilities merg
 | `Button` | `primary`, `secondary` (default), `ghost`, `inline` (highlights inside text) | the only raw `<button>`; `type="button"` by default; `min-h-11` touch target except `inline`; pointer / not-allowed cursor |
 | `Badge` | `tone`: `neutral` (default), `danger`, `success`, `warning` | status and count chips on `bg-surface` (all tones ≥4.7:1) |
 | `ErrorState` | — | `role="alert"` message + retry `Button`; `retryLabel`, `retrying` |
+| `InlineAlert` | — | `role="alert"` one-line danger text for a failed action next to its control; use `ErrorState` when the user must retry from the message |
 | `Select` | — | native `<select>`, `min-h-11`, pointer cursor |
 | `Textarea` | — | native `<textarea>`, `min-h-48`, `read-only:` surface tint |
 | `Field` | — | label + control; owns the spacing between them |

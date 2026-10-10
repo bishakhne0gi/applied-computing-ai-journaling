@@ -1,5 +1,6 @@
 import { useId, useState } from 'react'
 import { Button } from '@/components/ui/Button'
+import { InlineAlert } from '@/components/ui/InlineAlert'
 import { useFocusOnMount } from '@/hooks/misc/useFocusOnMount'
 import type { AnalysisOut } from '@/types/analysis'
 import { isSubmittableEntry } from '@/utils/text'
@@ -35,9 +36,7 @@ export function ReviseEditor({ entryId, initialText, onDone, onCancel }: ReviseE
     >
       <EntryTextField id={fieldId} label="Revise your entry" value={text} onChange={setText} onSubmitShortcut={submit} readOnly={revise.isPending} textareaRef={focusRef} />
       {revise.error ? (
-        <p role="alert" className="text-sm text-danger">
-          {toErrorMessage(revise.error)}
-        </p>
+        <InlineAlert>{toErrorMessage(revise.error)}</InlineAlert>
       ) : null}
       <div className="flex flex-wrap gap-2">
         <Button type="submit" variant="primary" disabled={!canSubmit}>
