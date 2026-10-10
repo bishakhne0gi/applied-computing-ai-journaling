@@ -46,22 +46,29 @@ class AnalysisService:
             outcome = await self._analyzer.analyze(entry.text, entry.language)
         except Exception as exc:
             # The Analyzer reports expected failures as outcomes; anything raised here is a bug or an
-            # unmapped provider error, and must not leave the committed pending row behind forever.
-            # Only the class name is stored so entry text can never leak through an exception message.
+            # unmapped provider error. It is stored like any failed AI call (spec §5) rather than re-raised,
+            # so the committed pending row never lingers and the client can retry.
             await self._fail(analysis, exc)
-            raise
+            return analysis
         _apply(analysis, outcome)
         await self._session.commit()
         _report(analysis, outcome)
         return analysis
 
     async def _fail(self, analysis: Analysis, exc: Exception) -> None:
+        # Only the class name is kept: exception messages can carry entry text.
+        exception_type = type(exc).__name__
         analysis.status = AnalysisStatus.FAILED
         analysis.error_code = FailureCode.PROVIDER_ERROR
-        analysis.error_detail = type(exc).__name__
+        analysis.error_detail = exception_type
         analysis.completed_at = utcnow()
         await self._session.commit()
         _report(analysis, outcome=None)
+        sentry_sdk.capture_message(
+            "analysis_crashed",
+            level="error",
+            tags={"analysis_id": str(analysis.id), "exception_type": exception_type},
+        )
 
     async def list_for_entry(self, entry_id: uuid.UUID) -> list[Analysis]:
         if await self._entries.get(entry_id) is None:
@@ -103,34 +110,26 @@ def _apply(analysis: Analysis, outcome: AnalysisOutcome) -> None:
 
 
 def _report(analysis: Analysis, outcome: AnalysisOutcome | None) -> None:
-    if outcome is None:
-        logger.info(
-            "analysis_completed",
-            analysis_id=str(analysis.id),
-            entry_id=str(analysis.entry_id),
-            status=analysis.status.value,
-            error_code=analysis.error_code.value if analysis.error_code else None,
-            error_detail=analysis.error_detail,
-            prompt_version=analysis.prompt_version,
-        )
-        return
-    logger.info(
-        "analysis_completed",
-        analysis_id=str(analysis.id),
-        entry_id=str(analysis.entry_id),
-        status=analysis.status.value,
-        error_code=outcome.failure.value if outcome.failure else None,
-        error_detail=outcome.error_detail,
-        model=outcome.model,
-        prompt_version=outcome.prompt_version,
-        latency_ms=outcome.latency_ms,
-        input_tokens=outcome.usage.input_tokens,
-        output_tokens=outcome.usage.output_tokens,
-        mistakes_kept=len(analysis.mistakes),
-        mistakes_dropped=outcome.dropped_mistakes,
-        retried=outcome.retried,
-    )
-    if outcome.failure is FailureCode.INVALID_OUTPUT:
+    fields: dict[str, object] = {
+        "analysis_id": str(analysis.id),
+        "entry_id": str(analysis.entry_id),
+        "status": analysis.status.value,
+        "error_code": analysis.error_code.value if analysis.error_code else None,
+        "error_detail": analysis.error_detail,
+        "prompt_version": analysis.prompt_version,
+    }
+    if outcome is not None:
+        fields |= {
+            "model": outcome.model,
+            "latency_ms": outcome.latency_ms,
+            "input_tokens": outcome.usage.input_tokens,
+            "output_tokens": outcome.usage.output_tokens,
+            "mistakes_kept": len(analysis.mistakes),
+            "mistakes_dropped": outcome.dropped_mistakes,
+            "retried": outcome.retried,
+        }
+    logger.info("analysis_completed", **fields)
+    if outcome is not None and outcome.failure is FailureCode.INVALID_OUTPUT:
         sentry_sdk.capture_message(
             "analysis_invalid_output",
             level="warning",

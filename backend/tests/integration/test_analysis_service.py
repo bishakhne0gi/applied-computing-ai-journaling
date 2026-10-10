@@ -121,13 +121,13 @@ class _CrashingAnalyzer:
         raise RuntimeError(f"boom while reading {text}")
 
 
-async def test_an_analyzer_crash_leaves_a_failed_row_and_propagates(db_session: AsyncSession) -> None:
+async def test_an_analyzer_crash_is_stored_as_a_failed_analysis(db_session: AsyncSession) -> None:
     entry_id = await _entry_id(db_session)
 
-    with pytest.raises(RuntimeError):
-        await AnalysisService(db_session, _CrashingAnalyzer()).run(entry_id)
+    returned = await AnalysisService(db_session, _CrashingAnalyzer()).run(entry_id)
 
     [stored] = await _service(db_session).list_for_entry(entry_id)
+    assert returned.id == stored.id
     assert stored.status is AnalysisStatus.FAILED
     assert stored.error_code is FailureCode.PROVIDER_ERROR
     assert stored.error_detail == "RuntimeError"
@@ -137,10 +137,29 @@ async def test_an_analyzer_crash_leaves_a_failed_row_and_propagates(db_session: 
 async def test_a_failed_run_logs_no_entry_text(db_session: AsyncSession) -> None:
     entry_id = await _entry_id(db_session, text="Mi secreto: yo es feliz.")
 
-    with capture_logs() as logs, pytest.raises(RuntimeError):
+    with capture_logs() as logs:
         await AnalysisService(db_session, _CrashingAnalyzer()).run(entry_id)
 
     line = next(log for log in logs if log["event"] == "analysis_completed")
     assert line["status"] == "failed"
     assert line["error_code"] == "provider_error"
     assert "secreto" not in str(logs)
+
+
+async def test_a_crash_is_reported_to_sentry_by_class_name_only(
+    db_session: AsyncSession, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    captured: list[tuple[str, dict[str, object]]] = []
+    monkeypatch.setattr(
+        "app.services.analyses.sentry_sdk.capture_message",
+        lambda message, **kwargs: captured.append((message, kwargs)),
+    )
+    entry_id = await _entry_id(db_session, text="Mi secreto: yo es feliz.")
+
+    await AnalysisService(db_session, _CrashingAnalyzer()).run(entry_id)
+
+    [(message, kwargs)] = captured
+    assert message == "analysis_crashed"
+    assert kwargs["level"] == "error"
+    assert kwargs["tags"]["exception_type"] == "RuntimeError"
+    assert "secreto" not in str(captured)
