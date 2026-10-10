@@ -4,6 +4,8 @@ export async function initMonitoring(dsn = import.meta.env.VITE_SENTRY_DSN): Pro
   const Sentry = await import('@sentry/react')
   Sentry.init({
     dsn,
+    // Default DOM breadcrumbs record a clicked element's aria-label, and some labels contain entry text.
+    integrations: [Sentry.breadcrumbsIntegration({ dom: false })],
     environment: import.meta.env.MODE,
     release: import.meta.env.VITE_RELEASE,
     // Sentry 11 replaced sendDefaultPii with dataCollection; every category is off so no personal data leaves the browser.
