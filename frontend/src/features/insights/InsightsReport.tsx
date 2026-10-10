@@ -14,8 +14,8 @@ export function InsightsReport({ insights }: InsightsReportProps) {
           Summary
         </h2>
         <ul className="flex list-disc flex-col gap-1 pl-5">
-          {insights.summary.map((sentence) => (
-            <li key={sentence}>{sentence}</li>
+          {insights.summary.map((sentence, index) => (
+            <li key={index}>{sentence}</li>
           ))}
         </ul>
       </section>

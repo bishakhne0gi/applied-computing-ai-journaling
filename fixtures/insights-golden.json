@@ -1,0 +1,572 @@
+{
+  "cases": [
+    {
+      "name": "two entries are not enough",
+      "entries": [
+        {
+          "id": "00000000-0000-0000-0000-0000000000a2",
+          "created_at": "2026-10-02T09:00:00Z",
+          "analyses": [
+            {
+              "id": "00000000-0000-0000-0000-000000000102",
+              "created_at": "2026-10-02T10:00:00Z",
+              "status": "succeeded",
+              "words": 100,
+              "errors": [
+                {
+                  "category": "article",
+                  "original": "la problema",
+                  "correction": "la problema (fixed)",
+                  "count": 2
+                }
+              ]
+            },
+            {
+              "id": "00000000-0000-0000-0000-000000000103",
+              "created_at": "2026-10-03T10:00:00Z",
+              "status": "failed",
+              "words": 100,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "id": "00000000-0000-0000-0000-0000000000a3",
+          "created_at": "2026-10-03T09:00:00Z",
+          "analyses": [
+            {
+              "id": "00000000-0000-0000-0000-0000000001a0",
+              "created_at": "2026-10-03T10:00:00Z",
+              "status": "succeeded",
+              "words": 100,
+              "errors": [
+                {
+                  "category": "spelling",
+                  "original": "bonito",
+                  "correction": "bonito (fixed)",
+                  "count": 5
+                }
+              ]
+            },
+            {
+              "id": "00000000-0000-0000-0000-0000000001f0",
+              "created_at": "2026-10-03T10:00:00Z",
+              "status": "succeeded",
+              "words": 100,
+              "errors": [
+                {
+                  "category": "article",
+                  "original": "la problema",
+                  "correction": "la problema (fixed)",
+                  "count": 2
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "expected": {
+        "status": "insufficient_data",
+        "entry_count": 2,
+        "total_words": 200,
+        "total_errors": 4,
+        "error_rate": null,
+        "earlier_rate": null,
+        "recent_rate": null,
+        "trend": null,
+        "recurring_window": 2,
+        "points": [],
+        "categories": [],
+        "summary": [
+          "Insights start after 3 entries with feedback — 1 to go."
+        ]
+      }
+    },
+    {
+      "name": "three entries give totals only",
+      "entries": [
+        {
+          "id": "00000000-0000-0000-0000-0000000000a2",
+          "created_at": "2026-10-02T09:00:00Z",
+          "analyses": [
+            {
+              "id": "00000000-0000-0000-0000-000000000102",
+              "created_at": "2026-10-02T10:00:00Z",
+              "status": "succeeded",
+              "words": 100,
+              "errors": [
+                {
+                  "category": "article",
+                  "original": "la problema",
+                  "correction": "la problema (fixed)",
+                  "count": 2
+                }
+              ]
+            },
+            {
+              "id": "00000000-0000-0000-0000-000000000103",
+              "created_at": "2026-10-03T10:00:00Z",
+              "status": "failed",
+              "words": 100,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "id": "00000000-0000-0000-0000-0000000000a3",
+          "created_at": "2026-10-03T09:00:00Z",
+          "analyses": [
+            {
+              "id": "00000000-0000-0000-0000-0000000001a0",
+              "created_at": "2026-10-03T10:00:00Z",
+              "status": "succeeded",
+              "words": 100,
+              "errors": [
+                {
+                  "category": "spelling",
+                  "original": "bonito",
+                  "correction": "bonito (fixed)",
+                  "count": 5
+                }
+              ]
+            },
+            {
+              "id": "00000000-0000-0000-0000-0000000001f0",
+              "created_at": "2026-10-03T10:00:00Z",
+              "status": "succeeded",
+              "words": 100,
+              "errors": [
+                {
+                  "category": "article",
+                  "original": "la problema",
+                  "correction": "la problema (fixed)",
+                  "count": 2
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "00000000-0000-0000-0000-0000000000b4",
+          "created_at": "2026-10-04T09:00:00Z",
+          "analyses": [
+            {
+              "id": "00000000-0000-0000-0000-000000000104",
+              "created_at": "2026-10-04T10:00:00Z",
+              "status": "succeeded",
+              "words": 100,
+              "errors": [
+                {
+                  "category": "article",
+                  "original": "el mesa",
+                  "correction": "el mesa (fixed)",
+                  "count": 3
+                },
+                {
+                  "category": "verb_conjugation",
+                  "original": "yo es",
+                  "correction": "yo es (fixed)",
+                  "count": 1
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "expected": {
+        "status": "totals_only",
+        "entry_count": 3,
+        "total_words": 300,
+        "total_errors": 8,
+        "error_rate": 2.7,
+        "earlier_rate": null,
+        "recent_rate": null,
+        "trend": null,
+        "recurring_window": 3,
+        "points": [
+          {
+            "entry_id": "00000000-0000-0000-0000-0000000000a2",
+            "created_at": "2026-10-02T09:00:00Z",
+            "word_count": 100,
+            "error_count": 2,
+            "rate": 2.0
+          },
+          {
+            "entry_id": "00000000-0000-0000-0000-0000000000a3",
+            "created_at": "2026-10-03T09:00:00Z",
+            "word_count": 100,
+            "error_count": 2,
+            "rate": 2.0
+          },
+          {
+            "entry_id": "00000000-0000-0000-0000-0000000000b4",
+            "created_at": "2026-10-04T09:00:00Z",
+            "word_count": 100,
+            "error_count": 4,
+            "rate": 4.0
+          }
+        ],
+        "categories": [
+          {
+            "category": "article",
+            "occurrences": 7,
+            "recent_entries": 3,
+            "recurring": true,
+            "earlier_rate": null,
+            "recent_rate": null,
+            "trend": null,
+            "latest_example": {
+              "original": "el mesa",
+              "correction": "el mesa (fixed)"
+            }
+          },
+          {
+            "category": "verb_conjugation",
+            "occurrences": 1,
+            "recent_entries": 1,
+            "recurring": false,
+            "earlier_rate": null,
+            "recent_rate": null,
+            "trend": null,
+            "latest_example": {
+              "original": "yo es",
+              "correction": "yo es (fixed)"
+            }
+          }
+        ],
+        "summary": [
+          "8 errors across 3 entries — 2.7 per 100 words.",
+          "Article keeps recurring: 3 of your last 3 entries.",
+          "Trends start at 4 entries with feedback."
+        ]
+      }
+    },
+    {
+      "name": "trend windows with ties",
+      "entries": [
+        {
+          "id": "00000000-0000-0000-0000-0000000000a1",
+          "created_at": "2026-10-01T09:00:00Z",
+          "analyses": [
+            {
+              "id": "00000000-0000-0000-0000-000000000101",
+              "created_at": "2026-10-01T10:00:00Z",
+              "status": "succeeded",
+              "words": 0,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "id": "00000000-0000-0000-0000-0000000000a2",
+          "created_at": "2026-10-02T09:00:00Z",
+          "analyses": [
+            {
+              "id": "00000000-0000-0000-0000-000000000102",
+              "created_at": "2026-10-02T10:00:00Z",
+              "status": "succeeded",
+              "words": 100,
+              "errors": [
+                {
+                  "category": "article",
+                  "original": "la problema",
+                  "correction": "la problema (fixed)",
+                  "count": 2
+                }
+              ]
+            },
+            {
+              "id": "00000000-0000-0000-0000-000000000103",
+              "created_at": "2026-10-03T10:00:00Z",
+              "status": "failed",
+              "words": 100,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "id": "00000000-0000-0000-0000-0000000000a3",
+          "created_at": "2026-10-03T09:00:00Z",
+          "analyses": [
+            {
+              "id": "00000000-0000-0000-0000-0000000001a0",
+              "created_at": "2026-10-03T10:00:00Z",
+              "status": "succeeded",
+              "words": 100,
+              "errors": [
+                {
+                  "category": "spelling",
+                  "original": "bonito",
+                  "correction": "bonito (fixed)",
+                  "count": 5
+                }
+              ]
+            },
+            {
+              "id": "00000000-0000-0000-0000-0000000001f0",
+              "created_at": "2026-10-03T10:00:00Z",
+              "status": "succeeded",
+              "words": 100,
+              "errors": [
+                {
+                  "category": "article",
+                  "original": "la problema",
+                  "correction": "la problema (fixed)",
+                  "count": 2
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "00000000-0000-0000-0000-0000000000b4",
+          "created_at": "2026-10-04T09:00:00Z",
+          "analyses": [
+            {
+              "id": "00000000-0000-0000-0000-000000000104",
+              "created_at": "2026-10-04T10:00:00Z",
+              "status": "succeeded",
+              "words": 100,
+              "errors": [
+                {
+                  "category": "article",
+                  "original": "el mesa",
+                  "correction": "el mesa (fixed)",
+                  "count": 3
+                },
+                {
+                  "category": "verb_conjugation",
+                  "original": "yo es",
+                  "correction": "yo es (fixed)",
+                  "count": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "00000000-0000-0000-0000-0000000000b3",
+          "created_at": "2026-10-04T09:00:00Z",
+          "analyses": [
+            {
+              "id": "00000000-0000-0000-0000-000000000105",
+              "created_at": "2026-10-04T10:00:00Z",
+              "status": "succeeded",
+              "words": 100,
+              "errors": [
+                {
+                  "category": "article",
+                  "original": "el casa",
+                  "correction": "el casa (fixed)",
+                  "count": 2
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "00000000-0000-0000-0000-0000000000a6",
+          "created_at": "2026-10-06T09:00:00Z",
+          "analyses": [
+            {
+              "id": "00000000-0000-0000-0000-000000000106",
+              "created_at": "2026-10-06T10:00:00Z",
+              "status": "succeeded",
+              "words": 50,
+              "errors": [
+                {
+                  "category": "article",
+                  "original": "un agua",
+                  "correction": "un agua (fixed)",
+                  "count": 2
+                },
+                {
+                  "category": "verb_conjugation",
+                  "original": "tu va",
+                  "correction": "tu va (fixed)",
+                  "count": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "00000000-0000-0000-0000-0000000000a7",
+          "created_at": "2026-10-07T09:00:00Z",
+          "analyses": [
+            {
+              "id": "00000000-0000-0000-0000-000000000107",
+              "created_at": "2026-10-07T10:00:00Z",
+              "status": "succeeded",
+              "words": 50,
+              "errors": [
+                {
+                  "category": "verb_conjugation",
+                  "original": "ellos va",
+                  "correction": "ellos va (fixed)",
+                  "count": 3
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "00000000-0000-0000-0000-0000000000a8",
+          "created_at": "2026-10-08T09:00:00Z",
+          "analyses": [
+            {
+              "id": "00000000-0000-0000-0000-000000000108",
+              "created_at": "2026-10-08T10:00:00Z",
+              "status": "succeeded",
+              "words": 2000,
+              "errors": [
+                {
+                  "category": "article",
+                  "original": "el mano",
+                  "correction": "el mano (fixed)",
+                  "count": 20
+                },
+                {
+                  "category": "preposition",
+                  "original": "en el lunes",
+                  "correction": "en el lunes (fixed)",
+                  "count": 3
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "00000000-0000-0000-0000-0000000000a9",
+          "created_at": "2026-10-09T09:00:00Z",
+          "analyses": [
+            {
+              "id": "00000000-0000-0000-0000-000000000109",
+              "created_at": "2026-10-09T10:00:00Z",
+              "status": "failed",
+              "words": 10,
+              "errors": []
+            }
+          ]
+        }
+      ],
+      "expected": {
+        "status": "trends",
+        "entry_count": 8,
+        "total_words": 2500,
+        "total_errors": 39,
+        "error_rate": 1.6,
+        "earlier_rate": 2.0,
+        "recent_rate": 1.5,
+        "trend": "improving",
+        "recurring_window": 5,
+        "points": [
+          {
+            "entry_id": "00000000-0000-0000-0000-0000000000a1",
+            "created_at": "2026-10-01T09:00:00Z",
+            "word_count": 0,
+            "error_count": 0,
+            "rate": null
+          },
+          {
+            "entry_id": "00000000-0000-0000-0000-0000000000a2",
+            "created_at": "2026-10-02T09:00:00Z",
+            "word_count": 100,
+            "error_count": 2,
+            "rate": 2.0
+          },
+          {
+            "entry_id": "00000000-0000-0000-0000-0000000000a3",
+            "created_at": "2026-10-03T09:00:00Z",
+            "word_count": 100,
+            "error_count": 2,
+            "rate": 2.0
+          },
+          {
+            "entry_id": "00000000-0000-0000-0000-0000000000b3",
+            "created_at": "2026-10-04T09:00:00Z",
+            "word_count": 100,
+            "error_count": 2,
+            "rate": 2.0
+          },
+          {
+            "entry_id": "00000000-0000-0000-0000-0000000000b4",
+            "created_at": "2026-10-04T09:00:00Z",
+            "word_count": 100,
+            "error_count": 4,
+            "rate": 4.0
+          },
+          {
+            "entry_id": "00000000-0000-0000-0000-0000000000a6",
+            "created_at": "2026-10-06T09:00:00Z",
+            "word_count": 50,
+            "error_count": 3,
+            "rate": 6.0
+          },
+          {
+            "entry_id": "00000000-0000-0000-0000-0000000000a7",
+            "created_at": "2026-10-07T09:00:00Z",
+            "word_count": 50,
+            "error_count": 3,
+            "rate": 6.0
+          },
+          {
+            "entry_id": "00000000-0000-0000-0000-0000000000a8",
+            "created_at": "2026-10-08T09:00:00Z",
+            "word_count": 2000,
+            "error_count": 23,
+            "rate": 1.2
+          }
+        ],
+        "categories": [
+          {
+            "category": "article",
+            "occurrences": 31,
+            "recent_entries": 4,
+            "recurring": true,
+            "earlier_rate": 2.0,
+            "recent_rate": 1.1,
+            "trend": "improving",
+            "latest_example": {
+              "original": "el mano",
+              "correction": "el mano (fixed)"
+            }
+          },
+          {
+            "category": "verb_conjugation",
+            "occurrences": 5,
+            "recent_entries": 3,
+            "recurring": true,
+            "earlier_rate": 0.0,
+            "recent_rate": 0.2,
+            "trend": "stable",
+            "latest_example": {
+              "original": "ellos va",
+              "correction": "ellos va (fixed)"
+            }
+          },
+          {
+            "category": "preposition",
+            "occurrences": 3,
+            "recent_entries": 1,
+            "recurring": false,
+            "earlier_rate": 0.0,
+            "recent_rate": 0.1,
+            "trend": "stable",
+            "latest_example": {
+              "original": "en el lunes",
+              "correction": "en el lunes (fixed)"
+            }
+          }
+        ],
+        "summary": [
+          "39 errors across 8 entries — 1.6 per 100 words.",
+          "Overall, your error rate is improving (2.0 → 1.5 per 100 words).",
+          "Article is improving (2.0 → 1.1 per 100 words).",
+          "Article keeps recurring: 4 of your last 5 entries.",
+          "Verb conjugation keeps recurring: 3 of your last 5 entries."
+        ]
+      }
+    }
+  ]
+}

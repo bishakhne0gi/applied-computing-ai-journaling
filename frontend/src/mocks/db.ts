@@ -10,7 +10,9 @@ export function resetMockDb(): void {
   store = seedStore()
 }
 
-const newestFirst = <T extends { created_at: string }>(a: T, b: T) => b.created_at.localeCompare(a.created_at)
+// Equal timestamps fall back to the larger id, which is the backend's `created_at DESC, id DESC`.
+const newestFirst = <T extends { created_at: string; id: string }>(a: T, b: T) =>
+  b.created_at.localeCompare(a.created_at) || b.id.localeCompare(a.id)
 
 export function findEntry(id: string): EntryOut | undefined {
   return store.entries.find((entry) => entry.id === id)
@@ -30,14 +32,18 @@ export interface AnalysedEntry {
 }
 
 // Like the backend: each entry's newest succeeded analysis, even when a later attempt failed or never finished.
-export function analysedEntries(language: string | null): AnalysedEntry[] {
-  return store.entries
+export function pickAnalysed(entries: EntryOut[], analyses: AnalysisOut[], language: string | null): AnalysedEntry[] {
+  return entries
     .filter((entry) => language === null || entry.language === language)
     .flatMap((entry) => {
-      const analysis = analysesOf(entry.id).find((item) => item.status === 'succeeded')
+      const analysis = analyses
+        .filter((item) => item.entry_id === entry.id && item.status === 'succeeded')
+        .sort(newestFirst)[0]
       return analysis ? [{ entry, analysis }] : []
     })
 }
+
+export const analysedEntries = (language: string | null): AnalysedEntry[] => pickAnalysed(store.entries, store.analyses, language)
 
 export function createEntry(language: string, text: string): EntryOut {
   const now = new Date().toISOString()

@@ -24,6 +24,7 @@ export function RateTable({ points }: RateTableProps) {
         <tbody>
           {points.map((point) => (
             <tr key={point.entry_id}>
+              {/* Date and time, not just the date: two entries on one day must stay tellable apart. */}
               <td>{formatDateTime(point.created_at)}</td>
               <td>{point.word_count}</td>
               <td>{point.error_count}</td>
