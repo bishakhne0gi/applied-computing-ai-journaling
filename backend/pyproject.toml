@@ -45,3 +45,5 @@ name = "Backend never talks to a provider SDK directly"
 type = "forbidden"
 source_modules = ["app"]
 forbidden_modules = ["anthropic"]
+# The composition root reaches the SDK only through journal_ai's provider factory; direct use stays banned.
+allow_indirect_imports = true
