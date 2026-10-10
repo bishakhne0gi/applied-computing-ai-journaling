@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { ErrorState } from '@/components/ui/ErrorState'
 import { LoadingState } from '@/components/ui/LoadingState'
+import { PageHeading } from '@/components/ui/PageHeading'
 import { useAnalysesQuery } from '@/hooks/queries/useAnalysesQuery'
 import { useEntryQuery } from '@/hooks/queries/useEntryQuery'
 import type { AnalysisOut } from '@/types/analysis'
@@ -29,12 +30,14 @@ function EntryDetailReady({ entry, analyses }: { entry: EntryDetailOut; analyses
   )
 }
 
-export function EntryDetail({ entryId }: EntryDetailProps) {
-  const entry = useEntryQuery(entryId)
-  const analyses = useAnalysesQuery(entryId)
+interface EntryDetailBodyProps {
+  entry: ReturnType<typeof useEntryQuery>
+  analyses: ReturnType<typeof useAnalysesQuery>
+}
+
+function EntryDetailBody({ entry, analyses }: EntryDetailBodyProps) {
   // Cached data outranks a failed background refresh: only a first load with nothing to show is an error screen.
   if (entry.isError && !entry.data) {
-    if (isMissing(entry.error)) return <EntryNotFound />
     return <ErrorState message={toErrorMessage(entry.error)} onRetry={() => void entry.refetch()} />
   }
   if (analyses.isError && !analyses.data) {
@@ -42,4 +45,19 @@ export function EntryDetail({ entryId }: EntryDetailProps) {
   }
   if (!entry.data || !analyses.data) return <LoadingState label="Loading entry…" />
   return <EntryDetailReady entry={entry.data} analyses={analyses.data} />
+}
+
+export function EntryDetail({ entryId }: EntryDetailProps) {
+  const entry = useEntryQuery(entryId)
+  const analyses = useAnalysesQuery(entryId)
+  const missing = entry.isError && !entry.data && isMissing(entry.error)
+  const title = missing ? 'Entry not found' : 'Entry'
+  // One heading element in every state: the route change focused it, and swapping it would drop that focus.
+  return (
+    <div className="flex flex-col gap-6">
+      <title>{`${title} · Language Journal`}</title>
+      <PageHeading>{title}</PageHeading>
+      {missing ? <EntryNotFound /> : <EntryDetailBody entry={entry} analyses={analyses} />}
+    </div>
+  )
 }

@@ -2,7 +2,7 @@ import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { describe, expect, it } from 'vitest'
-import { apiUrl, failWith, setMockMode, waitForLanguages } from '@/test/helpers'
+import { apiUrl, clearMockMode, failWith, setMockMode, waitForLanguages } from '@/test/helpers'
 import { renderWithProviders } from '@/test/renderWithProviders'
 import { server } from '@/test/server'
 import { ENDPOINTS } from '@/utils/endpoints'
@@ -62,6 +62,20 @@ describe('HistoryList', () => {
     renderHistory()
     expect(await screen.findByRole('alert')).toHaveTextContent(/on our side/)
     server.resetHandlers()
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Try again' }))
+    // Assert
+    expect(await screen.findByText('Showing 10 entries')).toBeInTheDocument()
+  })
+
+  it('shows a single retry when the languages cannot load either', async () => {
+    // Arrange
+    setMockMode('error')
+    const user = userEvent.setup()
+    renderHistory()
+    expect(await screen.findByRole('alert')).toHaveTextContent(/on our side/)
+    expect(screen.queryByRole('status')).not.toBeInTheDocument()
+    clearMockMode()
     // Act
     await user.click(screen.getByRole('button', { name: 'Try again' }))
     // Assert

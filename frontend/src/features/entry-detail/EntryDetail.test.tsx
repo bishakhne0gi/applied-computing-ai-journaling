@@ -79,6 +79,14 @@ describe('EntryDetail', () => {
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   })
 
+  it('names the page for what happened when the entry is missing', async () => {
+    // Arrange + Act
+    renderDetail('ffffffff-ffff-4fff-8fff-ffffffffffff')
+    // Assert
+    expect(await screen.findByRole('heading', { level: 1, name: 'Entry not found' })).toBeInTheDocument()
+    await waitFor(() => expect(document.title).toBe('Entry not found · Language Journal'))
+  })
+
   it.each([
     ['a missing entry', 'ffffffff-ffff-4fff-8fff-ffffffffffff'],
     ['an id that is not a UUID', 'not-an-id'],
