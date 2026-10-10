@@ -1,4 +1,4 @@
-.PHONY: install db migrate revision dev-backend dev-frontend up down lint typecheck test-ai test-backend test hygiene verify-fast verify
+.PHONY: install db migrate migrate-check revision dev-backend dev-frontend up down lint typecheck test-ai test-backend test hygiene verify-fast verify
 
 install:
 	uv sync --all-packages
@@ -9,6 +9,9 @@ db:
 
 migrate:
 	cd backend && uv run alembic upgrade head
+
+migrate-check:
+	cd backend && uv run alembic upgrade head && uv run alembic check
 
 revision:
 	cd backend && uv run alembic revision --autogenerate -m "$(m)"
@@ -47,5 +50,5 @@ hygiene:
 verify-fast: lint typecheck
 	pnpm -C frontend verify:fast
 
-verify: hygiene lint typecheck test
+verify: hygiene lint typecheck test migrate-check
 	pnpm -C frontend verify
