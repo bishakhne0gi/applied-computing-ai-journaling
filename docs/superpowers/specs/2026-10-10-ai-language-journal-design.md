@@ -91,7 +91,7 @@ UUID primary keys, `timestamptz`, managed by Alembic.
 Index `(language, created_at)`.
 
 **analyses** — `id, entry_id → entries (cascade), status (pending|succeeded|failed), input_text, corrected_text,
-feedback_summary, model, prompt_version, raw_response (JSONB, nullable), error_code (provider_timeout|invalid_output|
+feedback_summary, model, prompt_version, raw_response (text, nullable), error_code (provider_timeout|invalid_output|
 provider_error, nullable), latency_ms, input_tokens, output_tokens, created_at, completed_at`.
 `input_text` snapshots what was analyzed so offsets stay valid after the entry is edited. Index `(entry_id, created_at)`.
 
