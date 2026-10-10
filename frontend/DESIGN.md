@@ -31,6 +31,8 @@ element's props, `ref` as a plain prop (React 19), Tailwind token utilities merg
 | `Select` | — | native `<select>`, `min-h-11`, pointer cursor |
 | `Textarea` | — | native `<textarea>`, `min-h-48`, `read-only:` surface tint |
 | `Field` | — | label + control; owns the spacing between them |
+| `LoadingState` | — | `role="status"` + `aria-busy`, muted label in place of content |
+| `EmptyState` | — | dashed box: title + the next useful action as `children` |
 
 ## 3. Composition
 Features compose primitives. Prefer compound components (`<Tabs><Tabs.List/><Tabs.Panel/></Tabs>`) and

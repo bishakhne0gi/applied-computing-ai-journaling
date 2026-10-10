@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { pluralize } from './formatter'
+import { formatDateTime, pluralize } from './formatter'
 
 describe('pluralize', () => {
   it.each([
@@ -22,5 +22,16 @@ describe('pluralize', () => {
     const phrase = pluralize(count, 'entry', 'entries')
     // Assert
     expect(phrase).toBe('3 entries')
+  })
+})
+
+describe('formatDateTime', () => {
+  it('shows a short, readable date and time', () => {
+    // Arrange
+    const iso = '2026-10-09T18:00:00Z'
+    // Act
+    const label = formatDateTime(iso)
+    // Assert
+    expect(label).toMatch(/^Oct \d{1,2}, 2026, \d{1,2}:\d{2}\s?[AP]M$/)
   })
 })

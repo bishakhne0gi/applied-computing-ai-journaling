@@ -111,3 +111,19 @@ export function failedAnalysis(entryId: string, text: string, createdAt = new Da
     mistakes: [],
   })
 }
+
+// What an analysis looks like when the client went away mid-call and nothing ever finished it.
+export function pendingAnalysis(entryId: string, text: string, createdAt = new Date().toISOString()): AnalysisOut {
+  return buildAnalysis({
+    entry_id: entryId,
+    status: 'pending',
+    input_text: text,
+    corrected_text: null,
+    feedback_summary: null,
+    model: null,
+    latency_ms: null,
+    created_at: createdAt,
+    completed_at: null,
+    mistakes: [],
+  })
+}

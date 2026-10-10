@@ -1,0 +1,37 @@
+import { useState } from 'react'
+import { ErrorState } from '@/components/ui/ErrorState'
+import { LoadingState } from '@/components/ui/LoadingState'
+import { useAnalysesQuery } from '@/hooks/queries/useAnalysesQuery'
+import { useEntryQuery } from '@/hooks/queries/useEntryQuery'
+import type { AnalysisOut } from '@/types/analysis'
+import type { EntryDetailOut } from '@/types/entry'
+import { toErrorMessage } from '@/utils/errorMessage'
+import { AnalysisSwitcher } from './AnalysisSwitcher'
+import { DetailAnalysis } from './DetailAnalysis'
+import { EntryHeader } from './EntryHeader'
+
+export interface EntryDetailProps {
+  entryId: string
+}
+
+function EntryDetailReady({ entry, analyses }: { entry: EntryDetailOut; analyses: AnalysisOut[] }) {
+  // null means "the newest", so a new analysis is selected as soon as it lands in the cache.
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const selected = analyses.find((analysis) => analysis.id === selectedId) ?? analyses[0] ?? null
+  return (
+    <div className="flex flex-col gap-6">
+      <EntryHeader entry={entry} />
+      {analyses.length > 1 && <AnalysisSwitcher analyses={analyses} value={selected?.id ?? ''} onChange={setSelectedId} />}
+      <DetailAnalysis key={selected?.id ?? 'none'} entry={entry} analysis={selected} onNewAnalysis={() => setSelectedId(null)} />
+    </div>
+  )
+}
+
+export function EntryDetail({ entryId }: EntryDetailProps) {
+  const entry = useEntryQuery(entryId)
+  const analyses = useAnalysesQuery(entryId)
+  if (entry.isError) return <ErrorState message={toErrorMessage(entry.error)} onRetry={() => void entry.refetch()} />
+  if (analyses.isError) return <ErrorState message={toErrorMessage(analyses.error)} onRetry={() => void analyses.refetch()} />
+  if (entry.isPending || analyses.isPending) return <LoadingState label="Loading entry…" />
+  return <EntryDetailReady entry={entry.data} analyses={analyses.data} />
+}

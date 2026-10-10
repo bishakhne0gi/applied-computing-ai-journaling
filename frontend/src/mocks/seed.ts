@@ -1,7 +1,7 @@
 import type { AnalysisOut } from '@/types/analysis'
 import type { EntryOut } from '@/types/entry'
 import { countWords } from '@/utils/text'
-import { analyzeText, failedAnalysis } from './analyzer'
+import { analyzeText, failedAnalysis, pendingAnalysis } from './analyzer'
 import { buildMistake } from './factories'
 
 export interface Store {
@@ -19,6 +19,7 @@ export const SEEDED = {
   failed: seedId(3),
   unanalysed: seedId(4),
   otherNotes: seedId(5),
+  interrupted: seedId(6),
 } as const
 
 interface Sample {
@@ -38,7 +39,7 @@ const SAMPLES: Sample[] = [
   { id: SEEDED.failed, language: 'es', text: 'Mañana voy a el cine con mis amigos.' },
   { id: SEEDED.unanalysed, language: 'es', text: 'Escribo esto antes de dormir.' },
   { id: SEEDED.otherNotes, language: 'es', text: 'El fin de semana fue muy bueno y yo es feliz.' },
-  { id: seedId(6), language: 'fr', text: 'Hier, je suis allé à le parc.' },
+  { id: SEEDED.interrupted, language: 'fr', text: 'Hier, je suis allé à le parc.' },
   { id: seedId(7), language: 'fr', text: 'J’aime lire le soir.' },
   { id: seedId(8), language: 'fr', text: 'Nous avons mangé une [pie] délicieuse.' },
   { id: seedId(9), language: 'es', text: 'Ayer yo es feliz en el [park].' },
@@ -82,6 +83,8 @@ function historyFor(entry: EntryOut): AnalysisOut[] {
       return []
     case SEEDED.failed:
       return [failedAnalysis(entry.id, entry.text, entry.created_at)]
+    case SEEDED.interrupted:
+      return [pendingAnalysis(entry.id, entry.text, entry.created_at)]
     case SEEDED.revisedFrench:
       return revisedHistory(entry)
     case SEEDED.otherNotes:

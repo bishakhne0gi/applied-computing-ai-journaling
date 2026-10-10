@@ -61,6 +61,7 @@ describe('in-memory API', () => {
     const byId = new Map(items.map((item) => [item.id, item]))
     // Assert
     expect(byId.get(SEEDED.failed)).toMatchObject({ latest_status: 'failed', error_count: 0 })
+    expect(byId.get(SEEDED.interrupted)).toMatchObject({ latest_status: 'pending', error_count: 0 })
     expect(byId.get(SEEDED.unanalysed)).toMatchObject({ latest_status: null, error_count: 0 })
     expect(byId.get(SEEDED.emoji)).toMatchObject({ latest_status: 'succeeded', error_count: 2 })
   })
