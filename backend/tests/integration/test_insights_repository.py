@@ -1,3 +1,4 @@
+import uuid
 from datetime import UTC, datetime, timedelta
 
 import pytest
@@ -26,6 +27,18 @@ async def test_only_the_newest_succeeded_analysis_of_an_entry_counts(db_session:
             analysis_for(entry, status=SUCCEEDED, created_at=LATER, errors=1),
         ]
     )
+
+    rows = await _analysed(db_session)
+
+    assert len(rows) == 1
+
+
+async def test_equal_creation_times_fall_back_to_the_higher_analysis_id(db_session: AsyncSession) -> None:
+    entry = entry_at(T0)
+    lower = analysis_for(entry, status=SUCCEEDED, created_at=T0, errors=3)
+    higher = analysis_for(entry, status=SUCCEEDED, created_at=T0, errors=1)
+    lower.id, higher.id = uuid.UUID(int=1), uuid.UUID(int=2)
+    db_session.add_all([higher, lower])
 
     rows = await _analysed(db_session)
 

@@ -146,6 +146,23 @@ def test_a_drop_of_exactly_the_threshold_between_pooled_windows_is_improving() -
     assert insights.trend is Trend.IMPROVING
 
 
+def test_trends_use_unrounded_rates_so_displayed_digits_never_decide_the_verdict() -> None:
+    # 4.04 -> 3.04 shows as 4.0 -> 3.0 (a full-point drop that would be improving), but the real drop is
+    # 1.0 against a threshold of 1.01.
+    insights = compute_insights(history(50, 51, 38, 38, words=1250))
+
+    assert (insights.earlier_rate, insights.recent_rate) == (4.0, 3.0)
+    assert insights.trend is Trend.STABLE
+    assert classify_trend(4.04, 3.04) is Trend.STABLE
+
+
+def test_a_rise_of_exactly_the_threshold_between_pooled_windows_is_worsening() -> None:
+    insights = compute_insights(history(0, 0, 1, 1, words=200))
+
+    assert (insights.earlier_rate, insights.recent_rate) == (0.0, 0.5)
+    assert insights.trend is Trend.WORSENING
+
+
 @pytest.mark.parametrize(
     ("article_errors", "recurring", "recent_entries"),
     [((1, 0, 1, 0, 1, 1), True, 3), ((1, 1, 0, 0, 1, 0), False, 2)],

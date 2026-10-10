@@ -173,8 +173,11 @@ category table (earlier vs recent rate, trend arrow, recurring badge, latest exa
 ## 8. Stage 2 insights logic
 
 Pure functions in `backend/app/services/insights/calculations.py`; a single repository query supplies, per entry
-with a latest succeeded analysis: `created_at, word_count, error counts by category, latest example per category`.
-Only `kind = error` counts.
+with a latest succeeded analysis, its `created_at`, the counted analysis's `input_text` and one row per error
+(`category, original, correction`, in text order). The service derives words with `count_words` (one word-count
+rule) and groups the rows into per-category counts. Only `kind = error` counts.
+- A category's example is the first error by position within an entry's counted analysis; across entries the
+  newest entry containing the category supplies the example shown.
 - "Latest succeeded" is literal: a newer `failed` or `pending` attempt never hides an entry's last good feedback;
   entries with no succeeded analysis are left out.
 - Words are counted on the analysed snapshot (`analyses.input_text`), so an edit that was never re-checked does
