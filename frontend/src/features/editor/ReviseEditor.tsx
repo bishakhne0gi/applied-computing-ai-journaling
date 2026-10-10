@@ -1,6 +1,7 @@
 import { useId, useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { useFocusOnMount } from '@/hooks/misc/useFocusOnMount'
+import type { AnalysisOut } from '@/types/analysis'
 import { isSubmittableEntry } from '@/utils/text'
 import { toErrorMessage } from '@/utils/errorMessage'
 import { EntryTextField } from './EntryTextField'
@@ -9,7 +10,7 @@ import { useReviseEntry } from './useReviseEntry'
 export interface ReviseEditorProps {
   entryId: string
   initialText: string
-  onDone: () => void
+  onDone: (analysis: AnalysisOut) => void
   onCancel: () => void
 }
 

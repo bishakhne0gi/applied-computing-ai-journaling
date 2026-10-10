@@ -132,4 +132,26 @@ describe('EntryDetail', () => {
     expect(options.slice(1).some((option) => option.textContent?.includes('(latest)'))).toBe(false)
     expect(screen.getByLabelText('Analysis')).toHaveDisplayValue(/\(latest\)$/)
   })
+
+  it('never shows the old feedback again once a re-check has been requested', async () => {
+    // Arrange
+    const user = renderDetail(SEEDED.emoji)
+    const oldSummary = (await screen.findByRole('region', { name: 'Feedback' })).querySelector('p')?.textContent ?? ''
+    expect(oldSummary).not.toBe('')
+    await user.click(screen.getByRole('button', { name: 'Revise & re-check' }))
+    const editor = screen.getByLabelText('Revise your entry')
+    await user.clear(editor)
+    await user.type(editor, 'Hoy fue difícil, pero soy optimista.')
+    let sawOld = false
+    const observer = new MutationObserver(() => {
+      sawOld ||= document.body.textContent.includes(oldSummary)
+    })
+    observer.observe(document.body, { childList: true, subtree: true, characterData: true })
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Re-check' }))
+    await screen.findByText('Great job — no mistakes found!')
+    observer.disconnect()
+    // Assert
+    expect(sawOld).toBe(false)
+  })
 })

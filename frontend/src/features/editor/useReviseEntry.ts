@@ -1,3 +1,4 @@
+import type { AnalysisOut } from '@/types/analysis'
 import { useUpdateEntryMutation } from '@/hooks/mutations/useUpdateEntryMutation'
 import { useRunAnalysisMutation } from '@/hooks/mutations/useRunAnalysisMutation'
 
@@ -5,7 +6,7 @@ import { useRunAnalysisMutation } from '@/hooks/mutations/useRunAnalysisMutation
 export function useReviseEntry(entryId: string) {
   const update = useUpdateEntryMutation()
   const analyze = useRunAnalysisMutation()
-  const submit = (text: string, onDone: () => void) =>
+  const submit = (text: string, onDone: (analysis: AnalysisOut) => void) =>
     update.mutate({ id: entryId, text }, { onSuccess: () => analyze.mutate(entryId, { onSuccess: onDone }) })
   return { submit, isPending: update.isPending || analyze.isPending, error: update.error ?? analyze.error }
 }
