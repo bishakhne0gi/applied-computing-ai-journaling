@@ -63,7 +63,10 @@ async def test_validation_errors_list_the_failing_fields(
     app.add_api_route("/needs-int", needs_int)
 
     async with make_client(app) as client:
-        response = await client.get("/needs-int", params={"n": "x"})
+        response = await client.get("/needs-int", params={"n": "secret-journal-text"})
 
     assert response.status_code == 422
-    assert response.json()["errors"][0]["loc"] == ["query", "n"]
+    errors = response.json()["errors"]
+    assert errors[0]["loc"] == ["query", "n"]
+    assert "secret-journal-text" not in response.text
+    assert all("input" not in error for error in errors)

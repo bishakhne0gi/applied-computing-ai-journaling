@@ -8,6 +8,24 @@ from httpx import ASGITransport, AsyncClient
 from app.core.config import Settings
 from tests.support import ClientFactory
 
+# Settings tests assert defaults, so a developer's shell must not leak into them.
+_SETTINGS_ENV_VARS = (
+    "ANTHROPIC_API_KEY",
+    "AI_PROVIDER",
+    "AI_MODEL",
+    "AI_EFFORT",
+    "LOG_FORMAT",
+    "LOG_LEVEL",
+    "CORS_ORIGINS",
+    "SENTRY_DSN",
+)
+
+
+@pytest.fixture(autouse=True)
+def _isolated_settings_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    for name in _SETTINGS_ENV_VARS:
+        monkeypatch.delenv(name, raising=False)
+
 
 @pytest.fixture
 def settings() -> Settings:

@@ -39,3 +39,5 @@ def test_init_sentry_never_sends_pii(monkeypatch: pytest.MonkeyPatch) -> None:
     assert calls[0]["send_default_pii"] is False
     assert calls[0]["release"] == "abc"
     assert calls[0]["before_send"] is scrub_event
+    assert calls[0]["before_send_transaction"] is scrub_event
+    assert calls[0]["include_local_variables"] is False

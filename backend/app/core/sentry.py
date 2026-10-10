@@ -24,4 +24,7 @@ def init_sentry(settings: Settings) -> None:
         send_default_pii=False,
         traces_sample_rate=0.1,
         before_send=scrub_event,
+        before_send_transaction=scrub_event,
+        # Frame locals would carry journal text into error reports.
+        include_local_variables=False,
     )
