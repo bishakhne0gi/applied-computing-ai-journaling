@@ -41,6 +41,9 @@ class Analyzer:
     def __init__(self, provider: CompletionProvider) -> None:
         self._provider = provider
 
+    async def aclose(self) -> None:
+        await self._provider.aclose()
+
     async def analyze(self, text: str, language: str) -> AnalysisOutcome:
         # Callers rely on analyze() never raising for provider or output problems; only a bad language does.
         text = normalize_text(text)

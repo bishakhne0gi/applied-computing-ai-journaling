@@ -1,3 +1,4 @@
+import asyncio
 import json
 from typing import Any
 
@@ -191,6 +192,9 @@ class _ServedModelProvider:
     async def complete(self, *, system: str, user: str, schema: Any) -> Completion:
         return Completion(text=_valid(), usage=Usage(), model="claude-served-x")
 
+    async def aclose(self) -> None:
+        return None
+
 
 async def test_outcome_reports_the_model_that_served_the_request() -> None:
     outcome = await Analyzer(_ServedModelProvider()).analyze(TEXT, "es")
@@ -204,3 +208,37 @@ async def test_outcome_falls_back_to_the_configured_model_without_a_completion()
     outcome = await Analyzer(provider).analyze(TEXT, "es")
 
     assert outcome.model == provider.model
+
+
+class _ClosingProvider(FakeProvider):
+    closed = False
+
+    async def aclose(self) -> None:
+        self.closed = True
+
+
+class _CancelledProvider:
+    model = "fake"
+
+    async def complete(self, *, system: str, user: str, schema: Any) -> Completion:
+        raise asyncio.CancelledError
+
+    async def aclose(self) -> None:
+        return None
+
+
+async def test_aclose_closes_the_provider() -> None:
+    provider = _ClosingProvider([])
+
+    await Analyzer(provider).aclose()
+
+    assert provider.closed
+
+
+async def test_fake_provider_closes_without_error() -> None:
+    await FakeProvider().aclose()
+
+
+async def test_cancellation_propagates_instead_of_becoming_a_failure() -> None:
+    with pytest.raises(asyncio.CancelledError):
+        await Analyzer(_CancelledProvider()).analyze(TEXT, "es")

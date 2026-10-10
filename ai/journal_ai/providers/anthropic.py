@@ -41,6 +41,10 @@ class AnthropicProvider:
     def model(self) -> str:
         return self._model
 
+    async def aclose(self) -> None:
+        # The SDK pools HTTP connections; closing on shutdown avoids leaked sockets.
+        await self._client.close()
+
     async def complete(self, *, system: str, user: str, schema: Mapping[str, Any]) -> Completion:
         output_config = cast(
             OutputConfigParam,

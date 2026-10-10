@@ -111,3 +111,17 @@ def test_workspace_id_is_sent_as_a_default_header() -> None:
 
 def test_no_workspace_header_when_unset() -> None:
     assert "anthropic-workspace-id" not in _real_client_provider()._client.default_headers
+
+
+async def test_aclose_closes_the_sdk_http_client() -> None:
+    closed: list[bool] = []
+
+    async def close() -> None:
+        closed.append(True)
+
+    client = cast(AsyncAnthropic, SimpleNamespace(messages=StubMessages(), close=close))
+    provider = AnthropicProvider(api_key="k", model="m", effort="medium", timeout_seconds=30, client=client)
+
+    await provider.aclose()
+
+    assert closed == [True]

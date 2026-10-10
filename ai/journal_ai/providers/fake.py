@@ -32,6 +32,9 @@ class FakeProvider:
     def model(self) -> str:
         return "fake"
 
+    async def aclose(self) -> None:
+        return None
+
     async def complete(self, *, system: str, user: str, schema: Mapping[str, Any]) -> Completion:
         # Demo mode runs in a long-lived backend; recording there would leak memory and retain entry text.
         if self._script is not None:
