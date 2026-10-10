@@ -9,13 +9,16 @@ export interface Store {
   analyses: AnalysisOut[]
 }
 
+// Real UUIDs, because the backend rejects any other entry id with a 422.
+const seedId = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`
+
 // Fixed ids so tests, e2e and ui-qa can open specific demo entries.
 export const SEEDED = {
-  revisedFrench: 'entry-fr-revised',
-  emoji: 'entry-es-emoji',
-  failed: 'entry-es-failed',
-  unanalysed: 'entry-es-unanalysed',
-  otherNotes: 'entry-es-notes',
+  revisedFrench: seedId(1),
+  emoji: seedId(2),
+  failed: seedId(3),
+  unanalysed: seedId(4),
+  otherNotes: seedId(5),
 } as const
 
 interface Sample {
@@ -35,15 +38,15 @@ const SAMPLES: Sample[] = [
   { id: SEEDED.failed, language: 'es', text: 'Mañana voy a el cine con mis amigos.' },
   { id: SEEDED.unanalysed, language: 'es', text: 'Escribo esto antes de dormir.' },
   { id: SEEDED.otherNotes, language: 'es', text: 'El fin de semana fue muy bueno y yo es feliz.' },
-  { id: 'entry-fr-park', language: 'fr', text: 'Hier, je suis allé à le parc.' },
-  { id: 'entry-fr-books', language: 'fr', text: 'J’aime lire le soir.' },
-  { id: 'entry-fr-pie', language: 'fr', text: 'Nous avons mangé une [pie] délicieuse.' },
-  { id: 'entry-es-park', language: 'es', text: 'Ayer yo es feliz en el [park].' },
-  { id: 'entry-es-market', language: 'es', text: 'Fui a el mercado por la mañana.' },
-  { id: 'entry-es-house', language: 'es', text: 'Mi casa es pequeña pero bonita.' },
-  { id: 'entry-es-car', language: 'es', text: 'Creo que la problema es el motor.' },
-  { id: 'entry-es-paella', language: 'es', text: 'Quiero aprender a cocinar [paella] este año.' },
-  { id: 'entry-es-train', language: 'es', text: 'El tren llegó tarde otra vez.' },
+  { id: seedId(6), language: 'fr', text: 'Hier, je suis allé à le parc.' },
+  { id: seedId(7), language: 'fr', text: 'J’aime lire le soir.' },
+  { id: seedId(8), language: 'fr', text: 'Nous avons mangé une [pie] délicieuse.' },
+  { id: seedId(9), language: 'es', text: 'Ayer yo es feliz en el [park].' },
+  { id: seedId(10), language: 'es', text: 'Fui a el mercado por la mañana.' },
+  { id: seedId(11), language: 'es', text: 'Mi casa es pequeña pero bonita.' },
+  { id: seedId(12), language: 'es', text: 'Creo que la problema es el motor.' },
+  { id: seedId(13), language: 'es', text: 'Quiero aprender a cocinar [paella] este año.' },
+  { id: seedId(14), language: 'es', text: 'El tren llegó tarde otra vez.' },
 ]
 
 function toEntry(sample: Sample, createdAt: string): EntryOut {

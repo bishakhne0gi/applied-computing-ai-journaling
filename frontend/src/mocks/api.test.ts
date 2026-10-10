@@ -8,6 +8,7 @@ import { SEEDED } from './seed'
 
 const createEntry = (text: string, language = 'es') =>
   client.post(ENDPOINTS.entries, { json: { language, text } }).json<EntryOut>()
+const MISSING_ID = '00000000-0000-4000-8000-00000000dead'
 const analyse = (id: string) => client.post(ENDPOINTS.analyses(id)).json<AnalysisOut>()
 const page = (searchParams: Record<string, string | number>) =>
   client.get(ENDPOINTS.entries, { searchParams }).json<EntryPageOut>()
@@ -84,7 +85,7 @@ describe('in-memory API', () => {
 
   it('answers an unknown entry with a 404 problem', async () => {
     // Arrange
-    const request = client.get(ENDPOINTS.entry('missing')).json()
+    const request = client.get(ENDPOINTS.entry(MISSING_ID)).json()
     // Act + Assert
     await expect(request).rejects.toMatchObject({ response: { status: 404 }, data: { title: 'Not Found' } })
   })
@@ -125,4 +126,31 @@ describe('in-memory API', () => {
     // Assert
     await expect(request).rejects.toMatchObject({ response: { status: 500 } })
   })
+
+  it('answers 201 on create and on analysis', async () => {
+    // Arrange
+    const created = await client.post(ENDPOINTS.entries, { json: { language: 'es', text: 'Hola' } })
+    // Act
+    const analysed = await client.post(ENDPOINTS.analyses((await created.json<EntryOut>()).id))
+    // Assert
+    expect([created.status, analysed.status]).toEqual([201, 201])
+  })
+
+  it('updates text and word count on PATCH', async () => {
+    // Arrange
+    const entry = await createEntry('Hola')
+    // Act
+    const updated = await client.patch(ENDPOINTS.entry(entry.id), { json: { text: ' Hola   buenos días ' } }).json<EntryOut>()
+    // Assert
+    expect(updated).toMatchObject({ id: entry.id, text: 'Hola   buenos días', word_count: 3 })
+  })
+
+  it('still resolves in slow mode', async () => {
+    // Arrange
+    setMockMode('slow')
+    // Act
+    const languages = await client.get(ENDPOINTS.languages).json<unknown[]>()
+    // Assert
+    expect(languages.length).toBeGreaterThan(0)
+  }, 10_000)
 })

@@ -3,7 +3,7 @@ import { API_BASE } from '@/utils/constants'
 import { ENDPOINTS } from '@/utils/endpoints'
 import { analyzeText, failedAnalysis } from './analyzer'
 import { addAnalysis, analysesOf, createEntry, entryDetail, findEntry, listEntries, updateEntry } from './db'
-import { cleanLanguage, cleanText, invalid, LANGUAGES, notFound, problem } from './responses'
+import { badEntryId, cleanLanguage, cleanText, invalid, LANGUAGES, notFound, parseListQuery, problem } from './responses'
 
 // `?mock=slow|error|empty|analysis-fail` forces UI states in dev, e2e and ui-qa runs.
 const mockMode = () => (typeof location === 'undefined' ? '' : (new URLSearchParams(location.search).get('mock') ?? ''))
@@ -19,8 +19,9 @@ async function forcedResponse(): Promise<Response | undefined> {
 
 function list(requestUrl: string): Response {
   if (mockMode() === 'empty') return HttpResponse.json({ items: [], next_cursor: null })
-  const params = new URL(requestUrl).searchParams
-  const page = listEntries(params.get('language'), params.get('cursor'), Number(params.get('limit') ?? 20))
+  const query = parseListQuery(new URL(requestUrl).searchParams)
+  if (query instanceof Response) return query
+  const page = listEntries(query.language, query.cursor, query.limit)
   return page ? HttpResponse.json(page) : problem(400, 'Bad Request', 'Invalid cursor')
 }
 
@@ -32,11 +33,15 @@ function create(body: unknown): Response {
 }
 
 function detail(entryId: string): Response {
+  const bad = badEntryId(entryId)
+  if (bad) return bad
   const entry = findEntry(entryId)
   return entry ? HttpResponse.json(entryDetail(entry)) : notFound()
 }
 
 function update(entryId: string, body: unknown): Response {
+  const bad = badEntryId(entryId)
+  if (bad) return bad
   const entry = findEntry(entryId)
   const text = cleanText(body)
   if (!entry) return notFound()
@@ -45,14 +50,19 @@ function update(entryId: string, body: unknown): Response {
 
 // Like the backend, a failed analysis is a stored 201 resource, not an HTTP error.
 function analyze(entryId: string): Response {
+  const bad = badEntryId(entryId)
+  if (bad) return bad
   const entry = findEntry(entryId)
   if (!entry) return notFound()
+  // Only entries with no analyses yet fail, so seeded entries keep re-analysing successfully.
   const failFirst = mockMode() === 'analysis-fail' && analysesOf(entryId).length === 0
   const analysis = failFirst ? failedAnalysis(entry.id, entry.text) : analyzeText(entry.id, entry.text)
   return HttpResponse.json(addAnalysis(analysis), { status: 201 })
 }
 
 function history(entryId: string): Response {
+  const bad = badEntryId(entryId)
+  if (bad) return bad
   return findEntry(entryId) ? HttpResponse.json(analysesOf(entryId)) : notFound()
 }
 

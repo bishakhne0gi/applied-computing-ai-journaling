@@ -1,7 +1,6 @@
 import type { AnalysisOut } from '@/types/analysis'
 import type { EntryDetailOut, EntryOut, EntryPageOut, EntrySummaryOut } from '@/types/entry'
 import { countWords } from '@/utils/text'
-import { nextId } from './factories'
 import { seedStore, type Store } from './seed'
 
 const PREVIEW_LENGTH = 140
@@ -27,7 +26,7 @@ export function entryDetail(entry: EntryOut): EntryDetailOut {
 
 export function createEntry(language: string, text: string): EntryOut {
   const now = new Date().toISOString()
-  const entry = { id: nextId('entry'), language, text, word_count: countWords(text), created_at: now, updated_at: now }
+  const entry = { id: crypto.randomUUID(), language, text, word_count: countWords(text), created_at: now, updated_at: now }
   store.entries.push(entry)
   return entry
 }
@@ -53,12 +52,19 @@ export function listEntries(language: string | null, cursor: string | null, limi
   return { items: items.map(summarise), next_cursor: hasMore && last ? last.id : null }
 }
 
+// Same as the backend's _summary: collapse whitespace, then cut by code points, not UTF-16 units.
+function previewOf(text: string): string {
+  const flat = text.split(/\s+/u).filter(Boolean).join(' ')
+  const points = Array.from(flat)
+  return points.length <= PREVIEW_LENGTH ? flat : `${points.slice(0, PREVIEW_LENGTH).join('').trimEnd()}…`
+}
+
 function summarise(entry: EntryOut): EntrySummaryOut {
   const latest = analysesOf(entry.id)[0]
   return {
     id: entry.id,
     language: entry.language,
-    preview: entry.text.length <= PREVIEW_LENGTH ? entry.text : `${entry.text.slice(0, PREVIEW_LENGTH).trimEnd()}…`,
+    preview: previewOf(entry.text),
     word_count: entry.word_count,
     created_at: entry.created_at,
     latest_status: latest?.status ?? null,
