@@ -7,7 +7,7 @@ from journal_ai import Usage
 from journal_ai.analyzer import Analyzer
 from journal_ai.providers.base import ProviderError, ProviderTimeoutError
 from journal_ai.providers.fake import FakeProvider
-from journal_ai.schema import FailureCode
+from journal_ai.schema import AnalysisResult, FailureCode
 
 TEXT = "Ayer yo es feliz."
 
@@ -114,7 +114,7 @@ async def test_unexpected_provider_exception_maps_to_provider_error() -> None:
     assert outcome.failure is FailureCode.PROVIDER_ERROR
     assert outcome.result is None
     assert outcome.analyzed_text == TEXT
-    assert outcome.error_detail == "RuntimeError: boom"
+    assert outcome.error_detail == "RuntimeError"
 
 
 async def test_alignment_crash_maps_to_invalid_output(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -151,3 +151,33 @@ async def test_alignment_duplicates_count_as_dropped() -> None:
 
 def test_usage_is_exported_from_the_package() -> None:
     assert Usage().input_tokens == 0
+
+
+async def test_error_detail_never_carries_entry_text_from_a_validation_failure(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def _invalid(*_args: Any, **_kwargs: Any) -> None:
+        AnalysisResult.model_validate(
+            {"corrected_text": "SECRET DIARY", "feedback_summary": 1, "mistakes": []}
+        )
+
+    monkeypatch.setattr("journal_ai.analyzer.AnalysisResult", _invalid)
+
+    outcome = await Analyzer(FakeProvider([_valid()])).analyze(TEXT, "es")
+
+    assert outcome.error_detail is not None
+    assert outcome.error_detail.startswith("ValidationError")
+    assert "SECRET DIARY" not in outcome.error_detail
+
+
+async def test_error_detail_for_unknown_exceptions_is_the_class_name_only(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def _boom(*_args: Any, **_kwargs: Any) -> None:
+        raise ValueError("SECRET DIARY")
+
+    monkeypatch.setattr("journal_ai.analyzer.align_mistakes", _boom)
+
+    outcome = await Analyzer(FakeProvider([_valid()])).analyze(TEXT, "es")
+
+    assert outcome.error_detail == "ValueError"

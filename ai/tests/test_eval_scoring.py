@@ -1,4 +1,4 @@
-from evals.scoring import CaseScore, Expected, score_case, summarise
+from evals.scoring import CaseScore, Expected, failed_case, score_case, summarise
 from journal_ai.schema import AlignedMistake, Category, MistakeKind
 
 
@@ -52,3 +52,34 @@ def test_summary_rates() -> None:
     assert report.category_accuracy == 1.0
     assert report.false_positive_rate == 0.5
     assert report.p50_latency_ms == 200
+
+
+def test_overlap_is_word_bounded() -> None:
+    expected = [Expected(original="es", category=Category.VERB_CONJUGATION)]
+
+    assert score_case(expected, [_predicted("después", Category.VERB_CONJUGATION)]).caught == 0
+    fui = [Expected(original="fui", category=Category.VERB_TENSE)]
+    assert score_case(fui, [_predicted("fui al cine", Category.VERB_TENSE)]).caught == 1
+
+
+def test_failed_cases_are_excluded_from_every_rate_and_counted() -> None:
+    report = summarise(
+        [
+            CaseScore(expected=1, caught=1, category_correct=1, false_positive=False, latency_ms=100),
+            failed_case(expected=3),
+            failed_case(expected=0),
+        ]
+    )
+
+    assert report.failed == 2
+    assert report.cases == 3
+    assert (report.recall, report.category_accuracy, report.false_positive_rate) == (1.0, 1.0, 0.0)
+    assert report.p50_latency_ms == 100
+
+
+def test_an_all_failed_run_reports_zero_rates() -> None:
+    report = summarise([failed_case(expected=2), failed_case(expected=0)])
+
+    assert report.failed == 2
+    assert (report.recall, report.category_accuracy, report.false_positive_rate) == (0.0, 0.0, 0.0)
+    assert report.p50_latency_ms == 0

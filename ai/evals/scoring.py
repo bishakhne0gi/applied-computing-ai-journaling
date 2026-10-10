@@ -1,3 +1,4 @@
+import re
 import statistics
 from collections.abc import Sequence
 from dataclasses import dataclass
@@ -18,11 +19,13 @@ class CaseScore:
     category_correct: int
     false_positive: bool
     latency_ms: int = 0
+    failed: bool = False
 
 
 @dataclass(frozen=True)
 class Report:
     cases: int
+    failed: int
     recall: float
     category_accuracy: float
     false_positive_rate: float
@@ -48,12 +51,18 @@ def score_case(
     )
 
 
-def summarise(scores: Sequence[CaseScore]) -> Report:
+def failed_case(expected: int) -> CaseScore:
+    return CaseScore(expected=expected, caught=0, category_correct=0, false_positive=False, failed=True)
+
+
+def summarise(all_scores: Sequence[CaseScore]) -> Report:
+    scores = [s for s in all_scores if not s.failed]
     expected = sum(s.expected for s in scores)
     caught = sum(s.caught for s in scores)
     clean = [s for s in scores if s.expected == 0]
     return Report(
-        cases=len(scores),
+        cases=len(all_scores),
+        failed=len(all_scores) - len(scores),
         recall=_ratio(caught, expected),
         category_accuracy=_ratio(sum(s.category_correct for s in scores), caught),
         false_positive_rate=_ratio(sum(s.false_positive for s in clean), len(clean)),
@@ -63,7 +72,8 @@ def summarise(scores: Sequence[CaseScore]) -> Report:
 
 def _overlaps(expected: str, predicted: str) -> bool:
     a, b = expected.casefold(), predicted.casefold()
-    return a in b or b in a
+    short, long = sorted((a, b), key=len)
+    return re.search(rf"(?<!\w){re.escape(short)}(?!\w)", long) is not None
 
 
 def _ratio(numerator: int, denominator: int) -> float:

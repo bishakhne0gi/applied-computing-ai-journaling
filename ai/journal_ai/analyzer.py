@@ -1,6 +1,8 @@
 import time
 from dataclasses import dataclass, field
 
+from pydantic import ValidationError
+
 from journal_ai.alignment import align_mistakes
 from journal_ai.parsing import InvalidOutputError, ParsedAnalysis, parse_analysis
 from journal_ai.prompts.v1 import PROMPT_VERSION, build_messages, build_retry_prompt
@@ -13,7 +15,15 @@ MAX_DETAIL_CHARS = 300
 
 
 def _detail(exc: Exception) -> str:
-    return f"{type(exc).__name__}: {exc}"[:MAX_DETAIL_CHARS]
+    """Only provider and decoder messages are safe to keep; anything else may embed the learner's text."""
+    if isinstance(exc, ProviderError | InvalidOutputError):
+        text = f"{type(exc).__name__}: {exc}"
+    elif isinstance(exc, ValidationError):
+        fields = "; ".join(f"{'.'.join(map(str, e['loc']))}:{e['type']}" for e in exc.errors())
+        text = f"ValidationError: {fields}"
+    else:
+        text = type(exc).__name__
+    return text[:MAX_DETAIL_CHARS]
 
 
 @dataclass
