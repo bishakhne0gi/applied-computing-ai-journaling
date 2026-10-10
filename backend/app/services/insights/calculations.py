@@ -6,7 +6,7 @@ from datetime import datetime
 from decimal import ROUND_HALF_UP, Decimal
 from enum import StrEnum
 
-from app.repositories.insights import EntryErrors, Example
+from app.services.insights.types import EntryErrors, Example
 from journal_ai import Category
 
 # Below this many entries with feedback any rate is noise, so nothing is computed (spec §8).

@@ -4,7 +4,6 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 
-from app.repositories.insights import CategoryErrors, EntryErrors, Example
 from app.services.insights.calculations import (
     InsightsStatus,
     Trend,
@@ -15,6 +14,7 @@ from app.services.insights.calculations import (
     round_rate,
     split_windows,
 )
+from app.services.insights.types import CategoryErrors, EntryErrors, Example
 from journal_ai import Category
 
 T0 = datetime(2026, 10, 1, 9, 0, tzinfo=UTC)

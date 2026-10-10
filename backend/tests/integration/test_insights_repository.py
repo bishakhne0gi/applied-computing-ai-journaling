@@ -4,7 +4,7 @@ import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models import AnalysisStatus
-from app.repositories.insights import AnalysedEntry, CategoryErrors, Example, InsightsRepository
+from app.repositories.insights import ErrorRow, InsightsRepository
 from journal_ai import Category, MistakeKind
 from tests.support import analysis_for, entry_at, mistake
 
@@ -13,7 +13,7 @@ LATER = T0 + timedelta(minutes=5)
 SUCCEEDED = AnalysisStatus.SUCCEEDED
 
 
-async def _analysed(db_session: AsyncSession, language: str | None = None) -> list[AnalysedEntry]:
+async def _analysed(db_session: AsyncSession, language: str | None = None) -> list[ErrorRow]:
     await db_session.flush()
     return await InsightsRepository(db_session).entry_errors(language=language)
 
@@ -27,9 +27,9 @@ async def test_only_the_newest_succeeded_analysis_of_an_entry_counts(db_session:
         ]
     )
 
-    [row] = await _analysed(db_session)
+    rows = await _analysed(db_session)
 
-    assert row.error_count == 1
+    assert len(rows) == 1
 
 
 @pytest.mark.parametrize("newer", [AnalysisStatus.FAILED, AnalysisStatus.PENDING])
@@ -44,9 +44,9 @@ async def test_a_newer_failed_or_unfinished_analysis_keeps_the_previous_success(
         ]
     )
 
-    [row] = await _analysed(db_session)
+    rows = await _analysed(db_session)
 
-    assert row.error_count == 2
+    assert len(rows) == 2
 
 
 async def test_entries_without_a_succeeded_analysis_are_left_out(db_session: AsyncSession) -> None:
@@ -64,12 +64,10 @@ async def test_suggestions_and_word_help_are_not_errors(db_session: AsyncSession
 
     [row] = await _analysed(db_session)
 
-    assert row.errors == {}
+    assert row.category is None
 
 
-async def test_errors_are_counted_per_category_with_the_first_one_in_the_text_as_example(
-    db_session: AsyncSession,
-) -> None:
+async def test_each_error_comes_back_as_a_row_in_text_order(db_session: AsyncSession) -> None:
     entry = entry_at(T0)
     mistakes = [
         mistake(Category.ARTICLE, original="a el", correction="al", position=2),
@@ -78,12 +76,13 @@ async def test_errors_are_counted_per_category_with_the_first_one_in_the_text_as
     ]
     db_session.add(analysis_for(entry, status=SUCCEEDED, created_at=T0, mistakes=mistakes))
 
-    [row] = await _analysed(db_session)
+    rows = await _analysed(db_session)
 
-    assert row.errors == {
-        Category.ARTICLE: CategoryErrors(2, Example("de el", "del")),
-        Category.PREPOSITION: CategoryErrors(1, Example("en", "a")),
-    }
+    assert [(row.category, row.original, row.correction) for row in rows] == [
+        (Category.ARTICLE, "de el", "del"),
+        (Category.PREPOSITION, "en", "a"),
+        (Category.ARTICLE, "a el", "al"),
+    ]
 
 
 async def test_entries_come_oldest_first_and_can_be_filtered_by_language(db_session: AsyncSession) -> None:
