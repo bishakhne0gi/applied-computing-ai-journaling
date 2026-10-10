@@ -28,6 +28,14 @@ _DELIMITER = re.compile(r"<\s*/?\s*entry\s*>", re.IGNORECASE)
 _ENTRY = re.compile(r"<entry>\n(.*)\n</entry>", re.DOTALL)
 
 
+def _strip_delimiters(text: str) -> str:
+    while True:
+        stripped = _DELIMITER.sub("", text)
+        if stripped == text:
+            return text
+        text = stripped
+
+
 def build_messages(text: str, language: str) -> tuple[str, str]:
     if language not in SUPPORTED_LANGUAGES:
         raise ValueError(f"Unsupported language: {language}")
@@ -35,7 +43,7 @@ def build_messages(text: str, language: str) -> tuple[str, str]:
         language=SUPPORTED_LANGUAGES[language],
         categories=", ".join(c.value for c in Category),
     )
-    return system, f"<entry>\n{_DELIMITER.sub('', text)}\n</entry>"
+    return system, f"<entry>\n{_strip_delimiters(text)}\n</entry>"
 
 
 def build_retry_prompt(user: str, error: str) -> str:

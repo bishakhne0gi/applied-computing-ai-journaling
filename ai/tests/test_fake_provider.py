@@ -36,3 +36,14 @@ async def test_demo_mode_flags_known_mistakes_and_bracketed_words() -> None:
     assert ("vocab_help", "[grocery store]") in kinds
     assert "[" not in payload["corrected_text"]
     assert completion.model == "fake"
+
+
+async def test_demo_mode_flags_every_occurrence_of_a_rule() -> None:
+    system, user = build_messages("Ayer yo es feliz. Yo es tarde.", "es")
+
+    completion = await FakeProvider().complete(system=system, user=user, schema=RESPONSE_JSON_SCHEMA)
+    payload = json.loads(completion.text)
+
+    originals = [m["original"] for m in payload["mistakes"] if m["kind"] == "error"]
+    assert originals == ["yo es", "Yo es"]
+    assert "yo es" not in payload["corrected_text"].lower()

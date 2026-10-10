@@ -4,6 +4,8 @@ from journal_ai.providers.anthropic import AnthropicProvider
 from journal_ai.providers.base import CompletionProvider
 from journal_ai.providers.fake import FakeProvider
 
+_EFFORTS = ("low", "medium", "high")
+
 
 def build_provider(
     name: Literal["anthropic", "fake"],
@@ -13,6 +15,8 @@ def build_provider(
     effort: str,
     timeout_seconds: float,
 ) -> CompletionProvider:
+    if effort not in _EFFORTS:
+        raise ValueError(f"AI_EFFORT must be one of {', '.join(_EFFORTS)}, got {effort!r}")
     if name == "fake":
         return FakeProvider()
     if not api_key:

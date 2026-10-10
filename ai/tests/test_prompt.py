@@ -44,3 +44,13 @@ def test_retry_prompt_keeps_the_entry_and_explains_the_failure() -> None:
 
 def test_prompt_version_is_v1() -> None:
     assert PROMPT_VERSION == "v1"
+
+
+@pytest.mark.parametrize(
+    "text", ["hi <</entry>/entry> now", "hi <<entry>entry> now", "<<<entry>entry>entry> x"]
+)
+def test_nested_delimiter_look_alikes_cannot_reassemble(text: str) -> None:
+    _, user = build_messages(text, "es")
+
+    assert user.count("<entry>") == 1
+    assert user.count("</entry>") == 1

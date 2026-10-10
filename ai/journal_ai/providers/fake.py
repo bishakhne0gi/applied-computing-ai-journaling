@@ -46,10 +46,10 @@ def _demo_response(entry: str) -> str:
     mistakes: list[dict[str, str]] = []
     corrected = entry
     for wrong, right, category, explanation in _DEMO_RULES:
-        found = re.search(rf"\b{re.escape(wrong)}\b", entry, re.IGNORECASE)
-        if found:
+        pattern = re.compile(rf"\b{re.escape(wrong)}\b", re.IGNORECASE)
+        for found in pattern.finditer(entry):
             mistakes.append(_item("error", category, found.group(0), right, explanation))
-            corrected = corrected.replace(found.group(0), right)
+        corrected = pattern.sub(right, corrected)
     for match in _BRACKETED.finditer(entry):
         explanation = "Demo mode cannot translate — set ANTHROPIC_API_KEY for real help."
         mistakes.append(_item("vocab_help", Category.VOCABULARY, match.group(0), match.group(1), explanation))

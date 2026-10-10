@@ -21,3 +21,10 @@ def test_builds_the_anthropic_provider_with_a_key() -> None:
 def test_anthropic_without_a_key_fails_fast() -> None:
     with pytest.raises(ValueError, match="ANTHROPIC_API_KEY"):
         build_provider("anthropic", api_key=None, **COMMON)
+
+
+@pytest.mark.parametrize("name", ["fake", "anthropic"])
+def test_invalid_effort_fails_fast(name: str) -> None:
+    common = {"model": "claude-opus-5-5", "timeout_seconds": 30.0}
+    with pytest.raises(ValueError, match="AI_EFFORT"):
+        build_provider(name, api_key="k", effort="extreme", **common)  # type: ignore[arg-type]  # name narrowed to Literal at runtime
