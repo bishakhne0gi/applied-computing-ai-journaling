@@ -1,3 +1,4 @@
+import json
 from collections.abc import Callable
 from contextlib import AbstractAsyncContextManager
 from datetime import datetime
@@ -44,3 +45,18 @@ def analysis_for(
         created_at=created_at,
         mistakes=mistakes,
     )
+
+
+YO_ES = {
+    "kind": "error",
+    "category": "verb_conjugation",
+    "original": "yo es",
+    "correction": "yo soy",
+    "explanation": "Ser with yo is soy.",
+}
+
+
+def model_reply(
+    *mistakes: dict[str, str], corrected: str = "Ayer yo soy feliz.", summary: str = "Nice work!"
+) -> str:
+    return json.dumps({"corrected_text": corrected, "feedback_summary": summary, "mistakes": list(mistakes)})
