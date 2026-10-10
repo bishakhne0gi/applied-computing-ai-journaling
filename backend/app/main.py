@@ -5,12 +5,14 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.routes import health
+from app.api.v1 import api_router
 from app.core.config import Settings, get_settings
 from app.core.errors import register_exception_handlers
 from app.core.logging import configure_logging
 from app.core.request_context import REQUEST_ID_HEADER, RequestContextMiddleware
 from app.core.sentry import init_sentry
 from app.db.session import create_engine, create_sessionmaker
+from journal_ai import Analyzer, build_provider
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -35,5 +37,17 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     )
     app.add_middleware(RequestContextMiddleware)
     register_exception_handlers(app)
+    api_key = settings.anthropic_api_key.get_secret_value() if settings.anthropic_api_key else None
+    app.state.analyzer = Analyzer(
+        build_provider(
+            settings.resolved_ai_provider,
+            api_key=api_key,
+            model=settings.ai_model,
+            effort=settings.ai_effort,
+            timeout_seconds=settings.ai_timeout_seconds,
+            workspace_id=settings.anthropic_workspace_id,
+        )
+    )
     app.include_router(health.router)
+    app.include_router(api_router)
     return app

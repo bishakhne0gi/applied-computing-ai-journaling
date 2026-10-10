@@ -1,7 +1,8 @@
 import json
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from contextlib import AbstractAsyncContextManager
 from datetime import datetime
+from typing import Protocol
 
 from fastapi import FastAPI
 from httpx import AsyncClient
@@ -10,6 +11,12 @@ from app.db.models import Analysis, AnalysisStatus, Entry, Mistake
 from journal_ai import Category, MistakeKind
 
 ClientFactory = Callable[[FastAPI], AbstractAsyncContextManager[AsyncClient]]
+
+
+class ApiFactory(Protocol):
+    def __call__(
+        self, script: Sequence[str | Exception] | None = None
+    ) -> AbstractAsyncContextManager[AsyncClient]: ...
 
 
 def entry_at(created_at: datetime, language: str = "es", text: str = "Hola mundo") -> Entry:
