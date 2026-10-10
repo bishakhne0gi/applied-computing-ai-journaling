@@ -3,3 +3,4 @@ export const API_BASE: string = import.meta.env.VITE_API_BASE ?? `${location.ori
 
 export const MAX_ENTRY_CHARS = 5000
 export const PAGE_SIZE = 10
+export const STORAGE_KEYS = { draft: 'journal.draft', language: 'journal.language' } as const

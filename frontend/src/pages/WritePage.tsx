@@ -1,3 +1,5 @@
+import { WriteScreen } from '@/features/write/WriteScreen'
+
 export function WritePage() {
   return (
     <div className="flex flex-col gap-6">
@@ -6,6 +8,7 @@ export function WritePage() {
         <h1 className="text-2xl font-bold">Write</h1>
         <p className="text-muted">Write freely in the language you are learning, then get feedback.</p>
       </div>
+      <WriteScreen />
     </div>
   )
 }
