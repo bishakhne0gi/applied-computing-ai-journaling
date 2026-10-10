@@ -26,7 +26,7 @@ describe('initMonitoring', () => {
     expect(init).toHaveBeenCalledWith(
       expect.objectContaining({
         dsn,
-        dataCollection: expect.objectContaining({ userInfo: false, cookies: false }),
+        dataCollection: { userInfo: false, cookies: false, httpHeaders: false, httpBodies: [], urlQueryParams: false },
       }),
     )
   })

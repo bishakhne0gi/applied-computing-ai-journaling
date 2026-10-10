@@ -21,7 +21,7 @@ element's props, `ref` as a plain prop (React 19), Tailwind token utilities merg
 
 | Primitive | Variants | Notes |
 |---|---|---|
-| _(empty — filled as primitives are created; list them here)_ | | |
+| `TextLink` | — | React Router `Link` in the primary role, underlined; `className` merges last |
 
 ## 3. Composition
 Features compose primitives. Prefer compound components (`<Tabs><Tabs.List/><Tabs.Panel/></Tabs>`) and
