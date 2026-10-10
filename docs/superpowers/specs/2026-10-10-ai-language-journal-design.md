@@ -92,7 +92,8 @@ Index `(language, created_at)`.
 
 **analyses** — `id, entry_id → entries (cascade), status (pending|succeeded|failed), input_text, corrected_text,
 feedback_summary, model (nullable until completed), prompt_version, raw_response (text, nullable), error_code
-(provider_timeout|invalid_output|provider_error, nullable), error_detail (text, sanitised, never shown to users), latency_ms, input_tokens, output_tokens, created_at, completed_at`.
+(provider_timeout|invalid_output|provider_error, nullable), error_detail (text, sanitised, never shown to users),
+latency_ms, input_tokens, output_tokens, created_at, completed_at`.
 `input_text` snapshots what was analyzed so offsets stay valid after the entry is edited. Index `(entry_id, created_at)`.
 The API never returns `raw_response` or `error_detail`; they exist for debugging.
 

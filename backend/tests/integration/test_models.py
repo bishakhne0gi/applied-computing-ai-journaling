@@ -80,7 +80,16 @@ async def test_deleting_an_entry_cascades_to_its_analyses_and_mistakes(db_sessio
             status=AnalysisStatus.PENDING,
             input_text=entry.text,
             prompt_version="v1",
-            mistakes=[],
+            mistakes=[
+                Mistake(
+                    kind=MistakeKind.ERROR,
+                    category=Category.OTHER,
+                    original="x",
+                    correction="y",
+                    explanation="z",
+                    position=0,
+                )
+            ],
         )
     )
     await db_session.flush()
@@ -89,3 +98,21 @@ async def test_deleting_an_entry_cascades_to_its_analyses_and_mistakes(db_sessio
     await db_session.flush()
 
     assert await db_session.scalar(select(Analysis.id)) is None
+    assert await db_session.scalar(select(Mistake.id)) is None
+
+
+async def test_unknown_enum_values_are_rejected_by_the_database(db_session: AsyncSession) -> None:
+    entry = _entry()
+    db_session.add(
+        Analysis(
+            entry=entry,
+            status=AnalysisStatus.PENDING,
+            input_text=entry.text,
+            prompt_version="v1",
+            mistakes=[],
+        )
+    )
+    await db_session.flush()
+
+    with pytest.raises(IntegrityError):
+        await db_session.execute(text("UPDATE analyses SET status = 'bogus'"))

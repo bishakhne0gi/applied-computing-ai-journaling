@@ -46,7 +46,7 @@ async def test_list_page_breaks_timestamp_ties_by_id(db_session: AsyncSession) -
         language=None, before=EntryCursor(first[0].created_at, first[0].id), limit=1
     )
 
-    assert {first[0].id, second[0].id} == {twins[0].id, twins[1].id}
+    assert [first[0].id, second[0].id] == sorted((t.id for t in twins), reverse=True)
 
 
 async def test_latest_for_entry_returns_the_newest_analysis_with_mistakes(db_session: AsyncSession) -> None:
@@ -60,6 +60,7 @@ async def test_latest_for_entry_returns_the_newest_analysis_with_mistakes(db_ses
         ]
     )
     await db_session.flush()
+    db_session.expunge_all()
 
     latest = await AnalysisRepository(db_session).latest_for_entry(entry.id)
 
@@ -104,6 +105,21 @@ async def test_latest_summaries_count_only_errors_of_the_latest_analysis(db_sess
         analysed.id: AnalysisSummary(status=AnalysisStatus.SUCCEEDED, error_count=1),
         failed.id: AnalysisSummary(status=AnalysisStatus.FAILED, error_count=0),
     }
+
+
+async def test_latest_summaries_break_created_at_ties_by_higher_id(db_session: AsyncSession) -> None:
+    entry = entry_at(T0)
+    twins = [
+        analysis_for(entry, status=AnalysisStatus.SUCCEEDED, created_at=T0, errors=1),
+        analysis_for(entry, status=AnalysisStatus.FAILED, created_at=T0),
+    ]
+    db_session.add_all(twins)
+    await db_session.flush()
+    winner = max(twins, key=lambda a: a.id)
+
+    summaries = await AnalysisRepository(db_session).latest_summaries([entry.id])
+
+    assert summaries[entry.id].status is winner.status
 
 
 async def test_latest_summaries_of_no_entries_is_empty(db_session: AsyncSession) -> None:

@@ -57,6 +57,5 @@ class AnalysisRepository:
         )
         rows = await self._session.execute(select(latest.c.entry_id, latest.c.status, error_count))
         return {
-            entry_id: AnalysisSummary(status=AnalysisStatus(status), error_count=count)
-            for entry_id, status, count in rows
+            entry_id: AnalysisSummary(status=status, error_count=count) for entry_id, status, count in rows
         }

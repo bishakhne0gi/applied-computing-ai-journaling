@@ -8,7 +8,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
 from app.db.models._common import str_enum, utcnow
-from journal_ai.schema import FailureCode
+from journal_ai import FailureCode
 
 if TYPE_CHECKING:
     from app.db.models.entry import Entry
