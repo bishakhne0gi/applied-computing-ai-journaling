@@ -1,0 +1,73 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(make:*)",
+      "Bash(uv run:*)",
+      "Bash(uv sync:*)",
+      "Bash(pnpm -C frontend:*)",
+      "Bash(pnpm test)",
+      "Bash(pnpm dev:*)",
+      "Bash(pnpm lint:*)",
+      "Bash(pnpm typecheck:*)",
+      "Bash(pnpm verify:*)",
+      "Bash(pnpm coverage:*)",
+      "Bash(pnpm e2e:*)",
+      "Bash(pnpm build:*)",
+      "Bash(pnpm exec vitest run:*)",
+      "Bash(pnpm exec playwright test:*)",
+      "Bash(pnpm exec eslint:*)",
+      "Bash(pnpm exec tsc:*)",
+      "Bash(pnpm exec vite preview:*)",
+      "Bash(docker compose:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git show:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push)",
+      "Bash(git push origin main)",
+      "Bash(mkdir -p docs/qa:*)",
+      "Bash(agent-browser open:*)",
+      "Bash(agent-browser snapshot:*)",
+      "Bash(agent-browser click:*)",
+      "Bash(agent-browser fill:*)",
+      "Bash(agent-browser press:*)",
+      "Bash(agent-browser wait:*)",
+      "Bash(agent-browser errors:*)",
+      "Bash(agent-browser console:*)",
+      "Bash(agent-browser set viewport:*)",
+      "Bash(agent-browser screenshot:*)",
+      "Bash(agent-browser close:*)",
+      "Bash(agent-browser get:*)",
+      "Bash(agent-browser find:*)",
+      "Bash(agent-browser skills get:*)"
+    ],
+    "ask": [
+      "Bash(uv add:*)",
+      "Bash(uv remove:*)",
+      "Bash(pnpm add:*)",
+      "Bash(pnpm remove:*)"
+    ],
+    "deny": [
+      "Bash(git push --force:*)",
+      "Bash(git push -f:*)",
+      "Bash(cat .env)",
+      "Read(./.env)",
+      "Bash(agent-browser eval:*)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [{ "type": "command", "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/post-edit.sh" }]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [{ "type": "command", "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/stop-gate.sh" }]
+      }
+    ]
+  }
+}
