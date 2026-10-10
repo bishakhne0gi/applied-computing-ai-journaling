@@ -73,7 +73,6 @@ function insights(requestUrl: string): Response {
   return HttpResponse.json(computeInsights(mockMode() === 'empty' ? [] : analysedEntries(language)))
 }
 
-
 export const handlers = [
   http.get(url(ENDPOINTS.languages), async () => (await forcedResponse()) ?? HttpResponse.json(LANGUAGES)),
   http.get(url(ENDPOINTS.entries), async ({ request }) => (await forcedResponse()) ?? list(request.url)),

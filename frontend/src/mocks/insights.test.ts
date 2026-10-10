@@ -4,9 +4,23 @@ import type { InsightsOut } from '@/types/insights'
 import { client } from '@/utils/client'
 import { ENDPOINTS } from '@/utils/endpoints'
 import { failedAnalysis } from './analyzer'
-import { addAnalysis, analysedEntries, findEntry } from './db'
+import { buildAnalysis, buildMistake } from './factories'
+import { addAnalysis, analysedEntries, findEntry, type AnalysedEntry } from './db'
 import { computeInsights } from './insights'
+import { setMockMode, clearMockMode } from '@/test/helpers'
 import { SEEDED } from './seed'
+
+function analysed(day: number, words: number, errors: number): AnalysedEntry {
+  const at = `2026-10-${String(day).padStart(2, '0')}T10:00:00.000Z`
+  const id = `entry-${day}`
+  const entry = { id, language: 'es', text: '', word_count: words, created_at: at, updated_at: at }
+  const analysis = buildAnalysis({
+    entry_id: id,
+    input_text: Array.from({ length: words }, () => 'w').join(' '),
+    mistakes: Array.from({ length: errors }, () => buildMistake()),
+  })
+  return { entry, analysis }
+}
 
 const insightsFor = (language: string | null) => computeInsights(analysedEntries(language))
 
@@ -82,5 +96,66 @@ describe('mock insights', () => {
     // Assert
     expect(french.status).toBe('totals_only')
     expect(isHTTPError(rejected) && rejected.response.status).toBe(422)
+  })
+
+  it.each([
+    ['worsening', [0, 0, 0, 1], 0, 0.5],
+    ['improving', [1, 0, 0, 0], 0.5, 0],
+  ])('calls a change of exactly the threshold %s', (trend, errors, earlier, recent) => {
+    // Arrange
+    const entries = errors.map((count, index) => analysed(index + 1, 100, count))
+    // Act
+    const insights = computeInsights(entries)
+    // Assert
+    expect(insights).toMatchObject({ trend, earlier_rate: earlier, recent_rate: recent })
+  })
+
+  it('stays stable just inside the threshold', () => {
+    // Arrange
+    const entries = [analysed(1, 100, 0), analysed(2, 100, 0), analysed(3, 100, 0), analysed(4, 101, 1)]
+    // Act
+    const insights = computeInsights(entries)
+    // Assert
+    expect(insights.trend).toBe('stable')
+  })
+
+  it.each([
+    [23, 2000, 1.2],
+    [9, 400, 2.3],
+  ])('rounds %i errors in %i words half-up to %f', (errors, words, expected) => {
+    // Arrange
+    const entries = [analysed(1, words, errors), analysed(2, 0, 0), analysed(3, 0, 0)]
+    // Act
+    const insights = computeInsights(entries)
+    // Assert
+    expect(insights.error_rate).toBe(expected)
+  })
+
+  it('gives a zero-word entry no rate', () => {
+    // Arrange
+    const entries = [analysed(1, 0, 0), analysed(2, 10, 1), analysed(3, 10, 0)]
+    // Act
+    const insights = computeInsights(entries)
+    // Assert
+    expect(insights.points.map((point) => point.rate)).toEqual([null, 10, 0])
+  })
+
+  it('keeps an older succeeded analysis when a newer one is still pending', () => {
+    // Arrange
+    const pending = buildAnalysis({ entry_id: SEEDED.emoji, status: 'pending', mistakes: [], created_at: '2026-10-10T00:00:00.000Z' })
+    addAnalysis(pending)
+    // Act
+    const insights = insightsFor('es')
+    // Assert
+    expect(insights).toMatchObject({ entry_count: 8, total_errors: 6 })
+  })
+
+  it('reports insufficient data when the mock mode is empty', async () => {
+    // Arrange
+    setMockMode('empty')
+    // Act
+    const insights = await client.get(ENDPOINTS.insights).json<InsightsOut>().finally(clearMockMode)
+    // Assert
+    expect(insights).toMatchObject({ status: 'insufficient_data', entry_count: 0 })
   })
 })

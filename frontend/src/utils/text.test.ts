@@ -9,6 +9,7 @@ describe('countWords', () => {
     ['Hola mundo', 2],
     ['  uno\n dos\ttres ', 3],
     ['¡Hola! [grocery store]', 3],
+    ['a b\uFEFFc\x1Dd\x85e', 4],
   ])('counts %j as %i words, splitting on any whitespace like the backend', (text, expected) => {
     // Arrange
     const input = text

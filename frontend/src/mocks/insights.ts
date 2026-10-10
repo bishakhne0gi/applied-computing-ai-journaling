@@ -123,7 +123,7 @@ function summarise(body: Body): string[] {
 }
 
 export function computeInsights(analysed: AnalysedEntry[]): InsightsOut {
-  const items = analysed.map(toCounted).sort((a, b) => a.createdAt.localeCompare(b.createdAt) || a.id.localeCompare(b.id))
+  const items = analysed.map(toCounted).sort((a, b) => a.createdAt.localeCompare(b.createdAt) || (a.id < b.id ? -1 : 1))
   const status = statusOf(items.length)
   const windows = status === 'trends' ? splitWindows(items) : null
   const computed = status !== 'insufficient_data'
