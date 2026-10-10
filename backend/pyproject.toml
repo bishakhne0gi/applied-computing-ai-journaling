@@ -2,7 +2,14 @@
 name = "journal-backend"
 version = "0.1.0"
 requires-python = ">=3.13"
-dependencies = ["journal-ai"]
+dependencies = [
+    "fastapi>=0.143.0",
+    "journal-ai",
+    "pydantic-settings>=2.15.0",
+    "sentry-sdk[fastapi]>=2.71.0",
+    "structlog>=26.1.0",
+    "uvicorn[standard]>=0.54.0",
+]
 
 [tool.uv.sources]
 journal-ai = { workspace = true }
@@ -14,3 +21,24 @@ build-backend = "uv_build"
 [tool.uv.build-backend]
 module-name = "app"
 module-root = ""
+
+[tool.importlinter]
+root_packages = ["app", "journal_ai"]
+include_external_packages = true
+
+[[tool.importlinter.contracts]]
+name = "Backend layers"
+type = "layers"
+layers = ["app.api", "app.services", "app.repositories", "app.db"]
+
+[[tool.importlinter.contracts]]
+name = "journal_ai is independent of the backend"
+type = "forbidden"
+source_modules = ["journal_ai"]
+forbidden_modules = ["app", "fastapi", "sqlalchemy"]
+
+[[tool.importlinter.contracts]]
+name = "Backend never talks to a provider SDK directly"
+type = "forbidden"
+source_modules = ["app"]
+forbidden_modules = ["anthropic"]

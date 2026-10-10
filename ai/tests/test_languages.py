@@ -1,4 +1,5 @@
 import pytest
+
 from journal_ai.languages import SUPPORTED_LANGUAGES, is_supported
 
 

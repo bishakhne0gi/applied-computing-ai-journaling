@@ -51,3 +51,6 @@ dev = [
     "pytest-cov>=7.1.0",
     "ruff>=0.17.0",
 ]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app", "journal_ai", "evals", "tests"]
