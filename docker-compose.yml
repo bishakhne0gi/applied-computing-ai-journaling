@@ -48,7 +48,11 @@ services:
       retries: 20
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      args:
+        VITE_SENTRY_DSN: "${VITE_SENTRY_DSN:-}"
+        VITE_RELEASE: "${RELEASE:-dev}"
     ports:
       - "8080:80"
     depends_on:
