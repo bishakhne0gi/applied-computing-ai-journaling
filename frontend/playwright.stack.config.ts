@@ -5,6 +5,8 @@ export default defineConfig({
   testDir: 'e2e-stack',
   reporter: [['list']],
   timeout: 60_000,
+  // Both projects share one database; serial runs keep history lookups deterministic.
+  workers: 1,
   use: {
     baseURL: process.env.STACK_URL ?? 'http://localhost:8080',
     trace: 'retain-on-failure',
