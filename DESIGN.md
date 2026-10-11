@@ -57,7 +57,7 @@ pills (`rounded-full`). Shadows: `sm` resting cards and inputs, `md` popovers, `
 - **Hint popover:** a white `Card` with `shadow-lg` under the word, flipping above near the bottom of the viewport. Passive: focus stays in the text, and typing, moving the caret or Esc closes it. Accept is the primary button, Dismiss a ghost button.
 - **Hint list:** under the editor, an "n hints" disclosure with a chevron opens one small card per hint with the same Accept and Dismiss. It is the keyboard and screen-reader path.
 - **Switch:** the "Live hints" toggle sits in a quiet row under the editor (a small track with a knob; the row is always present, so nothing shifts when hints appear).
-- **Ghost text:** autocomplete in `muted` right after the caret, only at the end of the text; Tab accepts, Esc dismisses; an "Autocomplete" switch sits beside "Live hints".
+- **Ghost text:** autocomplete in `muted` right after the caret, only at the end of the text; Tab accepts, Esc dismisses; an "Autocomplete" switch sits beside "Live hints". On touch, an "Accept suggestion" ghost button (44px, arrow icon) appears in the controls row while a ghost is visible.
 - **Rephrase card:** anchored white card, `shadow-lg`, the quoted sentence on `primary-soft`, changed words indigo, compare columns with `del` on `neutral-soft` and `ins` on `primary-soft`; a bottom sheet on phones; a floating pill on pointer selection.
 
 ## Do / Don't

@@ -15,9 +15,9 @@ export const caretAt = (position: number, end = position) => {
 }
 export const tint = () => document.querySelector('mark[data-decoration-id="rephrase-target"]')
 
-export function renderComposer(initial = PAIR_TEXT) {
+export function renderComposer(initial = PAIR_TEXT, options: { language?: string; readOnly?: boolean } = {}) {
   const onValue = vi.fn()
-  renderWithProviders(<ComposerHarness initial={initial} onValue={onValue} />)
+  renderWithProviders(<ComposerHarness initial={initial} onValue={onValue} {...options} />)
   return { onValue, user: userEvent.setup() }
 }
 

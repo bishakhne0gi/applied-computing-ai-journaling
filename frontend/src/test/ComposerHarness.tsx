@@ -1,19 +1,19 @@
 import { useState } from 'react'
 import { ComposerEditor } from '@/features/write/ComposerEditor'
 
-export function ComposerHarness({ initial, onValue }: { initial: string; onValue?: (text: string) => void }) {
+export function ComposerHarness({ initial, onValue, language = 'es', readOnly = false }: { initial: string; onValue?: (text: string) => void; language?: string; readOnly?: boolean }) {
   const [value, setValue] = useState(initial)
   return (
     <>
       <ComposerEditor
-        language="es"
+        language={language}
         value={value}
         onChange={(text) => {
           onValue?.(text)
           setValue(text)
         }}
         onSubmitShortcut={() => undefined}
-        readOnly={false}
+        readOnly={readOnly}
         focusOnMount={false}
       />
     </>

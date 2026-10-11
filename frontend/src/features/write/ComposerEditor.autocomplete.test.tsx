@@ -1,40 +1,12 @@
 import { act, fireEvent, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { http } from 'msw'
 import { afterEach, describe, expect, it } from 'vitest'
 import { composerField as editor, renderComposer } from '@/test/composerRephrase'
-import { apiUrl, clearMockMode, setMockMode } from '@/test/helpers'
-import { server } from '@/test/server'
-import { AUTOCOMPLETE, STORAGE_KEYS } from '@/utils/constants'
-
-const TEXT = 'Hoy fui al mercado con mi madre'
-const GHOST = ' y fue un buen día.'
-const SPOKEN = 'Suggestion: y fue un buen día. Press Tab to accept.'
-const WAIT = { timeout: 3000 }
+import { findGhost, ghost, GHOST, pause, SPOKEN, spyCompletions, TEXT, WAIT, writeAtEnd } from '@/test/composerAutocomplete'
+import { clearMockMode, setMockMode } from '@/test/helpers'
+import { STORAGE_KEYS } from '@/utils/constants'
 
 afterEach(clearMockMode)
-
-// Records each /complete body, then falls through to the in-memory handler.
-function spyCompletions() {
-  const bodies: { text: string }[] = []
-  server.use(
-    http.post(apiUrl('complete'), async ({ request }) => {
-      bodies.push((await request.clone().json()) as { text: string })
-    }),
-  )
-  return bodies
-}
-
-const ghost = () => document.querySelector('[data-ghost]')
-const findGhost = () => waitFor(() => expect(ghost()).toBeInTheDocument(), WAIT)
-const pause = (ms = AUTOCOMPLETE.debounceMs + 300) => act(() => new Promise<void>((resolve) => setTimeout(resolve, ms)))
-
-async function writeAtEnd(user: ReturnType<typeof userEvent.setup>, text = TEXT) {
-  const utils = renderComposer(text)
-  await user.click(editor())
-  fireEvent.select(editor())
-  return utils
-}
 
 describe('ComposerEditor autocomplete', () => {
   it('shows ghost text after a pause with the caret at the end, announces it once, and Tab inserts it', async () => {
@@ -107,7 +79,7 @@ describe('ComposerEditor autocomplete', () => {
     expect(screen.queryByText(SPOKEN)).not.toBeInTheDocument()
   })
 
-  it('hides the ghost when the caret leaves the end, and when focus leaves the text', async () => {
+  it('hides the ghost when the caret leaves the end', async () => {
     // Arrange
     const user = userEvent.setup()
     await writeAtEnd(user)
@@ -118,6 +90,19 @@ describe('ComposerEditor autocomplete', () => {
     expect(ghost()).not.toBeInTheDocument()
     await user.keyboard('{End}')
     expect(ghost()).not.toBeInTheDocument()
+  })
+
+  it('hides the ghost and its announcement when focus leaves the text', async () => {
+    // Arrange
+    const user = userEvent.setup()
+    await writeAtEnd(user)
+    await findGhost()
+    expect(screen.getByText(SPOKEN)).toBeInTheDocument()
+    // Act
+    act(() => editor().blur())
+    // Assert
+    expect(ghost()).not.toBeInTheDocument()
+    expect(screen.queryByText(SPOKEN)).not.toBeInTheDocument()
   })
 
   it('hides the ghost while the rephrase card is open', async () => {

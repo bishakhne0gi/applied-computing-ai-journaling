@@ -19,12 +19,14 @@ export interface LiveHintsControlsProps {
   message?: string
   // Switches that sit right after "Live hints" (autocomplete), so the hint count never moves them.
   beside?: ReactNode
+  // After the hint count, so a control that comes and goes with focus (accept suggestion) never moves what a tap is aimed at.
+  after?: ReactNode
   children?: ReactNode // other composer actions share the switch row
 }
 
 const spoken = (message: string, hints: number) => message || (hints > 0 ? pluralize(hints, 'hint') : '')
 
-export function LiveHintsControls({ on, onToggle, hints, announcement, onAccept, onDismiss, message = '', beside, children }: LiveHintsControlsProps) {
+export function LiveHintsControls({ on, onToggle, hints, announcement, onAccept, onDismiss, message = '', beside, after, children }: LiveHintsControlsProps) {
   const [expanded, setExpanded] = useState(false)
   const root = useRef<HTMLDivElement>(null)
   // Where focus goes once the acted-on hint is gone: its neighbour, or the switch when the list empties.
@@ -64,6 +66,7 @@ export function LiveHintsControls({ on, onToggle, hints, announcement, onAccept,
               <Icon name="chevron" className={cn('size-4 transition-transform motion-reduce:transition-none', expanded && 'rotate-180')} />
             </Button>
           )}
+          {after}
         </div>
         {/* aria-live, not role="status": the composer's save status stays the only status. */}
         <p aria-live="polite" className="sr-only">

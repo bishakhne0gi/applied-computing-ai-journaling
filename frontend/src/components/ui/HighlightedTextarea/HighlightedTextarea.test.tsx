@@ -46,6 +46,36 @@ describe('HighlightedTextarea', () => {
     expect(screen.getByRole('textbox')).toHaveValue('en el [park].')
   })
 
+  it('makes room for a ghost that wraps below a full, scrolled textarea, and scrolls it into view', () => {
+    // Arrange
+    const { container, rerender } = render(<Harness />)
+    const textarea = screen.getByRole('textbox')
+    const layer = backdrop(container)
+    if (!layer) throw new Error('no backdrop')
+    Object.defineProperty(layer, 'scrollHeight', { configurable: true, value: 300 })
+    Object.defineProperty(textarea, 'scrollHeight', { configurable: true, value: 200 })
+    // Act
+    rerender(<Harness ghost=" y luego" />)
+    // Assert
+    expect(textarea.style.paddingBottom).toBe('calc(100px + 1rem)')
+    expect(textarea.scrollTop).toBe(200)
+    expect(layer.scrollTop).toBe(200)
+    rerender(<Harness />)
+    expect(textarea.style.paddingBottom).toBe('')
+  })
+
+  it('adds no room when the ghost fits', () => {
+    // Arrange
+    const { container, rerender } = render(<Harness />)
+    const textarea = screen.getByRole('textbox')
+    Object.defineProperty(backdrop(container), 'scrollHeight', { configurable: true, value: 200 })
+    Object.defineProperty(textarea, 'scrollHeight', { configurable: true, value: 200 })
+    // Act
+    rerender(<Harness ghost=" y luego" />)
+    // Assert
+    expect(textarea.style.paddingBottom).toBe('')
+  })
+
   it('draws no ghost without one', () => {
     // Arrange + Act
     const { container } = render(<Harness />)

@@ -18,13 +18,13 @@ export interface AutocompleteInput {
 // Read aloud as a sentence of its own: close it unless the suggestion already ends in punctuation.
 const sentenceEnd = (text: string) => (/[.!?…]$/u.test(text) ? text : `${text}.`)
 
-// Data exists only for the current key, so it answers exactly the current text; each answer is shown once
-// (a cached answer for text typed again does not come back).
-function useAnswer(data: CompleteOut | undefined, value: string) {
-  const [seen, setSeen] = useState<CompleteOut | undefined>(undefined)
+// Data exists only for the current key, so it answers exactly the current text. Each query key is shown once, however
+// many answers came since: a cached answer for text typed again (an undo) does not come back.
+function useAnswer(data: CompleteOut | undefined, key: string, value: string) {
+  const [seen, setSeen] = useState<ReadonlySet<string>>(() => new Set())
   const [answer, setAnswer] = useState<Answer | null>(null)
-  if (data && data !== seen) {
-    setSeen(data)
+  if (data && !seen.has(key)) {
+    setSeen(new Set(seen).add(key))
     setAnswer(data.completion ? { base: value, completion: data.completion } : null)
   }
   return [answer, setAnswer] as const
@@ -43,7 +43,7 @@ export function useAutocomplete({ value, language, enabled, composing, caretAtEn
   const ready = enabled && !composing && caretAtEnd && caretSettled && settled === value && askable(value, language)
   // Keyed by the text: a keystroke is a new key, and TanStack aborts the superseded request.
   const { data } = useCompletionQuery(ready ? { language, text: value } : null)
-  const [answer, setAnswer] = useAnswer(data, value)
+  const [answer, setAnswer] = useAnswer(data, `${language}\n${value}`, value)
   const ghost = showing(enabled, caretAtEnd, answer, value)
   if (answer && ghost === '') setAnswer(null)
   return {

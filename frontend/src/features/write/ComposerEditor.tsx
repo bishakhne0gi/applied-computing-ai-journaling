@@ -33,7 +33,7 @@ export function ComposerEditor({ language, value, onChange, onSubmitShortcut, re
   const selection = useTextareaSelection()
   const hints = useComposerHints({ value, language, readOnly, composing, textarea })
   const rephrase = useComposerRephrase({ value, language, readOnly, selection: selection.selection, textarea })
-  const auto = useComposerAutocomplete({ value, language, readOnly, composing, selection: selection.selection, suppressed: !!rephrase.open || !!hints.open })
+  const auto = useComposerAutocomplete({ value, language, readOnly, composing, selection: selection.selection, textarea, suppressed: !!rephrase.open || !!hints.open })
   const { open } = hints
   const composingEvents = { onCompositionStart: () => setComposing(true), onCompositionEnd: () => setComposing(false) }
   return (
@@ -53,7 +53,7 @@ export function ComposerEditor({ language, value, onChange, onSubmitShortcut, re
       decorations={rephraseDecorations(hints.decorations, rephrase.open?.span ?? null)}
       textareaEvents={mergeEvents(selection.events, auto.events, rephrase.events, hints.events, composingEvents)}
       ghost={auto.ghost}
-      hint={auto.on ? `${BRACKET_HINT} Press Tab to accept a grey suggestion.` : undefined}
+      hint={auto.on ? `${BRACKET_HINT} ${auto.instruction}` : undefined}
       overlay={
         <>
           {open && !rephrase.open && (

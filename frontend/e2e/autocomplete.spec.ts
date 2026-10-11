@@ -68,3 +68,22 @@ test('autocomplete unavailable shows nothing', async ({ page }) => {
   await expect(page.getByRole('alert')).toHaveCount(0)
   await expect(editor).toHaveValue(TEXT)
 })
+
+test('on touch the Accept suggestion button inserts the ghost and the text keeps focus', async ({ page, isMobile }) => {
+  test.skip(!isMobile, 'a coarse pointer has no Tab key')
+  // Arrange
+  const editor = await write(page)
+  const accept = mainColumn(page).getByRole('button', { name: 'Accept suggestion' })
+  // Act
+  await expect(ghost(page)).toHaveText(' y fue un buen día.')
+  await expect(accept).toBeVisible()
+  expect((await accept.boundingBox())?.height).toBeGreaterThanOrEqual(44)
+  await expectHealthy(page)
+  await accept.tap()
+  // Assert
+  await expect(editor).toHaveValue(FULL)
+  await expect(editor).toBeFocused()
+  await expect(accept).toHaveCount(0)
+  await editor.press('ControlOrMeta+z')
+  await expect(editor).toHaveValue(TEXT)
+})

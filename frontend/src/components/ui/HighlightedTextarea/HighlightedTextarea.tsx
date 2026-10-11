@@ -32,6 +32,19 @@ export function HighlightedTextarea({ value, decorations, ghost, className, onSc
   const syncScroll = useCallback(() => {
     if (backdropRef.current && textareaRef.current) backdropRef.current.scrollTop = textareaRef.current.scrollTop
   }, [])
+  // A ghost that wraps past the end of a full, scrolled textarea would sit below the fold while Tab still inserts it:
+  // pad the textarea by the overflow so it can scroll that far, and scroll to the end.
+  useLayoutEffect(() => {
+    const area = textareaRef.current
+    const layer = backdropRef.current
+    if (!area || !layer) return
+    area.style.paddingBottom = ''
+    const extra = ghost ? layer.scrollHeight - area.scrollHeight : 0
+    if (extra <= 0) return
+    area.style.paddingBottom = `calc(1rem + ${extra}px)`
+    area.scrollTop = area.scrollHeight
+    syncScroll()
+  }, [ghost, value, syncScroll])
   // A new last line can scroll the textarea before the backdrop has that line to scroll to; re-sync after each render.
   useLayoutEffect(syncScroll, [value, syncScroll])
   return (
