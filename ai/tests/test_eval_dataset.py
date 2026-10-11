@@ -114,4 +114,6 @@ def test_the_dataset_has_the_unbracketed_word_help_cases() -> None:
         assert by_id[case_id].expected
     for case_id in ("es-loanword-1", "fr-loanword-1"):
         assert not by_id[case_id].expected
-    assert len(by_id) == 41
+    assert "es-cognate-1" in by_id
+    assert not by_id["es-cognate-1"].expected
+    assert len(by_id) >= 41

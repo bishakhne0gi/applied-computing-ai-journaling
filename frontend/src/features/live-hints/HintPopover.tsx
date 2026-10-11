@@ -2,6 +2,7 @@ import { useId, useRef } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Correction } from '@/features/feedback/Correction'
+import { KIND_LABELS } from '@/features/feedback/labels'
 import type { LiveHint } from './reanchor'
 import { useAnchorToWord } from './useAnchorToWord'
 import { usePassivePopover } from './usePassivePopover'
@@ -33,7 +34,7 @@ export function HintPopover({ hint, onAccept, onDismiss, onClose, onEscape }: Hi
       className="absolute z-dropdown w-72 max-w-full"
     >
       <Card className="flex flex-col gap-2 p-3 text-sm shadow-lg md:p-3">
-        {hint.kind === 'vocab_help' && <p className="text-xs font-medium text-mark-vocab">Word help</p>}
+        {hint.kind === 'vocab_help' && <p className="text-xs font-medium text-mark-vocab">{KIND_LABELS.vocab_help}</p>}
         <p className="font-semibold">
           <Correction original={hint.original} correction={hint.correction} kind={hint.kind} />
         </p>

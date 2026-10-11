@@ -42,7 +42,7 @@ def test_retry_prompt_keeps_the_entry_and_explains_the_failure() -> None:
     assert extract_entry(retry) == "Hola"
 
 
-def test_prompt_version_is_v1() -> None:
+def test_the_prompt_version_is_v2() -> None:
     assert PROMPT_VERSION == "v2"
 
 
@@ -62,3 +62,9 @@ def test_word_help_covers_unbracketed_foreign_words_but_not_names_or_loanwords()
     assert "or unbracketed" in system
     assert "proper nouns" in system
     assert "loanwords" in system
+
+
+def test_words_that_are_also_correct_in_the_language_are_not_foreign() -> None:
+    system, _ = build_messages("Mi hermano está en el hospital.", "es")
+
+    assert "also correct Spanish" in system

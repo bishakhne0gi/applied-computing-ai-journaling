@@ -1,4 +1,6 @@
 import json
+from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -67,14 +69,19 @@ async def test_demo_corrections_keep_the_case_of_the_first_letter() -> None:
     assert json.loads(completion.text)["corrected_text"].startswith("El problema")
 
 
-async def test_demo_mode_offers_word_help_for_unbracketed_english() -> None:
-    outcome = await Analyzer(FakeProvider()).analyze("Ayer fui al market con mi madre.", "es")
-
-    help_items = [m for m in outcome.result.mistakes if m.kind is MistakeKind.VOCAB_HELP]  # type: ignore[union-attr]
-    assert [(m.original, m.correction, m.start, m.end) for m in help_items] == [("market", "mercado", 12, 18)]
+GOLDEN = json.loads(
+    (Path(__file__).parents[2] / "fixtures" / "word-help-demo.json").read_text(encoding="utf-8")
+)
 
 
-async def test_a_bracketed_word_is_not_flagged_twice() -> None:
-    outcome = await Analyzer(FakeProvider()).analyze("Ayer fui al [market] con mi madre.", "es")
+@pytest.mark.parametrize("golden", GOLDEN["cases"], ids=lambda case: case["text"])
+async def test_demo_word_help_matches_the_shared_fixture(golden: dict[str, Any]) -> None:
+    outcome = await Analyzer(FakeProvider()).analyze(golden["text"], golden["language"])
 
-    assert [m.original for m in outcome.result.mistakes] == ["[market]"]  # type: ignore[union-attr]
+    assert outcome.result is not None
+    help_items = [m for m in outcome.result.mistakes if m.kind is MistakeKind.VOCAB_HELP]
+    assert [
+        {"original": m.original, "correction": m.correction, "start": m.start, "end": m.end}
+        for m in help_items
+    ] == golden["help"]
+    assert outcome.result.corrected_text == golden["corrected"]

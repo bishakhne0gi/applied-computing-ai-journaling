@@ -5,6 +5,13 @@ from dataclasses import dataclass
 
 from journal_ai.schema import AlignedMistake, Category, MistakeKind
 
+_COUNTED = (MistakeKind.ERROR, MistakeKind.VOCAB_HELP)
+
+
+def _is_bracket_help(mistake: AlignedMistake) -> bool:
+    # Help on an explicitly [bracketed] word is what the learner asked for, never a false alarm.
+    return mistake.kind is MistakeKind.VOCAB_HELP and mistake.original.startswith("[")
+
 
 @dataclass(frozen=True)
 class Expected:
@@ -36,7 +43,9 @@ class Report:
 def score_case(
     expected: Sequence[Expected], predicted: Sequence[AlignedMistake], latency_ms: int = 0
 ) -> CaseScore:
-    errors = [p for p in predicted if p.kind is MistakeKind.ERROR]
+    # Word help counts like an error: a missed foreign word is a miss, a flagged loanword is a false positive.
+    errors = [p for p in predicted if p.kind in _COUNTED]
+    unprompted = [p for p in errors if not _is_bracket_help(p)]
     caught = category_correct = 0
     for item in expected:
         matches = [p for p in errors if _overlaps(item.original, p.original)]
@@ -47,7 +56,7 @@ def score_case(
         expected=len(expected),
         caught=caught,
         category_correct=category_correct,
-        false_positive=not expected and bool(errors),
+        false_positive=not expected and bool(unprompted),
         latency_ms=latency_ms,
     )
 

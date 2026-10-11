@@ -59,7 +59,7 @@ function analyze(entryId: string): Response {
   if (!entry) return notFound()
   // Only entries with no analyses yet fail, so seeded entries keep re-analysing successfully.
   const failFirst = mockMode() === 'analysis-fail' && analysesOf(entryId).length === 0
-  const analysis = failFirst ? failedAnalysis(entry.id, entry.text) : analyzeText(entry.id, entry.text)
+  const analysis = failFirst ? failedAnalysis(entry.id, entry.text) : analyzeText(entry.id, entry.text, undefined, entry.language)
   return HttpResponse.json(addAnalysis(analysis), { status: 201 })
 }
 

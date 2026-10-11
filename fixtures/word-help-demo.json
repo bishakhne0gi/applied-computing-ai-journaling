@@ -1,0 +1,43 @@
+{
+  "cases": [
+    {
+      "language": "es",
+      "text": "Ayer fui al market con mi madre.",
+      "corrected": "Ayer fui al mercado con mi madre.",
+      "help": [{"original": "market", "correction": "mercado", "start": 12, "end": 18}]
+    },
+    {
+      "language": "fr",
+      "text": "Hier, nous sommes allés à la beach avec Market Street.",
+      "corrected": "Hier, nous sommes allés à la plage avec marché Street.",
+      "help": [
+        {"original": "beach", "correction": "plage", "start": 29, "end": 34},
+        {"original": "Market", "correction": "marché", "start": 40, "end": 46}
+      ]
+    },
+    {
+      "language": "es",
+      "text": "Ayer fui al [market] con mi madre.",
+      "corrected": "Ayer fui al market con mi madre.",
+      "help": [{"original": "[market]", "correction": "market", "start": 12, "end": 20}]
+    },
+    {
+      "language": "es",
+      "text": "Ayer vi un [big market stall] y un market.",
+      "corrected": "Ayer vi un big market stall y un mercado.",
+      "help": [
+        {"original": "[big market stall]", "correction": "big market stall", "start": 11, "end": 29},
+        {"original": "market", "correction": "mercado", "start": 35, "end": 41}
+      ]
+    },
+    {
+      "language": "es",
+      "text": "Hoy estoy happy en la beach.",
+      "corrected": "Hoy estoy feliz en la playa.",
+      "help": [
+        {"original": "happy", "correction": "feliz", "start": 10, "end": 15},
+        {"original": "beach", "correction": "playa", "start": 22, "end": 27}
+      ]
+    }
+  ]
+}

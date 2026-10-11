@@ -3,7 +3,7 @@ import json
 import pytest
 
 from journal_ai.assist import WritingAssist
-from journal_ai.prompts.assist_v1 import language_of
+from journal_ai.languages import language_of
 from journal_ai.providers.base import ProviderError, ProviderTimeoutError
 from journal_ai.providers.fake import FakeProvider
 from journal_ai.schema import FailureCode

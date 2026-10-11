@@ -39,5 +39,6 @@
   {"id": "es-foreign-2", "language": "es", "text": "Mi hermano trabaja como nurse en un hospital grande.", "expected": [{"original": "nurse", "categories": ["vocabulary"]}]},
   {"id": "fr-foreign-1", "language": "fr", "text": "Ce matin, j'ai acheté du bread à la boulangerie.", "expected": [{"original": "bread", "categories": ["vocabulary"]}]},
   {"id": "es-loanword-1", "language": "es", "text": "Le mandé un email a Michael después del fútbol.", "expected": []},
-  {"id": "fr-loanword-1", "language": "fr", "text": "Ce week-end, Sophie et moi avons regardé un film au cinéma.", "expected": []}
+  {"id": "fr-loanword-1", "language": "fr", "text": "Ce week-end, Sophie et moi avons regardé un film au cinéma.", "expected": []},
+  {"id": "es-cognate-1", "language": "es", "text": "Mi hermano tiene una buena idea: comprar chocolate cerca del hospital, y es completamente normal.", "expected": []}
 ]

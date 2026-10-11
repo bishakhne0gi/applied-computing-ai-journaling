@@ -65,14 +65,3 @@ def extract_sentence(user: str) -> str:
 def extract_prefix(user: str) -> str:
     match = _TEXT.search(user)
     return match.group(1) if match else ""
-
-
-def language_of(system: str) -> str:
-    for code, name in SUPPORTED_LANGUAGES.items():
-        if (
-            f"{name} writing tutor" in system
-            or f"entry in {name}" in system
-            or f"patient {name} tutor" in system
-        ):
-            return code
-    raise ValueError("no supported language in the prompt")

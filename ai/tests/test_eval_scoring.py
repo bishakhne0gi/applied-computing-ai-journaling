@@ -79,3 +79,24 @@ def test_overlap_is_word_bounded() -> None:
     expected = [_expected("es", Category.VERB_CONJUGATION)]
 
     assert score_case(expected, [_predicted("después", Category.VERB_CONJUGATION)]).caught == 0
+
+
+def test_word_help_on_an_expected_foreign_word_counts_as_caught() -> None:
+    score = score_case(
+        [_expected("market", Category.VOCABULARY)],
+        [_predicted("market", Category.VOCABULARY, MistakeKind.VOCAB_HELP)],
+    )
+
+    assert (score.caught, score.category_correct) == (1, 1)
+
+
+def test_word_help_on_an_unbracketed_word_of_a_clean_case_is_a_false_positive() -> None:
+    score = score_case([], [_predicted("email", Category.VOCABULARY, MistakeKind.VOCAB_HELP)])
+
+    assert score.false_positive is True
+
+
+def test_bracket_word_help_on_a_clean_case_is_not_a_false_positive() -> None:
+    score = score_case([], [_predicted("[market]", Category.VOCABULARY, MistakeKind.VOCAB_HELP)])
+
+    assert score.false_positive is False

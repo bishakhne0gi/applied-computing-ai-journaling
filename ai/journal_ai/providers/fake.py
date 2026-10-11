@@ -4,7 +4,8 @@ from collections import deque
 from collections.abc import Callable, Mapping, Sequence
 from typing import Any
 
-from journal_ai.prompts.assist_v1 import extract_sentence, language_of
+from journal_ai.languages import language_of
+from journal_ai.prompts.assist_v1 import extract_sentence
 from journal_ai.prompts.v2 import extract_entry
 from journal_ai.providers.base import Completion
 from journal_ai.providers.demo_assist import demo_completion, demo_rephrase
@@ -77,17 +78,29 @@ def _demo_response(entry: str, language: str) -> str:
     for match in _BRACKETED.finditer(entry):
         explanation = "Demo mode cannot translate. Set ANTHROPIC_API_KEY for real help."
         mistakes.append(_item("vocab_help", Category.VOCABULARY, match.group(0), match.group(1), explanation))
-    corrected = _BRACKETED.sub(r"\1", _correct(entry))
-    for english, native in _DEMO_FOREIGN.get(language, {}).items():
-        # Not inside brackets: those are already bracket help.
-        word = re.compile(rf"(?<![\[\w]){english}(?![\w\]])", re.IGNORECASE)
-        for found in word.finditer(entry):
-            explanation = f"Demo mode: «{found.group(0)}» is English; this is the word to use."
-            mistakes.append(_item("vocab_help", Category.VOCABULARY, found.group(0), native, explanation))
-        corrected = word.sub(native, corrected)
-    mistakes.sort(key=lambda item: entry.find(item["original"]))
+    for found, native in _foreign_words(entry, language):
+        explanation = f"Demo mode: «{found.group(0)}» is English; this is the word to use."
+        mistakes.append(_item("vocab_help", Category.VOCABULARY, found.group(0), native, explanation))
+    corrected = _BRACKETED.sub(r"\1", _replace_foreign(_correct(entry), language))
     summary = "Demo feedback. Configure Claude for real corrections."
     return json.dumps({"corrected_text": corrected, "feedback_summary": summary, "mistakes": mistakes})
+
+
+def _foreign_words(text: str, language: str) -> list[tuple[re.Match[str], str]]:
+    # Words inside [brackets] are already bracket help, so they are left to that rule.
+    spans = [m.span() for m in _BRACKETED.finditer(text)]
+    found = []
+    for english, native in _DEMO_FOREIGN.get(language, {}).items():
+        for match in re.finditer(rf"(?<![\[\w]){english}(?![\w\]])", text, re.IGNORECASE):
+            if not any(start <= match.start() < end for start, end in spans):
+                found.append((match, native))
+    return found
+
+
+def _replace_foreign(text: str, language: str) -> str:
+    for match, native in sorted(_foreign_words(text, language), key=lambda pair: -pair[0].start()):
+        text = text[: match.start()] + native + text[match.end() :]
+    return text
 
 
 def _case_preserving(replacement: str) -> Callable[[re.Match[str]], str]:

@@ -58,8 +58,8 @@ function toEntry(sample: Sample, createdAt: string): EntryOut {
 function revisedHistory(entry: EntryOut): AnalysisOut[] {
   const revisedAt = new Date(Date.parse(entry.created_at) + HOUR / 2).toISOString()
   return [
-    analyzeText(entry.id, 'Je suis allé à le marché avec ma sœur.', entry.created_at),
-    analyzeText(entry.id, entry.text, revisedAt),
+    analyzeText(entry.id, 'Je suis allé à le marché avec ma sœur.', entry.created_at, entry.language),
+    analyzeText(entry.id, entry.text, revisedAt, entry.language),
   ]
 }
 
@@ -88,9 +88,9 @@ function historyFor(entry: EntryOut): AnalysisOut[] {
     case SEEDED.revisedFrench:
       return revisedHistory(entry)
     case SEEDED.otherNotes:
-      return [withUnplacedNote(analyzeText(entry.id, entry.text, entry.created_at))]
+      return [withUnplacedNote(analyzeText(entry.id, entry.text, entry.created_at, entry.language))]
     default:
-      return [analyzeText(entry.id, entry.text, entry.created_at)]
+      return [analyzeText(entry.id, entry.text, entry.created_at, entry.language)]
   }
 }
 

@@ -7,8 +7,8 @@ import { cleanLanguage, cleanText, invalid, problem } from './responses'
 const toHint = ({ kind, category, original, correction, explanation, start, end }: MistakeOut): HintOut => ({ kind, category, original, correction, explanation, start, end })
 
 // The mock analyser's rules, with nothing stored — like the backend's /check.
-export function checkText(text: string): CheckOut {
-  const analysis = analyzeText('live-check', text)
+export function checkText(text: string, language = 'es'): CheckOut {
+  const analysis = analyzeText('live-check', text, undefined, language)
   return { analyzed_text: analysis.input_text, hints: analysis.mistakes.map(toHint) }
 }
 
@@ -17,5 +17,5 @@ export function check(body: unknown, mode: string): Response {
   const language = cleanLanguage(body)
   const text = cleanText(body)
   if (!language || !text) return invalid()
-  return HttpResponse.json(checkText(text))
+  return HttpResponse.json(checkText(text, language))
 }

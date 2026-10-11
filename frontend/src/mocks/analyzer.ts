@@ -23,7 +23,11 @@ const phrase = (words: string) => new RegExp(`(?<!\\p{L})${words}(?!\\p{L})`, 'g
 const always = (value: string) => () => value
 
 const GLOSSARY: Record<string, string> = { park: 'parque', pie: 'tarte', paella: 'paella', 'grocery store': 'supermercado' }
-const UNBRACKETED: Record<string, string> = { market: 'mercado', beach: 'playa' }
+// The same per-language glossary as the backend's fake provider (fixtures/word-help-demo.json pins both).
+const UNBRACKETED: Record<string, Record<string, string>> = {
+  es: { market: 'mercado', beach: 'playa', happy: 'feliz' },
+  fr: { market: 'marché', beach: 'plage', happy: 'heureux' },
+}
 const bracketed = (found: string) => found.slice(1, -1)
 
 // The same demo rules as the backend's fake provider, plus a suggestion and a small glossary.
@@ -40,24 +44,35 @@ const RULES: Rule[] = [
     category: 'vocabulary',
     explanation: 'Here is the word you were looking for.',
   },
-  {
-    // English written in the running text, with no brackets, is treated like bracket help.
-    pattern: /(?<![\p{L}[])(market|beach)(?![\p{L}\]])/giu,
-    correct: (found) => UNBRACKETED[found.toLowerCase()] ?? found,
+]
+
+// English written in the running text, with no brackets, is treated like bracket help (never inside a [bracketed] span).
+function foreignRule(language: string): Rule | null {
+  const glossary = UNBRACKETED[language]
+  if (!glossary) return null
+  return {
+    pattern: new RegExp(`(?<![\\p{L}[])(${Object.keys(glossary).join('|')})(?![\\p{L}\\]])`, 'giu'),
+    correct: (found) => glossary[found.toLowerCase()] ?? found,
     kind: 'vocab_help',
     category: 'vocabulary',
     explanation: 'This is the word for the English you wrote.',
-  },
-]
+  }
+}
 
-function findHits(text: string): Hit[] {
-  const hits = RULES.flatMap((rule) =>
+function inside(spans: [number, number][], index: number): boolean {
+  return spans.some(([start, end]) => start <= index && index < end)
+}
+
+function findHits(text: string, language: string): Hit[] {
+  const foreign = foreignRule(language)
+  const brackets = Array.from(text.matchAll(/\[[^[\]]+\]/gu), (m): [number, number] => [m.index, m.index + m[0].length])
+  const hits = [...RULES, ...(foreign ? [foreign] : [])].flatMap((rule) =>
     Array.from(text.matchAll(rule.pattern), (match) => ({
       index: match.index,
       original: match[0],
       correction: rule.correct(match[0]),
       rule,
-    })),
+    })).filter((hit) => hit.rule !== foreign || !inside(brackets, hit.index)),
   )
   return withoutOverlaps(hits.sort((a, b) => a.index - b.index))
 }
@@ -93,8 +108,8 @@ function summarise(count: number): string {
   return count === 0 ? 'Great job, no mistakes found!' : `Good effort! ${pluralize(count, 'thing')} to look at.`
 }
 
-export function analyzeText(entryId: string, text: string, createdAt = new Date().toISOString()): AnalysisOut {
-  const hits = findHits(text)
+export function analyzeText(entryId: string, text: string, createdAt = new Date().toISOString(), language = 'es'): AnalysisOut {
+  const hits = findHits(text, language)
   return buildAnalysis({
     entry_id: entryId,
     input_text: text,
