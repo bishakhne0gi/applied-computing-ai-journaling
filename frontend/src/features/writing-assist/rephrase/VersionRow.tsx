@@ -31,7 +31,7 @@ export function VersionRow({ sentence, version, mode, onUse, onCopy }: VersionRo
         ) : (
           <>
             <p className="flex-1 px-2 py-1">{text}</p>
-            <Button variant="ghost" className="min-h-9" aria-label={`Copy ${version.label.toLowerCase()} version`} onClick={() => onCopy?.(version.text)}>
+            <Button variant="ghost" className="min-h-9 pointer-coarse:min-h-11" aria-label={`Copy ${version.label.toLowerCase()} version`} onClick={() => onCopy?.(version.text)}>
               <Icon name="copy" /> Copy
             </Button>
           </>

@@ -1,14 +1,23 @@
 import { useId, useState } from 'react'
+import type { TextareaSelection } from '@/features/editor/useTextareaSelection'
 import { Button } from '@/components/ui/Button'
 import { Icon } from '@/components/ui/Icon'
 import { Sheet } from '@/components/ui/Sheet'
 import { useMediaQuery } from '@/hooks/misc/useMediaQuery'
 import { DESKTOP_QUERY } from '@/utils/constants'
 import { RephraseCard } from './RephraseCard'
+import { RephrasePill } from './RephrasePill'
 import { RephrasePopover } from './RephrasePopover'
 import type { ComposerRephraseState } from './useComposerRephrase'
 
-export function ComposerRephrase({ rephrase }: { rephrase: ComposerRephraseState }) {
+function SelectionPill({ rephrase, selection }: { rephrase: ComposerRephraseState; selection: TextareaSelection }) {
+  // Touch has its own selection menu where the pill would sit; jsdom has no pointer media, hence false.
+  const finePointer = useMediaQuery('(pointer: fine)', false)
+  const shown = finePointer && !rephrase.open && rephrase.target && selection.focused && selection.end > selection.start
+  return shown ? <RephrasePill offset={selection.end} onOpen={rephrase.openCard} /> : null
+}
+
+export function ComposerRephrase({ rephrase, selection }: { rephrase: ComposerRephraseState; selection: TextareaSelection }) {
   const desktop = useMediaQuery(DESKTOP_QUERY, true)
   const headingId = useId()
   const { open, close, closeQuietly, notice, applyVersion, applyWord } = rephrase
@@ -18,17 +27,21 @@ export function ComposerRephrase({ rephrase }: { rephrase: ComposerRephraseState
   const card = (current: NonNullable<typeof open>) => (
     <RephraseCard request={current.request} headingId={headingId} hideHeading={!desktop} mode="edit" notice={notice} onUseVersion={applyVersion} onUseWord={applyWord} />
   )
-  if (desktop) {
-    return open && (
-      <RephrasePopover headingId={headingId} onClose={close} onScrollAway={closeQuietly}>
-        {card(open)}
-      </RephrasePopover>
-    )
-  }
   return (
-    <Sheet open={!!open} side="bottom" title="Rephrase" onClose={closeQuietly}>
-      {shown && card(shown)}
-    </Sheet>
+    <>
+      <SelectionPill rephrase={rephrase} selection={selection} />
+      {desktop ? (
+        open && (
+          <RephrasePopover headingId={headingId} onClose={close} onScrollAway={closeQuietly}>
+            {card(open)}
+          </RephrasePopover>
+        )
+      ) : (
+        <Sheet open={!!open} side="bottom" title="Rephrase" onClose={closeQuietly}>
+          {shown && card(shown)}
+        </Sheet>
+      )}
+    </>
   )
 }
 

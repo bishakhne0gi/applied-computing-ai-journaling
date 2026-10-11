@@ -12,11 +12,13 @@ import { TextVersions } from './TextVersions'
 export interface FeedbackViewProps {
   analysis: AnalysisOut
   actions?: ReactNode
+  // Rendered after the actions row, e.g. an inline card an action opens.
+  children?: ReactNode
   focusHeading?: boolean
 }
 
 // Callers key this by analysis id, so switching analyses resets the open panel and the text version.
-export function FeedbackView({ analysis, actions, focusHeading = false }: FeedbackViewProps) {
+export function FeedbackView({ analysis, actions, children, focusHeading = false }: FeedbackViewProps) {
   const [selected, setSelected] = useState<MistakeOut | null>(null)
   const triggerRef = useRef<HTMLButtonElement | null>(null)
   const headingId = useId()
@@ -48,6 +50,7 @@ export function FeedbackView({ analysis, actions, focusHeading = false }: Feedba
       {selected && <MistakePanel id={panelId} mistake={selected} onClose={close} />}
       <OtherNotes mistakes={unplaced} />
       {actions && <div className="flex flex-wrap gap-2">{actions}</div>}
+      {children}
     </section>
   )
 }

@@ -63,7 +63,7 @@ export function ComposerEditor({ language, value, onChange, onSubmitShortcut, re
               onEscape={hints.returnToText}
             />
           )}
-          <ComposerRephrase rephrase={rephrase} />
+          <ComposerRephrase rephrase={rephrase} selection={selection.selection} />
         </>
       }
       footer={

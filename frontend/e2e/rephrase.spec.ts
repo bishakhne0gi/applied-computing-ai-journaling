@@ -2,7 +2,7 @@ import { expect, test, type Page } from '@playwright/test'
 import { expectNoA11yViolations } from './a11y'
 import { expectButtonsShowPointer } from './cursor'
 import { pickOption } from './select'
-import { composerLanguage, mainColumn } from './workspace'
+import { composerLanguage, mainColumn, openEntries } from './workspace'
 
 const TEXT = 'Ayer fui al mercado. Hoy yo es feliz con mi familia.'
 const FIXED = 'Ayer fui al mercado. Hoy yo soy feliz con mi familia.'
@@ -75,4 +75,45 @@ test('rephrasing unavailable shows a retry and leaves writing alone', async ({ p
   await page.keyboard.press('Escape')
   await expect(page.getByLabel('Your entry')).toHaveValue(TEXT)
   await expect(page.getByRole('button', { name: 'Get feedback', exact: true })).toBeEnabled()
+})
+
+test('a mouse-width selection shows a Rephrase pill that opens the card on it', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'touch has its own selection menu')
+  // Arrange
+  await write(page)
+  const editor = page.getByLabel('Your entry')
+  // Act
+  await editor.press('End')
+  const wordLeft = process.platform === 'darwin' ? 'Alt+Shift+ArrowLeft' : 'Control+Shift+ArrowLeft'
+  for (let i = 0; i < 4; i++) await editor.press(wordLeft)
+  const pill = mainColumn(page).getByRole('button', { name: 'Rephrase selection' })
+  await expect(pill).toBeVisible()
+  await expect(editor).toBeFocused()
+  await expectHealthy(page)
+  await pill.click()
+  // Assert
+  await expect(card(page).locator('blockquote')).toHaveText('con mi familia.')
+  await expect(card(page).getByRole('button', { name: /Sinceramente/ })).toBeVisible()
+  await expectHealthy(page)
+})
+
+test('a saved entry rephrases a chosen sentence read-only and copies a version', async ({ page, context, browserName }) => {
+  test.skip(browserName !== 'chromium', 'clipboard permissions are Chromium-only')
+  // Arrange
+  await context.grantPermissions(['clipboard-read', 'clipboard-write'])
+  await page.goto('/')
+  const entries = await openEntries(page)
+  await entries.getByRole('link', { name: /El fin de semana fue muy bueno/ }).click()
+  const main = mainColumn(page)
+  // Act
+  await main.getByRole('button', { name: 'Rephrase a sentence' }).click()
+  const section = main.getByRole('region', { name: 'Rephrase' })
+  await expect(section.getByRole('button', { name: /^Copy/ }).first()).toBeVisible()
+  await expectHealthy(page)
+  await section.getByRole('button', { name: /^Copy/ }).first().click()
+  // Assert
+  await expect(page.getByText('Copied')).toBeVisible()
+  expect(await page.evaluate(() => navigator.clipboard.readText())).not.toBe('')
+  await section.getByRole('button', { name: 'Close' }).click()
+  await expect(main.getByRole('button', { name: 'Rephrase a sentence' })).toBeFocused()
 })

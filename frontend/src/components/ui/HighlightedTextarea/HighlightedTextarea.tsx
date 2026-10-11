@@ -34,7 +34,7 @@ export function HighlightedTextarea({ value, decorations, className, onScroll, r
   useLayoutEffect(syncScroll, [value, syncScroll])
   return (
     <div className={cn('relative rounded-lg bg-bg', readOnly && 'bg-surface')}>
-      <div ref={backdropRef} aria-hidden="true" translate="no" className={cn(layerClass, 'pointer-events-none absolute inset-0 border-transparent text-fg')}>
+      <div ref={backdropRef} data-backdrop="" aria-hidden="true" translate="no" className={cn(layerClass, 'pointer-events-none absolute inset-0 border-transparent text-fg')}>
         {decorate(value, decorations).map((segment, index) =>
           segment.className ? (
             <mark key={index} data-decoration-id={segment.id} className={cn('bg-transparent text-fg', segment.className)}>

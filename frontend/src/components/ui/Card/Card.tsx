@@ -3,6 +3,7 @@ import { cn } from '@/utils/utils'
 
 export interface CardProps extends ComponentPropsWithoutRef<'section'> {
   as?: 'div' | 'section'
+  ref?: (node: HTMLElement | null) => void // a callback only: one ref type for both elements
 }
 
 export function Card({ as: Element = 'div', className, ...rest }: CardProps) {
