@@ -13,25 +13,29 @@ export interface TextVersionsProps {
   onSwitch: () => void
   // The annotated original, with its highlight buttons.
   children: ReactNode
+  // False when the original holds no highlight buttons, so the panel itself becomes the tab stop (APG).
+  hasHighlights: boolean
 }
 
-export function TextVersions({ analysis, onSwitch, children }: TextVersionsProps) {
+export function TextVersions({ analysis, onSwitch, children, hasHighlights }: TextVersionsProps) {
   const [version, setVersion] = useState<string>('original')
   const prefix = useId()
   const corrected = version === 'corrected'
   return (
     <div className="flex flex-col gap-3">
-      <AnimatedTabs
-        label="Text version"
-        idPrefix={prefix}
-        tabs={VERSIONS}
-        value={version}
-        onChange={(id) => {
-          onSwitch()
-          setVersion(id)
-        }}
-      />
-      <div role="tabpanel" id={panelId(prefix, version)} aria-labelledby={tabId(prefix, version)} tabIndex={corrected ? 0 : undefined}>
+      <div>
+        <AnimatedTabs
+          label="Text version"
+          idPrefix={prefix}
+          tabs={VERSIONS}
+          value={version}
+          onChange={(id) => {
+            onSwitch()
+            setVersion(id)
+          }}
+        />
+      </div>
+      <div role="tabpanel" id={panelId(prefix, version)} aria-labelledby={tabId(prefix, version)} tabIndex={corrected || !hasHighlights ? 0 : undefined}>
         {corrected ? <p className="text-lg leading-loose whitespace-pre-wrap">{analysis.corrected_text ?? analysis.input_text}</p> : children}
       </div>
     </div>

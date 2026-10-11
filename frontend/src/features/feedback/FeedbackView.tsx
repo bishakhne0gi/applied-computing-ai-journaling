@@ -42,7 +42,7 @@ export function FeedbackView({ analysis, actions, focusHeading = false }: Feedba
       <p>{analysis.feedback_summary}</p>
       {analysis.mistakes.length === 0 && <p className="text-muted">Nothing to correct in this entry.</p>}
       <Legend mistakes={analysis.mistakes} />
-      <TextVersions analysis={analysis} onSwitch={() => setSelected(null)}>
+      <TextVersions analysis={analysis} onSwitch={() => setSelected(null)} hasHighlights={placed.length > 0}>
         <AnnotatedText text={analysis.input_text} placed={placed} selectedId={selected?.id ?? null} panelId={panelId} onSelect={open} />
       </TextVersions>
       {selected && <MistakePanel id={panelId} mistake={selected} onClose={close} />}

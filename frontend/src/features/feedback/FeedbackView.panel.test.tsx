@@ -62,10 +62,12 @@ describe('FeedbackView detail panel', () => {
     // Arrange
     const user = userEvent.setup()
     render(<FeedbackView analysis={analysis} />)
-    const highlight = screen.getAllByRole('button').find((button) => button.hasAttribute('aria-expanded'))
-    // Legend tips and the version tabs come first in the tab order.
-    for (let presses = 0; presses < 10 && document.activeElement !== highlight; presses += 1) await user.tab()
+    const highlight = screen.getByRole('button', { name: /yo es/ })
     // Act
+    await user.tab() // legend info tip
+    await user.tab() // selected version tab
+    await user.tab()
+    expect(highlight).toHaveFocus()
     await user.keyboard('{Enter}')
     // Assert
     expect(screen.getByRole('region', { name: /should be/ })).toBeInTheDocument()

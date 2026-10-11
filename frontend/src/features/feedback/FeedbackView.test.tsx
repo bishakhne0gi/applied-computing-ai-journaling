@@ -93,9 +93,34 @@ describe('FeedbackView', () => {
     const user = userEvent.setup()
     render(<FeedbackView analysis={analysis} />)
     // Act
-    await user.click(screen.getByText('Suggestion'))
+    await user.click(screen.getByRole('button', { name: 'What do these mean?' }))
     // Assert
-    expect(screen.getByRole('tooltip')).toHaveTextContent(KIND_HINTS.suggestion)
+    const tip = screen.getByRole('tooltip')
+    expect(tip).toHaveAttribute('data-state', 'open')
+    for (const hint of Object.values(KIND_HINTS)) expect(tip).toHaveTextContent(hint)
+  })
+
+  it('keeps the legend chips out of the tab order', () => {
+    // Arrange + Act
+    render(<FeedbackView analysis={analysis} />)
+    // Assert
+    const legend = screen.getByRole('list', { name: 'Feedback legend' })
+    expect(within(legend).queryAllByRole('button')).toHaveLength(0)
+  })
+
+  it('hugs the tabs to their content and makes an empty original text focusable', () => {
+    // Arrange + Act
+    render(<FeedbackView analysis={buildAnalysis({ mistakes: [], feedback_summary: 'Clean.' })} />)
+    // Assert
+    expect(screen.getByRole('tablist', { name: 'Text version' }).parentElement).not.toHaveClass('flex-col')
+    expect(screen.getByRole('tabpanel', { name: 'Your text' })).toHaveAttribute('tabindex', '0')
+  })
+
+  it('leaves the original panel out of the tab order when it holds highlights', () => {
+    // Arrange + Act
+    render(<FeedbackView analysis={analysis} />)
+    // Assert
+    expect(screen.getByRole('tabpanel', { name: 'Your text' })).not.toHaveAttribute('tabindex')
   })
 
   it('says when there is nothing to correct', () => {
