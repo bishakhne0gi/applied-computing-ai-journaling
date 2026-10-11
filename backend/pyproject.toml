@@ -47,3 +47,10 @@ source_modules = ["app"]
 forbidden_modules = ["anthropic"]
 # The composition root reaches the SDK only through journal_ai's provider factory; direct use stays banned.
 allow_indirect_imports = true
+
+[[tool.importlinter.contracts]]
+name = "Only the Langfuse adapter imports the Langfuse SDK"
+type = "forbidden"
+source_modules = ["app", "journal_ai.analyzer", "journal_ai.tracing", "journal_ai.providers"]
+forbidden_modules = ["langfuse"]
+allow_indirect_imports = true
