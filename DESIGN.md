@@ -51,7 +51,10 @@ pills (`rounded-full`). Shadows: `sm` resting cards and inputs, `md` popovers, `
 - **Tooltips:** ink background, white text, small; on focus and hover, Esc closes. A `card` tip (the feedback legend) is a wider white card with `shadow-lg`, opening below its trigger.
 - **Skeletons:** `border`-coloured pulsing blocks in the shape of what is loading.
 - **Editor chips:** `[word]` gets a `primary-soft` tint with a spread-only shadow — no padding, so the text never moves.
-- **Live hints:** an underline by kind; a hint on a chip keeps the tint. Dismiss hides every occurrence of that exact hint (same words, same correction) until the composer starts a new entry.
+- **Live hints:** an underline by kind; a hint on a chip keeps the tint. A case-only correction is drawn in the suggestion style, never as an error. Dismiss hides every occurrence of that exact hint (same words, same correction) until the composer starts a new entry.
+- **Hint popover:** a white `Card` with `shadow-lg` under the word, flipping above near the bottom of the viewport. Passive: focus stays in the text, and typing, moving the caret or Esc closes it. Accept is the primary button, Dismiss a ghost button.
+- **Hint list:** under the editor, an "n hints" disclosure with a chevron opens one small card per hint with the same Accept and Dismiss. It is the keyboard and screen-reader path.
+- **Switch:** the "Live hints" toggle sits in a quiet row under the editor (a small track with a knob; the row is always present, so nothing shifts when hints appear).
 
 ## Do / Don't
 - Do use roles (`text-muted`), never raw colours; add a token when a value is missing.

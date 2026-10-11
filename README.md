@@ -8,6 +8,10 @@ deterministic demo provider when no API key is set.
 |---|---|
 | ![Workspace with entries, composer and feedback](docs/qa/p6-workspace-desktop.png) | ![Workspace on a phone](docs/qa/p6-workspace-mobile.png) |
 
+| Live hints while writing |
+|---|
+| ![Quiet underlines in the composer, with the hint list and the Live hints switch](docs/qa/p7-live-hints-desktop.png) |
+
 ## Quick start
 
 ```bash
@@ -42,6 +46,7 @@ Browser — React 19 SPA (Vite, TanStack Query, ky)
    ▼
 FastAPI ── routes → services → repositories → SQLAlchemy 2 (async) → Postgres 16
    │            └── journal_ai: prompt v1 → Claude (structured output) → parse → retry once → align offsets
+   │            └── POST /check: the same Analyzer on a fast model, one attempt, untraced, nothing stored
    ├── structlog JSON logs with request_id
    ├── Sentry (backend + frontend, only when a DSN is set)
    └── Langfuse traces (only when keys are set; metadata only)
@@ -57,6 +62,9 @@ FastAPI ── routes → services → repositories → SQLAlchemy 2 (async) →
    as 201. A failed AI call is data, not an exception.
 5. The UI highlights mistakes in the learner's own words, or shows the failure with "Retry analysis".
 
+**Live hints** (`POST /check`) are a separate, disposable path: the composer sends the text after a pause, the
+fast model returns mistakes with offsets, and nothing is stored or traced. Details below.
+
 Layering is enforced by import-linter: routes never touch the ORM, repositories hold no rules, services depend
 on an `Analyzer` protocol, `journal_ai` never imports the backend, and only `journal_ai` touches the provider SDK.
 
@@ -70,11 +78,33 @@ Bracketed English words become chips while typing (a mirrored layer behind a nat
 screen readers are untouched). The theme is light only. Visual language: [`DESIGN.md`](DESIGN.md); motion
 primitives (sheet, tabs, toast) are adapted by hand from SmoothUI (MIT).
 
+### Live hints
+
+After a 1.2 s pause (at least 3 words, never mid-IME-composition) the composer asks `POST /check` and draws quiet
+underlines under likely mistakes, in the same colours and styles as saved feedback. Nothing pops up by itself and
+focus never leaves the text:
+
+- Click an underline to open a small popover under the word (it flips above near the bottom) with the correction
+  and a one-line explanation. **Accept** replaces the span through the textarea's editing API, so Cmd/Ctrl+Z undoes
+  it; **Dismiss** hides every occurrence of that exact hint (same words, same correction) for the composer session.
+  Typing, moving the caret or Esc closes the popover; Tab reaches its buttons.
+- An "n hints" disclosure under the editor lists the same hints with Accept and Dismiss per item. This is the
+  keyboard and screen-reader path; the count is announced politely and throttled.
+- A "Live hints" switch turns the whole feature off (remembered locally, default on).
+- Hints keep their place while you type: each server span is carried across the edit made since the check, and a
+  span the edit touched is dropped, never moved. Case-only corrections show as suggestions, not errors. If a newer
+  check fails (503), the last good hints stay; an unavailable check is retried once after the debounce.
+- Time to hint is the debounce plus the model call: about 1.2 s + 2.1 s, roughly 3.3 s at p50 on eval-sized entries.
+  Demo mode (`AI_PROVIDER=fake`) serves scripted hints, so the feature works without a key.
+
+Why it is in the product, and how it affects insights, is under "Product decisions" and "Known limitations".
+
 ## Product decisions
 
 | Decision | Choice | Why |
 |---|---|---|
-| Feedback timing | After writing, on request | Live correction interrupts the flow of writing |
+| Feedback timing | Quiet live hints while writing; full saved feedback on request | The interruption to avoid is modal correction and stolen focus. These hints are quiet underlines that never take focus, accept is opt-in per hint, and a switch turns them off. The live model scores 0% false positives on the eval's clean entries (below), which is the number that decides whether underlines are friction. The saved analysis stays the single source of history and insights |
+| Hints and insights | Insights measure the submitted text | Accepting a hint fixes the mistake before the counted analysis runs, so a learner who accepts every underline sees their measured error rate fall. That is deliberate for this slice: accept is per hint, the switch turns hints off, and the saved analysis still reflects what the learner chose to submit. Follow-up: record accepted-hint categories (no text) and show "caught while writing" next to the rate |
 | Not knowing a word | Write `[English word]`; feedback fills it in as `vocab_help` | Keeps the learner writing and teaches the word |
 | Correction kinds | `error`, `suggestion`, `vocab_help` | Only errors count as progress, so style tips don't inflate "mistakes" |
 | Presentation | Inline highlights + detail panel, corrected-text toggle, unplaceable items under "Other notes" | Mistakes shown in the learner's own words; nothing silently dropped |
@@ -95,6 +125,7 @@ primitives (sheet, tabs, toast) are adapted by hand from SmoothUI (MIT).
 | PATCH | `/entries/{id}` | `{text}` → updated entry |
 | POST | `/entries/{id}/analyses` | Runs analysis synchronously → 201 (`succeeded`, or `failed` + `error_code`) |
 | GET | `/entries/{id}/analyses` | Analysis history, newest first |
+| POST | `/check` | `{language, text}` → 200 `{analyzed_text, hints}` from the fast live model; nothing stored; 503 when unavailable or busy |
 | GET | `/insights?language=` | Stage 2 payload |
 
 Text is 1–5000 characters after trimming; unsupported language → 422; unknown id → 404. Errors are RFC 7807
@@ -120,6 +151,9 @@ UUID keys, `timestamptz`, Alembic migrations, Postgres enums for kind/category/s
   Changing the prompt bumps `PROMPT_VERSION`, which is stored on every analysis.
 - **Structured output**: `output_config.format` with an explicit JSON schema, explicit `effort` (default `medium`),
   30 s timeout, one SDK retry, refusals detected from `stop_reason`.
+- **Live variant** (`POST /check`): the same `Analyzer` and schema on `AI_LIVE_MODEL` (default `claude-haiku-5-5`),
+  effort low, 8 s timeout, one attempt and no SDK retries, no tracer. The server answers without calling the model
+  for fewer than 3 words and caps concurrent checks at 2 per process, refusing (503) rather than queueing.
 - **Defensive parsing** (provider-agnostic): strip fences and stray prose, validate the top level or fail as
   `invalid_output`; validate each mistake on its own and drop (and count) bad ones; unknown category → `other`.
 - **One retry** with the validation error appended; then `invalid_output`. Timeout → `provider_timeout`; API errors
@@ -167,6 +201,9 @@ Pure functions in `backend/app/services/insights/calculations.py`, every thresho
 | pnpm | Strict, fast installs for the frontend |
 | structlog | JSON logs with `request_id` bound per request |
 | Sentry | Error reporting with scrubbing, off without a DSN |
+| Fast live model (`claude-haiku-5-5`, effort low) | Underlines need a hint within a few seconds and a zero false-positive rate more than top recall; the saved analysis stays on the stronger model |
+| Backdrop layer + native `textarea` for underlines | Hints are drawn behind transparent text, so IME, undo, spellcheck and screen readers are untouched; Accept goes through `execCommand`, so Cmd/Ctrl+Z undoes it |
+| Edit-mapped spans (common prefix/suffix) | A hint moves with the text typed since the check, or is dropped; it is never re-found by string search and misplaced |
 | Langfuse | Per-call latency/tokens/failure view of the model, off without keys |
 | pytest, Vitest + Testing Library, Playwright + axe | The right tool per layer of the pyramid (below) |
 | ruff, mypy strict, ESLint, import-linter | Rules enforced by tools, not by memory |
@@ -177,12 +214,14 @@ Pure functions in `backend/app/services/insights/calculations.py`, every thresho
 
 | Layer | Tool | What it proves | Count |
 |---|---|---|---|
-| AI package | pytest + `FakeProvider` | parsing table, alignment (accents, repeats, fallback, not found), retry → success/failure, timeout, refusal, tracing never leaks text | 166 |
-| Backend | pytest on real Postgres (per-test rollback) | create → analyse → store → retrieve, failed analyses persisted, re-analysis, 404/422, paging, insights rules and the latest-succeeded query | 175 (coverage 99%, floor 85%) |
-| Frontend units/components | Vitest + Testing Library + MSW | every screen's loading/empty/error/ready states, highlights, keyboard, revise loop, insights rules ported for the mock | 479 (coverage band 65–85%) |
-| Frontend e2e | Playwright + axe, 1280 px and 375 px | user journeys with zero axe violations and pointer cursors on every button | 56 |
-| Full stack | Compose + demo provider + Playwright | write → feedback → history → insights through nginx, FastAPI and Postgres | 6 |
-| Performance/a11y | Lighthouse (median of 3) | desktop 100 in every category, mobile performance ≥ 90 | desktop 100, mobile 94 |
+| AI package | pytest + `FakeProvider` | parsing table, alignment (accents, repeats, fallback, not found), retry → success/failure, timeout, refusal, tracing never leaks text, live attempts | 170 |
+| Backend | pytest on real Postgres (per-test rollback) | create → analyse → store → retrieve, failed analyses persisted, re-analysis, 404/422, paging, insights rules and the latest-succeeded query | 199 (coverage 99%, floor 85%) |
+| Frontend units/components | Vitest + Testing Library + MSW | every screen's loading/empty/error/ready states, highlights, keyboard, revise loop, insights rules ported for the mock | 585 (coverage band 65–85%) |
+| Frontend e2e | Playwright + axe, 1280 px and 375 px | user journeys with zero axe violations and pointer cursors on every button | 64 |
+| Full stack | Compose + demo provider + Playwright | write → feedback → history → insights through nginx, FastAPI and Postgres, including a live-hint accept | 8 |
+| Performance/a11y | Lighthouse (median of 3) | desktop 100 in every category, mobile performance ≥ 90 | desktop 100, mobile 93 |
+
+| Live hints (real model) | `make eval` with `AI_MODEL=claude-haiku-5-5`; time-to-hint from the debounce plus the check | 36-case eval: 0 failed, p50 2.1 s per check; about 3.3 s to a hint |
 
 Tests never use SQLite and never call a real model; the real model is measured by the eval set instead.
 
@@ -198,15 +237,19 @@ caught mistakes, false-positive rate on clean entries, p50 latency. Where the ta
 | prompt v1, `claude-opus-5-5`, effort medium, first 14-case set | 14 | 91% | 90% | 0% | 3.6 s |
 | prompt v1, `claude-opus-5-5`, effort medium (default), current set | 36 | 97% | 100% | 0% | 2.6 s |
 | prompt v1, `claude-opus-5-5`, effort low, current set | 36 | 97% | 100% | 0% | 2.6 s |
+| prompt v1, `claude-haiku-5-5` (the live model), effort low, current set | 36 | 90% | 93% | 0% | 2.1 s |
 
-Low effort scores the same on this set, so it is a viable cost lever; medium stays the default for headroom on longer entries. `make eval args="--limit 6"` samples both languages;
+Low effort scores the same on this set, so it is a viable cost lever; medium stays the default for headroom on longer entries. The Haiku row is the live-hints model: it gives up
+seven points of recall for a lower latency and cost, and still raises no false positive on a clean entry, which is the
+property that makes quiet underlines acceptable. `make eval args="--limit 6"` samples both languages;
 `make eval-fake` runs the harness offline (CI does too).
 
 ## Observability and privacy
 
 - **Logs**: structlog, JSON in containers. Middleware binds a `request_id` (honours a safe incoming `X-Request-ID`
   and echoes it) and logs method, path, status and duration. Each analysis logs ids, model, prompt version,
-  latency, tokens, kept/dropped mistakes, retried and status — never entry text.
+  latency, tokens, kept/dropped mistakes, retried and status — never entry text. Live checks log language, model, latency, hint count and failure code, never text, and are not
+  traced in Langfuse.
 - **Sentry** (only with a DSN): release = git SHA, `request_id` tag, `send_default_pii=False`, request bodies
   scrubbed, frame locals off, SQL parameters hidden; `invalid_output` is a warning. Frontend Sentry is lazy-loaded,
   DOM breadcrumbs off (aria-labels can contain entry text), every data-collection category off.
@@ -250,14 +293,14 @@ same gates locally.
 |---|---|
 | Auth / multiple users | Single-learner slice; a `user_id` column and a row filter are mechanical later |
 | Deleting entries | Not needed to show the learning loop; history is the point |
-| Live grammar checking | Interrupts writing — the friction the product avoids |
+| Rate limiting on `/check` | Single user. The client debounces and cancels stale requests, but the server still pays for a cancelled call, so it caps live checks at 2 concurrent per process and answers 503 beyond that. A per-client limiter is the first scaling step |
 | Autocomplete | Writes for the learner instead of with them |
 | Severity scores | Unreliable from a model and not actionable; categories are |
 | Background job queue | One user, ~4 s analyses; synchronous with a timeout is simpler (scaling path below) |
 | Streaming responses | Feedback is shown as a whole annotated text; partial JSON adds complexity for no UX gain |
 | Vector DB / embeddings | Nothing to retrieve; insights are counts |
 | LangChain / LangGraph | One structured call with one retry; a framework would hide the failure handling |
-| GraphQL | Nine REST endpoints with stable shapes |
+| GraphQL | Ten REST endpoints with stable shapes |
 | Deployment target | Images are built and pushed; choosing a host is outside the slice |
 
 ## Scaling path
@@ -278,4 +321,16 @@ same gates locally.
 - The eval set is small (36 cases, two languages) and measures recall against single labelled spans.
 - Langfuse traces are metadata-only by design, so prompts cannot be replayed from Langfuse; `raw_response` in the
   database is the debugging record.
+- **Live hints and insights:** insights measure the submitted text, so a learner who accepts hints sees their
+  measured error rate fall because a model fixed the text. Accepted hints are not recorded yet; the follow-up is to
+  store accepted-hint categories (no text) and show "caught while writing" beside the rate.
+- **Long entries:** `/check` reuses the full analysis schema and discards `corrected_text` and the summary, so output
+  and latency grow with the entry. The 2.1 s p50 is from eval-sized entries; the 8 s timeout (`AI_LIVE_TIMEOUT_SECONDS`)
+  means a very long entry can answer 503 and simply gets no hints. A mistakes-only live prompt would fix this.
+- **Superseded checks are billed:** a client abort does not cancel the server call. At most 2 run per process; a third
+  answers 503, and the composer keeps the last good hints.
+- **Hint placement:** Hangul conjoining jamo and rare whitespace can make the server's and the browser's text differ;
+  the nearby hints are then dropped, never misplaced. Dismissal is per composer session.
+- **Browsers:** the hint popover and the textarea inset are verified in Chromium only. Firefox and WebKit popover
+  behaviour is untested, and the iOS Safari textarea inset is unverified (no WebKit available).
 - The nginx image runs its master process as root and the frontend container has no healthcheck.

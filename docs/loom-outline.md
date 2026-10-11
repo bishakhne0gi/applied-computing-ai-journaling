@@ -6,8 +6,8 @@ mock build (`pnpm -C frontend build --mode mock && pnpm -C frontend preview`) fo
 
 | Time | Segment | Show | Say (one line each) |
 |---|---|---|---|
-| 0:00–0:30 | Problem | README top | Learners need feedback after writing, in their own words, and a sense of progress — without being interrupted while writing. |
-| 0:30–2:00 | Write → feedback | The workspace; type a Spanish entry with `[to travel]` (chip appears); ⌘/Ctrl+Enter | One screen. Saved first, analysed second; highlights in my text; panel; the bracket became `vocab_help`; "Your text / Corrected" tabs. |
+| 0:00–0:30 | Problem | README top | Learners need feedback after writing, in their own words, and a sense of progress, with quiet hints while they write that never interrupt (underlines, opt-in accept, 0% false positives on the eval). |
+| 0:30–2:00 | Write → feedback | The workspace; type a Spanish entry with `[to travel]` (chip appears); ⌘/Ctrl+Enter | One screen. Saved first, analysed second; highlights in my text; panel; the bracket became `vocab_help`; "Your text / Corrected" tabs. Pause: «yo es» underlines; Accept from the list; Cmd/Ctrl+Z undoes it; the saved analysis is still the source of truth (20 s). |
 | 2:00–2:30 | Failure | `/?mock=analysis-fail` on the mock build | The entry is kept, the failed analysis is a stored resource, "Retry analysis" runs it again. |
 | 2:30–3:00 | Revise + history | "Revise & re-check"; pick an older entry in the sidebar | The main column swaps in place; the switcher keeps every analysis; my draft is still there when I come back. |
 | 3:00–3:30 | URL as state | Copy `/?entry=…`, Back/Forward, open on a phone width | Selection, sheet and filter live in the URL; phones get sheets, not pages. |
@@ -18,6 +18,12 @@ mock build (`pnpm -C frontend build --mode mock && pnpm -C frontend preview`) fo
 | 6:30–7:00 | Trade-offs | README "Deliberately left out" + "Scaling path" | Sync analysis now, a queue later via `analyses.status`; what I'd do next. |
 
 # Deep-dive Q&A
+
+**Live hints interrupt writing, and the brief warned about that. Why add them?** The interruption to avoid is modal correction and stolen focus. These are quiet underlines: no pop-up opens by itself, focus never leaves the text, accept is opt-in per hint, and a switch turns them off. The real friction risk is a false underline, and the live model (`claude-haiku-5-5`, effort low) raised 0% false positives on the eval's clean entries (recall 90%, category 93%, p50 2.1 s per check, about 3.3 s to a hint with the debounce). The fast model never writes history.
+
+**Don't live hints deflate the insights?** Yes, and the docs say so. Accepting a hint fixes the mistake before the counted analysis runs, so insights measure what reaches submission and a learner who accepts every underline sees their measured error rate fall. It is acceptable for this slice because accept is per hint, the switch turns hints off, and the saved analysis still reflects what the learner chose to submit. The follow-up is to record accepted-hint categories (no text) and show "caught while writing" next to the rate.
+
+**Failures are data elsewhere. Why does `/check` return 503?** Nothing is created, so there is no resource to hold the outcome, and a stale hint has no value tomorrow. 503 is the honest status, and the UI hides hints silently and keeps the last good ones.
 
 **Why one screen instead of routes?** Every context switch was a page change; with the URL as the only state owner, the workspace keeps shareable links and Back while removing navigation.
 

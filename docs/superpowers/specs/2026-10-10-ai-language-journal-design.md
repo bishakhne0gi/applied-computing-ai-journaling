@@ -21,7 +21,7 @@ Success for us:
 
 | Decision | Choice | Why |
 |---|---|---|
-| Feedback timing | Post-writing only | Live correction interrupts flow — the friction the brief warns about |
+| Feedback timing | Quiet live hints while writing; full saved feedback on submit (amended by P6 §7.2) | The interruption to avoid is modal correction and stolen focus; quiet underlines with opt-in accept do neither, and the live model scores 0% false positives on the eval's clean entries |
 | Writing aid | `[English word]` bracket fallback; AI fills it in as `vocab_help` | Keeps the learner writing; tiny to build; teaches the word |
 | Correction kinds | `error` (grammar/spelling), `suggestion` (style/naturalness), `vocab_help` | Only errors count toward progress, so style tips don't inflate "mistakes" |
 | Presentation | Inline highlights on the original text + detail panel; toggle for full corrected version; unplaceable items under "Other notes" | Learner sees mistakes in their own words; nothing silently dropped |
@@ -34,7 +34,7 @@ Success for us:
 Categories: `verb_conjugation, verb_tense, gender_agreement, number_agreement, article, preposition, word_order,
 spelling, vocabulary, punctuation, other`.
 
-Deliberately left out (README lists each with reason): auth/multi-user, delete, live grammar checking, autocomplete,
+Deliberately left out (README lists each with reason): auth/multi-user, delete, autocomplete,
 severity scores, background job queue, streaming, vector DB/embeddings, LangChain/LangGraph, GraphQL, deployment target.
 
 ## 3. Architecture
@@ -115,11 +115,12 @@ Insights read only the latest succeeded analysis per entry, so re-analysis never
 | PATCH | `/entries/{id}` | `{text}` → updated Entry |
 | POST | `/entries/{id}/analyses` | Runs analysis synchronously → 201 Analysis (status `succeeded` or `failed` + `error_code`) |
 | GET | `/entries/{id}/analyses` | Analysis history, newest first |
+| POST | `/check` | `{language, text}` → 200 `{analyzed_text, hints}` from the fast live model (`AI_LIVE_MODEL`); nothing stored, untraced; 503 problem+json when unavailable or busy |
 | GET | `/insights?language=` | Stage 2 payload |
 
 Validation: text 1–5000 chars after trim, language in supported list → 422 otherwise; unknown id → 404.
 Errors use RFC 7807 `application/problem+json` including `request_id`. A failed AI call is persisted, not thrown:
-the analysis is a resource and its outcome is data.
+the analysis is a resource and its outcome is data. `/check` is the exception by design: it creates nothing, so there is no resource to hold a failure, and a stale hint has no value later; it answers 503.
 
 ## 6. AI pipeline (`journal_ai`)
 
@@ -201,7 +202,7 @@ rule) and groups the rows into per-category counts. Only `kind = error` counts.
 
 - structlog: JSON in prod, console in dev. Middleware binds `request_id` (honours incoming `X-Request-ID`, echoes it),
   logs method, path, status, duration. Analysis log line: `entry_id, analysis_id, model, prompt_version, latency_ms,
-  tokens, mistakes_kept, mistakes_dropped, retried, status`. Entry text is never logged.
+  tokens, mistakes_kept, mistakes_dropped, retried, status`. Entry text is never logged. Live checks (`POST /check`) log `language, model, latency_ms, hint_count, failure code` only, are not traced in Langfuse, and their text never reaches Sentry.
 - Sentry (only when DSN set): backend FastAPI integration, `release` = git SHA, `request_id` tag,
   `send_default_pii=False`, `before_send` strips entry text, `invalid_output` captured as warning. Frontend
   `@sentry/react` error boundary, lazy-initialised.
@@ -251,7 +252,7 @@ Each phase: failing tests first, small commits per step, `make verify` output sh
 
 ## 14. Configuration
 
-`DATABASE_URL, AI_PROVIDER (anthropic|fake), AI_MODEL, AI_EFFORT, AI_TIMEOUT_SECONDS, ANTHROPIC_API_KEY,
+`DATABASE_URL, AI_PROVIDER (anthropic|fake), AI_MODEL, AI_EFFORT, AI_TIMEOUT_SECONDS, AI_LIVE_MODEL, AI_LIVE_TIMEOUT_SECONDS, ANTHROPIC_API_KEY,
 LOG_LEVEL, LOG_FORMAT (json|console), SENTRY_DSN, SENTRY_ENVIRONMENT, RELEASE,
 LANGFUSE_PUBLIC_KEY, LANGFUSE_SECRET_KEY, LANGFUSE_HOST (passed to the v4 SDK as `base_url`), CORS_ORIGINS`; frontend `VITE_API_BASE, VITE_API_MOCKS,
 VITE_SENTRY_DSN`. `.env.example` documents all; Compose defaults to `AI_PROVIDER=fake` when no key is set.

@@ -95,25 +95,43 @@ padding, no font change), so glyph positions never drift. The backdrop scrolls w
 
 ### 7.2 Live hints with one-click accept (P7)
 Amends main spec §2 "Feedback timing: post-writing only". New rule: **quiet live hints while writing, full saved
-feedback on submit.**
+feedback on submit.** This is a product decision, defended below.
 - After the writer pauses (1.2 s debounce) and the text has ≥ 3 words, the client calls `POST /api/v1/check`
-  `{text, language}`. The server runs the same analyzer with a fast model (`AI_LIVE_MODEL`, default
-  `claude-haiku-5-5`, effort low) and returns the mistakes with offsets. **Nothing is stored**; live hints never count
-  toward insights (only submitted analyses do). Stale requests are aborted; a newer response always wins.
-  Offsets are Unicode code points (end exclusive) into the response's `analyzed_text` (NFC, trimmed), not into the
-  request text; the client maps them to its own string units and re-anchors by `original`. The server also returns
-  no hints, without calling the model, for fewer than 3 words, and answers 503 at once when 2 checks are already running.
-- Hints appear only as underlines in the backdrop layer (error / suggestion / vocab colours, same as feedback). No
-  pop-ups, no interruptions. Clicking an underline (or choosing it from the hint list) opens a small popover:
-  correction, one-line explanation, **Accept** (Enter) and **Dismiss** (Esc). Accept replaces the span through the
-  textarea's editing API so ⌘/Ctrl+Z undoes it; `[word]` vocab hints replace the bracketed English with the target word.
-- While the user keeps typing, existing hints re-anchor by finding their `original` text near the old offset; hints
-  that no longer match are dropped. Dismissed hints stay dismissed for that text.
-- Accessibility: a "n hints" button under the editor (count announced politely, throttled) opens the same hints as a
-  list, keyboard-operable, Accept/Dismiss per item. Underlines are decorative; the list is the accessible path.
+  `{text, language}`. Checks wait while an IME composition is open. The server runs the same analyzer with a fast model
+  (`AI_LIVE_MODEL`, default `claude-haiku-5-5`, effort low, 8 s timeout) and returns the mistakes with offsets.
+  **Nothing is stored.** The live analyzer is untraced and built with no SDK retries, so a check is one paid attempt.
+  Stale requests are aborted client-side; a newer response wins. A client abort does not cancel the server call, which
+  is why the server also holds at most 2 checks per process and answers 503 at once for a third. It returns no hints,
+  without calling the model, for fewer than 3 words.
+- Offsets are Unicode code points (end exclusive) into the response's `analyzed_text` (NFC, trimmed), not into the
+  request text. The client converts them to UTF-16 and carries each server span across the edit made since the check
+  (common prefix and suffix); a span the edit touches is dropped, never moved to another occurrence. Hints the server
+  could not place (null offsets) anchor to the first whole-word occurrence of `original`.
+- Hints appear only as underlines in the backdrop layer (error / suggestion / vocab colours, same as feedback). A
+  correction that differs from the original only by case is shown as a suggestion, not an error. No pop-ups appear by
+  themselves.
+- Clicking an underline opens a small **passive** popover under the word: correction, one-line explanation, **Accept**
+  and **Dismiss**. A click opens it only when the caret lands strictly inside the words, or on the glyph of a
+  one-character hint. Focus stays in the text, so typing carries on and closes the popover; moving the caret, blurring
+  and Esc close it too (Esc closes, it does not dismiss); Tab reaches Accept and Dismiss. Accept replaces the span
+  through the textarea's editing API so Cmd/Ctrl+Z undoes it; `[word]` vocab hints replace the bracketed English with
+  the target word.
+- Dismiss hides every occurrence of that exact hint (same words, same correction) for the composer session.
+- Failures: `/check` returns 503 problem+json when the live model is unavailable; the UI shows no alert. A failed newer
+  check keeps the last good hints (re-anchored); an unavailable check is retried once after the debounce.
+- Accessibility: an "n hints" disclosure under the editor (count announced politely, throttled) opens a list with
+  Accept and Dismiss per item. The list has its own buttons and does not open the popover; it is the keyboard and
+  screen-reader path. Underlines are decorative.
 - Control: a "Live hints" switch in the composer (remembered locally, default on). Demo mode (`AI_PROVIDER=fake`)
   serves scripted hints so the feature works without a key.
-- Guard rails: same 5000-code-point limit and text privacy rules (never logged, never sent to Sentry or Langfuse);
-  `/check` returns 503 problem+json when the live model is unavailable and the UI silently hides hints.
-- Defence for the deep-dive: the original "post-writing only" choice was about interruption; quiet underlines with
-  opt-in accept keep flow, and the paid full analysis stays the single source of truth for history and insights.
+- Guard rails: same 5000-code-point limit and text privacy rules (never logged, never sent to Sentry or Langfuse).
+- **Defence for the deep-dive.** The original "post-writing only" choice was about interruption. The interruption the
+  brief warns about is modal correction and focus theft; these hints never take focus, never open by themselves and
+  can be switched off. The real risk is false underlines, and the live model's eval answers it: `claude-haiku-5-5`
+  at low effort on the 36-case set, 0 failed, recall 90%, category accuracy 93%, **0% false positives**, p50 2.1 s per
+  check (about 3.3 s from the last keystroke to a hint, with the debounce).
+- **Effect on insights (stated plainly).** Accepting a hint fixes the mistake before the counted analysis runs, so
+  insights measure what reaches submission, and a learner who accepts every underline sees their measured error rate
+  fall because a model fixed the text. This is acceptable for this slice because accept is per hint, the switch turns
+  hints off, and the fast model writes no history; the saved analysis stays the record of what the learner submitted.
+  Follow-up: record accepted-hint categories (no text) per entry and show "caught while writing" next to the rate.
