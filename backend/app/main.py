@@ -15,8 +15,7 @@ from app.core.sentry import init_sentry
 from app.db.session import create_engine, create_sessionmaker
 from app.services.live_check import MAX_CONCURRENT_CHECKS
 from app.services.writing_assist import MAX_CONCURRENT_CALLS
-from journal_ai import Analyzer, WritingAssist, build_provider, build_tracer
-from journal_ai.providers.base import CompletionProvider
+from journal_ai import Analyzer, CompletionProvider, WritingAssist, build_provider, build_tracer
 
 
 def _api_key(settings: Settings) -> str | None:

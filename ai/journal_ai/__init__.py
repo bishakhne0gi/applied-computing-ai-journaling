@@ -5,6 +5,7 @@ from journal_ai.langfuse_tracer import build_tracer
 from journal_ai.languages import SUPPORTED_LANGUAGES
 from journal_ai.prompts.assist_v1 import ASSIST_PROMPT_VERSION
 from journal_ai.prompts.v2 import PROMPT_VERSION
+from journal_ai.providers.base import CompletionProvider
 from journal_ai.providers.factory import build_provider
 from journal_ai.schema import (
     AlignedMistake,
@@ -37,6 +38,7 @@ __all__ = [
     "Analyzer",
     "Category",
     "CompletionOutcome",
+    "CompletionProvider",
     "FailureCode",
     "MistakeKind",
     "NoopTracer",

@@ -9,8 +9,13 @@ from app.services.analyses import AnalysisService, AnalyzerPort
 from app.services.entries import EntryService
 from app.services.insights.service import InsightsService
 from app.services.live_check import LiveCheckService
-from app.services.writing_assist import CompletionService, RephraseService
-from journal_ai import WritingAssist
+from app.services.writing_assist import (
+    CompleterPort,
+    CompletionService,
+    RephraserPort,
+    RephraseService,
+    WritingAssistPort,
+)
 
 
 async def get_session(request: Request) -> AsyncIterator[AsyncSession]:
@@ -33,8 +38,8 @@ def get_live_slots(request: Request) -> asyncio.Semaphore:
     return cast(asyncio.Semaphore, request.app.state.live_slots)
 
 
-def get_writing_assist(request: Request) -> WritingAssist:
-    return cast(WritingAssist, request.app.state.writing_assist)
+def get_writing_assist(request: Request) -> WritingAssistPort:
+    return cast(WritingAssistPort, request.app.state.writing_assist)
 
 
 def get_rephrase_slots(request: Request) -> asyncio.Semaphore:
@@ -67,14 +72,14 @@ def get_live_check_service(
 
 
 def get_rephrase_service(
-    assist: Annotated[WritingAssist, Depends(get_writing_assist)],
+    assist: Annotated[RephraserPort, Depends(get_writing_assist)],
     slots: Annotated[asyncio.Semaphore, Depends(get_rephrase_slots)],
 ) -> RephraseService:
     return RephraseService(assist, slots)
 
 
 def get_completion_service(
-    assist: Annotated[WritingAssist, Depends(get_writing_assist)],
+    assist: Annotated[CompleterPort, Depends(get_writing_assist)],
     slots: Annotated[asyncio.Semaphore, Depends(get_complete_slots)],
 ) -> CompletionService:
     return CompletionService(assist, slots)

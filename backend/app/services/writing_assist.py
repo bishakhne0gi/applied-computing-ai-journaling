@@ -24,6 +24,10 @@ class CompleterPort(Protocol):
     async def complete(self, prefix: str, language: str) -> CompletionOutcome: ...
 
 
+class WritingAssistPort(RephraserPort, CompleterPort, Protocol):
+    """What the app state holds: one object serving both suggestion services."""
+
+
 # Suggestions for text that is not saved: nothing is stored, and no text reaches a log line or Sentry,
 # exception messages included, since a provider error can quote the prompt.
 class RephraseService:
