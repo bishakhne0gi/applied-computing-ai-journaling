@@ -4,9 +4,8 @@ import { Icon } from '@/components/ui/Icon'
 import { InlineAlert } from '@/components/ui/InlineAlert'
 import { useRephraseQuery } from '@/hooks/queries/useRephraseQuery'
 import type { RephraseRequest, VersionOut, VocabularyOut } from '@/types/assist'
-import { BetterWords } from './BetterWords'
+import { LazyRephraseResults } from './LazyRephraseResults'
 import { RephraseError, RephraseLoading } from './RephraseStates'
-import { VersionRow } from './VersionRow'
 
 const TABS = [
   { id: 'versions', label: 'Rephrase' },
@@ -33,17 +32,10 @@ interface BodyProps extends Pick<RephraseCardProps, 'mode' | 'onUseVersion' | 'o
   sentence: string
 }
 
-function RephraseBody({ query, tab, sentence, mode, onUseVersion, onUseWord, onCopy }: BodyProps) {
+function RephraseBody({ query, tab, sentence, ...actions }: BodyProps) {
   if (query.isError) return <RephraseError retrying={query.isFetching} onRetry={() => void query.refetch()} />
   if (!query.data) return <RephraseLoading />
-  if (tab === 'words') return <BetterWords items={query.data.vocabulary} mode={mode} onUseWord={onUseWord} />
-  return (
-    <ul className="divide-y divide-border overflow-hidden rounded-md border border-border">
-      {query.data.versions.map((version) => (
-        <VersionRow key={version.tone} sentence={sentence} version={version} mode={mode} onUse={onUseVersion} onCopy={onCopy} />
-      ))}
-    </ul>
-  )
+  return <LazyRephraseResults data={query.data} tab={tab} sentence={sentence} {...actions} />
 }
 
 // No outer chrome (border, shadow, close button): the composer popover, the sheet and the saved-entry section own that.
