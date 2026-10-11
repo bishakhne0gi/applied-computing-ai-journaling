@@ -4,7 +4,7 @@ import { expectButtonsShowPointer } from '../e2e/cursor'
 import { pickOption } from '../e2e/select'
 import { composerLanguage, ENTRY_TITLE, mainColumn, openEntries } from '../e2e/workspace'
 
-const DEMO_SUMMARY = 'Demo feedback — configure Claude for real corrections.'
+const DEMO_SUMMARY = 'Demo feedback. Configure Claude for real corrections.'
 
 test('the real stack saves an entry, returns demo feedback and lists it in the sidebar', async ({ page }, testInfo) => {
   // Arrange — a unique entry per run and project, because the stack's database outlives one test.
