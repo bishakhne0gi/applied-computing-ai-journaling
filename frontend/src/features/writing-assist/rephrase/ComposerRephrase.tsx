@@ -13,7 +13,7 @@ export function ComposerRephrase({ rephrase }: { rephrase: ComposerRephraseState
   const headingId = useId()
   const { open, close, closeToOpener, notice, applyVersion, applyWord } = rephrase
   if (!open) return null
-  const card = <RephraseCard request={open.request} headingId={headingId} mode="edit" notice={notice} onUseVersion={applyVersion} onUseWord={applyWord} />
+  const card = <RephraseCard request={open.request} headingId={headingId} hideHeading={!desktop} mode="edit" notice={notice} onUseVersion={applyVersion} onUseWord={applyWord} />
   if (desktop) {
     return (
       <RephrasePopover headingId={headingId} onClose={close}>

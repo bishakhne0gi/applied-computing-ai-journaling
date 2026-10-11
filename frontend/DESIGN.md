@@ -38,6 +38,7 @@ element's props, `ref` as a plain prop (React 19), Tailwind token utilities merg
 | `Field` | — | label + control; owns the spacing between them |
 | `LoadingState` | — | `role="status"` + `aria-busy`; muted label, or skeleton `children` with the label `sr-only` |
 | `Button` `field` | — | input-styled trigger (white, `border-input`, `rounded-md`, `min-h-11`) used by `Select` |
+| `Button` `option` | — | full-width, left-aligned row (`min-h-11`, `rounded-md`) that tints `primary-soft` on hover; used for pick-one rows such as rephrase versions |
 | `Button` `plain` | — | unstyled trigger (focus ring and pointer cursor only) used by `Tooltip` |
 | `Button` `tab` | — | used by `AnimatedTabs`; text turns `fg` when `aria-selected` |
 | `AnimatedTabs` | 2–4 tabs | controlled segmented tabs (SmoothUI, MIT); arrows/Home/End; only the selected tab is tabbable and has `aria-controls`; pair with `role="tabpanel"` using `tabId`/`panelId` |

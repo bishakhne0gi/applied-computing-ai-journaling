@@ -114,8 +114,8 @@ describe('ComposerEditor rephrase', () => {
     await user.click(screen.getByRole('button', { name: 'Rephrase' }))
     const dialog = await screen.findByRole('dialog', { name: 'Rephrase' })
     // Act
-    // The emoji belongs to the sentence that follows «¿Qué tal?»; only that sentence changes, the leading spaces stay.
-    await user.click(await within(dialog).findByRole('button', { name: `😊 ${FIXED}` }))
+    // The emoji stays with «¿Qué tal?»; only the sentence after it changes, the leading spaces stay.
+    await user.click(await within(dialog).findByRole('button', { name: FIXED }))
     // Assert
     expect(onValue).toHaveBeenLastCalledWith(`  ¿Qué tal? 😊 ${FIXED}`)
   })

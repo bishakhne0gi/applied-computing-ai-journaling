@@ -12,6 +12,6 @@ export function RephraseLoading() {
   )
 }
 
-export function RephraseError({ onRetry }: { onRetry: () => void }) {
-  return <ErrorState message="Rephrasing is unavailable right now." onRetry={onRetry} />
+export function RephraseError({ onRetry, retrying }: { onRetry: () => void; retrying: boolean }) {
+  return <ErrorState message="Rephrasing is unavailable right now." onRetry={onRetry} retrying={retrying} />
 }

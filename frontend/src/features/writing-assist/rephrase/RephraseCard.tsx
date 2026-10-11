@@ -21,6 +21,7 @@ export interface RephraseCardProps {
   onUseVersion?: (version: VersionOut) => void
   onUseWord?: (item: VocabularyOut, word: string) => void
   onCopy?: (text: string) => void
+  hideHeading?: boolean // the caller already shows a title (the phone Sheet)
   notice?: string | null // e.g. the stale-target message, shown as an InlineAlert above the tabs
 }
 
@@ -33,11 +34,11 @@ interface BodyProps extends Pick<RephraseCardProps, 'mode' | 'onUseVersion' | 'o
 }
 
 function RephraseBody({ query, tab, sentence, mode, onUseVersion, onUseWord, onCopy }: BodyProps) {
-  if (query.isError) return <RephraseError onRetry={() => void query.refetch()} />
+  if (query.isError) return <RephraseError retrying={query.isFetching} onRetry={() => void query.refetch()} />
   if (!query.data) return <RephraseLoading />
   if (tab === 'words') return <BetterWords items={query.data.vocabulary} mode={mode} onUseWord={onUseWord} />
   return (
-    <ul className="flex flex-col gap-3">
+    <ul className="divide-y divide-border overflow-hidden rounded-md border border-border">
       {query.data.versions.map((version) => (
         <VersionRow key={version.tone} sentence={sentence} version={version} mode={mode} onUse={onUseVersion} onCopy={onCopy} />
       ))}
@@ -46,17 +47,19 @@ function RephraseBody({ query, tab, sentence, mode, onUseVersion, onUseWord, onC
 }
 
 // No outer chrome (border, shadow, close button): the composer popover, the sheet and the saved-entry section own that.
-export function RephraseCard({ request, headingId, notice, ...actions }: RephraseCardProps) {
+export function RephraseCard({ request, headingId, hideHeading = false, notice, ...actions }: RephraseCardProps) {
   const [tab, setTab] = useState<string>('versions')
   const prefix = useId()
   const query = useRephraseQuery(request)
   const sentence = Array.from(request.text).slice(request.start, request.end).join('')
   return (
     <div className="flex flex-col gap-3">
-      <h2 id={headingId} className="flex items-center gap-2 text-base font-medium">
-        <Icon name="sparkle" className="text-primary" />
-        Rephrase
-      </h2>
+      {!hideHeading && (
+        <h2 id={headingId} className="flex items-center gap-2 text-base font-medium">
+          <Icon name="sparkle" className="text-primary" />
+          Rephrase
+        </h2>
+      )}
       <blockquote className="rounded-md bg-primary-soft px-3 py-2 text-fg">{sentence}</blockquote>
       {notice && <InlineAlert>{notice}</InlineAlert>}
       <div>

@@ -70,8 +70,38 @@ describe('RephraseCard', () => {
     const panel = screen.getByRole('region', { name: /Compare/ })
     expect(within(panel).getByText('es', { selector: 'del' })).toBeInTheDocument()
     expect(within(panel).getByText('soy', { selector: 'ins' })).toBeInTheDocument()
+    // jsdom ignores the stylesheet, so the visual encoding is asserted on the classes.
+    expect(within(panel).getByText('es', { selector: 'del' })).toHaveClass('bg-neutral-soft')
+    expect(within(panel).getByText('es', { selector: 'del' })).not.toHaveClass('hidden')
+    expect(within(panel).getByText('soy', { selector: 'ins' })).toHaveClass('bg-primary-soft')
     await userEvent.click(compare)
     expect(screen.queryByRole('region', { name: /Compare/ })).not.toBeInTheDocument()
+  })
+
+  it('marks an inserted word in the version text with the primary colour', async () => {
+    // Arrange + Act
+    renderCard()
+    const natural = await screen.findByRole('button', { name: NATURAL })
+    // Assert
+    expect(natural.querySelector('ins')).toHaveClass('text-primary', 'font-medium')
+  })
+
+  it('lists the versions as rows of one bordered list', async () => {
+    // Arrange + Act
+    renderCard()
+    await screen.findByRole('button', { name: NATURAL })
+    // Assert
+    const list = screen.getByRole('list')
+    expect(list).toHaveClass('divide-y', 'border')
+    expect(within(list).getAllByRole('listitem')).toHaveLength(3)
+  })
+
+  it('hides its own heading when the caller already shows a title', async () => {
+    // Arrange + Act
+    renderCard({ hideHeading: true })
+    await screen.findByRole('button', { name: NATURAL })
+    // Assert
+    expect(screen.queryByRole('heading', { name: 'Rephrase' })).not.toBeInTheDocument()
   })
 
   it('uses a version on click in edit mode', async () => {
@@ -105,6 +135,29 @@ describe('RephraseCard', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Try again' }))
     // Assert
     expect(await screen.findByRole('button', { name: NATURAL })).toBeInTheDocument()
+  })
+
+  it('swaps the error for the loading state while the retry is in flight', async () => {
+    // Arrange
+    let release: () => void = () => undefined
+    const gate = new Promise<void>((resolve) => {
+      release = resolve
+    })
+    // server.use prepends, so the handler declared last answers first.
+    server.use(http.post(apiUrl('rephrase'), async () => {
+      await gate
+      return problem(503, 'Service Unavailable', 'x')
+    }, { once: true }))
+    server.use(http.post(apiUrl('rephrase'), () => problem(503, 'Service Unavailable', 'x'), { once: true }))
+    renderCard()
+    const retry = await screen.findByRole('button', { name: 'Try again' })
+    // Act
+    await userEvent.click(retry)
+    // Assert
+    expect(await screen.findByRole('status')).toHaveTextContent('Finding better versions…')
+    expect(screen.queryByRole('button', { name: 'Try again' })).not.toBeInTheDocument()
+    release()
+    expect(await screen.findByRole('button', { name: 'Try again' })).toBeEnabled()
   })
 
   it('shows a notice above the tabs when the caller passes one', async () => {
