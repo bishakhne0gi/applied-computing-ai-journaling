@@ -47,7 +47,7 @@ async def test_successful_analysis_is_parsed_aligned_and_tagged() -> None:
     mistake = outcome.result.mistakes[0]
     assert TEXT[mistake.start : mistake.end] == "yo es"
     assert outcome.dropped_mistakes == 1
-    assert outcome.prompt_version == "v1"
+    assert outcome.prompt_version == "v2"
     assert outcome.model == "fake"
     assert outcome.retried is False
     assert outcome.raw_response == _valid()

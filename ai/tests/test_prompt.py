@@ -1,6 +1,6 @@
 import pytest
 
-from journal_ai.prompts.v1 import PROMPT_VERSION, build_messages, build_retry_prompt, extract_entry
+from journal_ai.prompts.v2 import PROMPT_VERSION, build_messages, build_retry_prompt, extract_entry
 from journal_ai.schema import Category
 
 
@@ -43,7 +43,7 @@ def test_retry_prompt_keeps_the_entry_and_explains_the_failure() -> None:
 
 
 def test_prompt_version_is_v1() -> None:
-    assert PROMPT_VERSION == "v1"
+    assert PROMPT_VERSION == "v2"
 
 
 @pytest.mark.parametrize(
@@ -54,3 +54,11 @@ def test_nested_delimiter_look_alikes_cannot_reassemble(text: str) -> None:
 
     assert user.count("<entry>") == 1
     assert user.count("</entry>") == 1
+
+
+def test_word_help_covers_unbracketed_foreign_words_but_not_names_or_loanwords() -> None:
+    system, _ = build_messages("Hoy fui al market.", "es")
+
+    assert "or unbracketed" in system
+    assert "proper nouns" in system
+    assert "loanwords" in system

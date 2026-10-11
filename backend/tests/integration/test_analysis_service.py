@@ -8,7 +8,7 @@ from app.core.errors import NotFoundError
 from app.db.models import AnalysisStatus
 from app.services.analyses import AnalysisService
 from app.services.entries import EntryService
-from journal_ai import AnalysisOutcome, Analyzer, FailureCode
+from journal_ai import PROMPT_VERSION, AnalysisOutcome, Analyzer, FailureCode
 from journal_ai.providers.base import ProviderTimeoutError
 from journal_ai.providers.fake import FakeProvider
 from tests.support import YO_ES, model_reply
@@ -32,7 +32,7 @@ async def test_a_successful_analysis_is_stored_with_aligned_mistakes(db_session:
     assert analysis.status is AnalysisStatus.SUCCEEDED
     assert analysis.corrected_text == "Ayer yo soy feliz."
     assert analysis.model == "fake"
-    assert analysis.prompt_version == "v1"
+    assert analysis.prompt_version == PROMPT_VERSION
     assert analysis.completed_at is not None
     mistake = analysis.mistakes[0]
     assert analysis.input_text[mistake.start_offset : mistake.end_offset] == "yo es"

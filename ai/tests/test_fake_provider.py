@@ -2,7 +2,8 @@ import json
 
 import pytest
 
-from journal_ai.prompts.v1 import build_messages
+from journal_ai import Analyzer, MistakeKind
+from journal_ai.prompts.v2 import build_messages
 from journal_ai.providers.base import ProviderTimeoutError
 from journal_ai.providers.fake import FakeProvider
 from journal_ai.schema import RESPONSE_JSON_SCHEMA
@@ -64,3 +65,16 @@ async def test_demo_corrections_keep_the_case_of_the_first_letter() -> None:
     completion = await FakeProvider().complete(system=system, user=user, schema=RESPONSE_JSON_SCHEMA)
 
     assert json.loads(completion.text)["corrected_text"].startswith("El problema")
+
+
+async def test_demo_mode_offers_word_help_for_unbracketed_english() -> None:
+    outcome = await Analyzer(FakeProvider()).analyze("Ayer fui al market con mi madre.", "es")
+
+    help_items = [m for m in outcome.result.mistakes if m.kind is MistakeKind.VOCAB_HELP]  # type: ignore[union-attr]
+    assert [(m.original, m.correction, m.start, m.end) for m in help_items] == [("market", "mercado", 12, 18)]
+
+
+async def test_a_bracketed_word_is_not_flagged_twice() -> None:
+    outcome = await Analyzer(FakeProvider()).analyze("Ayer fui al [market] con mi madre.", "es")
+
+    assert [m.original for m in outcome.result.mistakes] == ["[market]"]  # type: ignore[union-attr]

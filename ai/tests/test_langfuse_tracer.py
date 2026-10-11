@@ -105,7 +105,7 @@ async def test_a_successful_analysis_becomes_one_generation_with_usage() -> None
     (generation,) = client.generations
     assert generation.started["as_type"] == "generation"
     assert generation.started["name"] == "analyze_entry"
-    assert generation.started["version"] == "v1"
+    assert generation.started["version"] == "v2"
     (update,) = generation.updates
     assert update["model"] == "fake"
     assert update["usage_details"] == {"input": 0, "output": 0}

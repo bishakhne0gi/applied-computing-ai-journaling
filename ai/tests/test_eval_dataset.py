@@ -105,3 +105,13 @@ def test_degenerate_labels_are_rejected(overrides: dict[str, object], message: s
 
     with pytest.raises(ValidationError, match=message):
         EvalCase.model_validate(case)
+
+
+def test_the_dataset_has_the_unbracketed_word_help_cases() -> None:
+    by_id = {case.id: case for case in load_dataset()}
+
+    for case_id in ("es-foreign-1", "es-foreign-2", "fr-foreign-1"):
+        assert by_id[case_id].expected
+    for case_id in ("es-loanword-1", "fr-loanword-1"):
+        assert not by_id[case_id].expected
+    assert len(by_id) == 41

@@ -5,7 +5,7 @@ from collections.abc import Callable, Mapping, Sequence
 from typing import Any
 
 from journal_ai.prompts.assist_v1 import extract_sentence, language_of
-from journal_ai.prompts.v1 import extract_entry
+from journal_ai.prompts.v2 import extract_entry
 from journal_ai.providers.base import Completion
 from journal_ai.providers.demo_assist import demo_completion, demo_rephrase
 from journal_ai.schema import COMPLETION_JSON_SCHEMA, REPHRASE_JSON_SCHEMA, Category, Usage
@@ -23,6 +23,10 @@ _DEMO_RULES: tuple[tuple[str, str, Category, str], ...] = (
     ("à le", "au", Category.ARTICLE, "«À» + «le» always contracts to «au»."),
 )
 _BRACKETED = re.compile(r"\[([^\[\]]+)\]")
+_DEMO_FOREIGN: dict[str, dict[str, str]] = {
+    "es": {"market": "mercado", "beach": "playa", "happy": "feliz"},
+    "fr": {"market": "marché", "beach": "plage", "happy": "heureux"},
+}
 
 
 class FakeProvider:
@@ -56,7 +60,7 @@ def _demo(system: str, user: str, schema: Mapping[str, Any]) -> str:
         return demo_rephrase(language_of(system), sentence, _correct(sentence))
     if schema is COMPLETION_JSON_SCHEMA:
         return demo_completion(language_of(system))
-    return _demo_response(extract_entry(user))
+    return _demo_response(extract_entry(user), language_of(system))
 
 
 def _correct(text: str) -> str:
@@ -65,7 +69,7 @@ def _correct(text: str) -> str:
     return text
 
 
-def _demo_response(entry: str) -> str:
+def _demo_response(entry: str, language: str) -> str:
     mistakes: list[dict[str, str]] = []
     for wrong, right, category, explanation in _DEMO_RULES:
         for found in re.finditer(rf"\b{re.escape(wrong)}\b", entry, re.IGNORECASE):
@@ -74,6 +78,14 @@ def _demo_response(entry: str) -> str:
         explanation = "Demo mode cannot translate. Set ANTHROPIC_API_KEY for real help."
         mistakes.append(_item("vocab_help", Category.VOCABULARY, match.group(0), match.group(1), explanation))
     corrected = _BRACKETED.sub(r"\1", _correct(entry))
+    for english, native in _DEMO_FOREIGN.get(language, {}).items():
+        # Not inside brackets: those are already bracket help.
+        word = re.compile(rf"(?<![\[\w]){english}(?![\w\]])", re.IGNORECASE)
+        for found in word.finditer(entry):
+            explanation = f"Demo mode: «{found.group(0)}» is English; this is the word to use."
+            mistakes.append(_item("vocab_help", Category.VOCABULARY, found.group(0), native, explanation))
+        corrected = word.sub(native, corrected)
+    mistakes.sort(key=lambda item: entry.find(item["original"]))
     summary = "Demo feedback. Configure Claude for real corrections."
     return json.dumps({"corrected_text": corrected, "feedback_summary": summary, "mistakes": mistakes})
 

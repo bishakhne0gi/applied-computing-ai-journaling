@@ -7,7 +7,7 @@ from pydantic import ValidationError
 
 from journal_ai.alignment import align_mistakes
 from journal_ai.parsing import InvalidOutputError, ParsedAnalysis, parse_analysis
-from journal_ai.prompts.v1 import PROMPT_VERSION, build_messages, build_retry_prompt
+from journal_ai.prompts.v2 import PROMPT_VERSION, build_messages, build_retry_prompt
 from journal_ai.providers.base import CompletionProvider, ProviderError, ProviderTimeoutError
 from journal_ai.schema import RESPONSE_JSON_SCHEMA, AnalysisOutcome, AnalysisResult, FailureCode, Usage
 from journal_ai.text import normalize_text

@@ -3,7 +3,7 @@ import logging
 from langfuse import Langfuse, LangfuseGeneration
 from langfuse.types import SpanLevel
 
-from journal_ai.prompts.v1 import PROMPT_VERSION
+from journal_ai.prompts.v2 import PROMPT_VERSION
 from journal_ai.schema import AnalysisOutcome
 from journal_ai.tracing import NoopTracer, Trace, Tracer, trace_metadata
 

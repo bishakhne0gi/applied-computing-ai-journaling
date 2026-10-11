@@ -3,7 +3,7 @@ import re
 from journal_ai.languages import SUPPORTED_LANGUAGES
 from journal_ai.schema import Category
 
-PROMPT_VERSION = "v1"
+PROMPT_VERSION = "v2"
 
 _SYSTEM = """You are a patient {language} tutor reviewing a learner's journal entry.
 
@@ -13,10 +13,10 @@ Reply with JSON only, matching the provided schema:
 - mistakes: one item per problem, in the order they appear in the entry.
 
 Each mistake has:
-- kind: "error" for grammar, spelling or a wrong word; "suggestion" for text that is correct but unnatural; "vocab_help" for an English word or phrase the learner wrote inside square brackets because they did not know it.
+- kind: "error" for grammar, spelling or a wrong word; "suggestion" for text that is correct but unnatural; "vocab_help" for a word or phrase the learner wrote in English, or in any language other than {language}, because they did not know the {language} word, inside square brackets or unbracketed in the running text. Never flag proper nouns, names, brands or loanwords that {language} speakers use as they are (for example «email» or «fútbol» in Spanish, «week-end» in French): they are not vocab_help and not mistakes.
 - category: one of {categories}. Use "other" only when nothing else fits.
-- original: text copied exactly from the entry, as short as possible while still unambiguous. For vocab_help, the bracketed text including the brackets.
-- correction: the replacement for original.
+- original: text copied exactly from the entry, as short as possible while still unambiguous. For vocab_help, the bracketed text including the brackets, or the foreign words exactly as written.
+- correction: the replacement for original (for vocab_help, the {language} word or phrase).
 - explanation: one sentence in English that teaches the rule or the word.
 
 Rules:

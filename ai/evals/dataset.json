@@ -34,5 +34,10 @@
   {"id": "fr-gender-3", "language": "fr", "text": "Les filles sont allés à l'école ce matin.", "expected": [{"original": "allés", "categories": ["gender_agreement"]}]},
   {"id": "fr-clean-1", "language": "fr", "text": "Ce week-end, je vais rendre visite à mes grands-parents.", "expected": []},
   {"id": "fr-clean-2", "language": "fr", "text": "J'aime beaucoup cuisiner avec des légumes frais.", "expected": []},
-  {"id": "fr-clean-3", "language": "fr", "text": "Le soir, nous lisons un peu avant de dormir.", "expected": []}
+  {"id": "fr-clean-3", "language": "fr", "text": "Le soir, nous lisons un peu avant de dormir.", "expected": []},
+  {"id": "es-foreign-1", "language": "es", "text": "Ayer fui al market con mi madre.", "expected": [{"original": "market", "categories": ["vocabulary"]}]},
+  {"id": "es-foreign-2", "language": "es", "text": "Mi hermano trabaja como nurse en un hospital grande.", "expected": [{"original": "nurse", "categories": ["vocabulary"]}]},
+  {"id": "fr-foreign-1", "language": "fr", "text": "Ce matin, j'ai acheté du bread à la boulangerie.", "expected": [{"original": "bread", "categories": ["vocabulary"]}]},
+  {"id": "es-loanword-1", "language": "es", "text": "Le mandé un email a Michael después del fútbol.", "expected": []},
+  {"id": "fr-loanword-1", "language": "fr", "text": "Ce week-end, Sophie et moi avons regardé un film au cinéma.", "expected": []}
 ]
