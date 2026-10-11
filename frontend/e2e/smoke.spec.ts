@@ -51,9 +51,11 @@ test('the header stays on one line on a phone', async ({ page }) => {
   // The header has a fixed height, so a wrapped row would show as overflow and as items on different lines.
   const row = await header.evaluate((element) => {
     const inner = element.firstElementChild as HTMLElement
-    const centres = [...inner.children].map((child) => {
+    // The language badge is display:none on a phone but present once the languages query lands; a hidden box reports
+    // top 0 and would read as a second line, so only rendered children count.
+    const centres = [...inner.children].flatMap((child) => {
       const box = child.getBoundingClientRect()
-      return box.top + box.height / 2
+      return box.width === 0 && box.height === 0 ? [] : [box.top + box.height / 2]
     })
     return { overflow: inner.scrollHeight - inner.clientHeight, spread: Math.max(...centres) - Math.min(...centres) }
   })
