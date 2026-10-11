@@ -9,10 +9,12 @@ export interface LiveHintsInput {
   text: string
   language: string
   enabled: boolean
+  // An open IME composition holds the text half-typed: wait for it instead of checking it.
+  composing: boolean
 }
 
-export function useLiveHints({ text, language, enabled }: LiveHintsInput) {
-  const settled = useDebouncedValue(text, LIVE_HINTS.debounceMs)
+export function useLiveHints({ text, language, enabled, composing }: LiveHintsInput) {
+  const settled = useDebouncedValue(text, LIVE_HINTS.debounceMs, composing)
   const ready = enabled && language !== '' && countWords(settled) >= LIVE_HINTS.minWords && entryLength(settled) <= MAX_ENTRY_CHARS
   const check = useCheckQuery(ready ? { text: settled, language } : null)
   // Dismissed for this composer session: a new entry remounts the composer and starts clean.
@@ -21,5 +23,7 @@ export function useLiveHints({ text, language, enabled }: LiveHintsInput) {
     () => (ready && !check.isError ? reanchor(check.data, text, dismissed) : []),
     [ready, check.isError, check.data, text, dismissed],
   )
-  return { hints, dismiss: (key: string) => setDismissed((previous) => new Set(previous).add(key)) }
+  // Re-anchoring changes the count on keystrokes; the screen reader hears it only once the writer pauses.
+  const announcement = useDebouncedValue(hints.length, LIVE_HINTS.debounceMs)
+  return { hints, announcement, dismiss: (key: string) => setDismissed((previous) => new Set(previous).add(key)) }
 }

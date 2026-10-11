@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
 
-export function useDebouncedValue<T>(value: T, delayMs: number): T {
+// While paused (an IME composition is open) the pending value waits; it settles one delay after the pause ends.
+export function useDebouncedValue<T>(value: T, delayMs: number, paused = false): T {
   const [settled, setSettled] = useState(value)
   useEffect(() => {
+    if (paused) return
     const timer = setTimeout(() => setSettled(value), delayMs)
     return () => clearTimeout(timer)
-  }, [value, delayMs])
+  }, [value, delayMs, paused])
   return settled
 }

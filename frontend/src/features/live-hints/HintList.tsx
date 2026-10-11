@@ -16,7 +16,7 @@ export function HintList({ id, hints, onAccept, onDismiss }: HintListProps) {
   return (
     <ul id={id} aria-label="Live hints" className="flex flex-col gap-2">
       {hints.map((hint) => (
-        <li key={hint.id} className="flex flex-col gap-1.5 rounded-md border border-border bg-bg p-3 text-sm">
+        <li key={hint.id} data-hint-id={hint.id} className="flex flex-col gap-1.5 rounded-md border border-border bg-bg p-3 text-sm">
           <p className="flex flex-wrap items-center gap-2">
             <span className="font-medium">
               <Correction original={hint.original} correction={hint.correction} />

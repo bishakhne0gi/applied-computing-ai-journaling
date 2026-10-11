@@ -1,4 +1,4 @@
-import type { KeyboardEvent, MouseEvent, ReactNode, Ref } from 'react'
+import type { ComponentProps, KeyboardEvent, ReactNode, Ref } from 'react'
 import { Field } from '@/components/ui/Field'
 import { CHIP_CLASS, HighlightedTextarea, type Decoration } from '@/components/ui/HighlightedTextarea'
 import { MAX_ENTRY_CHARS } from '@/utils/constants'
@@ -16,13 +16,14 @@ export interface EntryTextFieldProps {
   textareaRef?: Ref<HTMLTextAreaElement>
   // Replaces the default `[word]` chips; callers that add decorations merge the chips themselves.
   decorations?: readonly Decoration[]
-  onTextareaClick?: (event: MouseEvent<HTMLTextAreaElement>) => void
+  // Extra listeners on the textarea (the live-hint popover follows the caret); Ctrl/Cmd+Enter stays this component's.
+  textareaEvents?: Pick<ComponentProps<'textarea'>, 'onClick' | 'onSelect' | 'onBlur' | 'onKeyDown' | 'onCompositionStart' | 'onCompositionEnd'>
   // Positioned over the editor (absolute, inside a relative frame): the live-hint popover.
   overlay?: ReactNode
   footer?: ReactNode
 }
 
-export function EntryTextField({ id, label, value, onChange, onSubmitShortcut, readOnly = false, textareaRef, decorations, onTextareaClick, overlay, footer }: EntryTextFieldProps) {
+export function EntryTextField({ id, label, value, onChange, onSubmitShortcut, readOnly = false, textareaRef, decorations, textareaEvents, overlay, footer }: EntryTextFieldProps) {
   const hintId = `${id}-hint`
   const countId = `${id}-count`
   const overId = `${id}-over`
@@ -30,6 +31,7 @@ export function EntryTextField({ id, label, value, onChange, onSubmitShortcut, r
   const over = length - MAX_ENTRY_CHARS
   const chips = bracketRanges(value).map((range) => ({ ...range, className: CHIP_CLASS }))
   const onKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    textareaEvents?.onKeyDown?.(event)
     // Enter confirms an IME candidate while composing; treating it as submit would send half-typed text.
     if (event.nativeEvent.isComposing || event.key !== 'Enter' || !(event.metaKey || event.ctrlKey)) return
     event.preventDefault()
@@ -47,8 +49,8 @@ export function EntryTextField({ id, label, value, onChange, onSubmitShortcut, r
           aria-describedby={over > 0 ? `${hintId} ${countId} ${overId}` : `${hintId} ${countId}`}
           aria-invalid={over > 0}
           onChange={(event) => onChange(event.target.value)}
+          {...textareaEvents}
           onKeyDown={onKeyDown}
-          onClick={onTextareaClick}
         />
         {overlay}
       </div>

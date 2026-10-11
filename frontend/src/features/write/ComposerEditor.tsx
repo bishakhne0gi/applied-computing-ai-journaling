@@ -1,10 +1,11 @@
-import { useCallback, useRef, useState, type MouseEvent } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { EntryTextField } from '@/features/editor/EntryTextField'
 import { applyHint } from '@/features/live-hints/applyHint'
 import { editorDecorations } from '@/features/live-hints/editorDecorations'
 import { HintPopover } from '@/features/live-hints/HintPopover'
 import { LiveHintsControls } from '@/features/live-hints/LiveHintsControls'
-import { hintAtCaret, type LiveHint } from '@/features/live-hints/reanchor'
+import type { LiveHint } from '@/features/live-hints/reanchor'
+import { useHintPopover } from '@/features/live-hints/useHintPopover'
 import { useLiveHints } from '@/features/live-hints/useLiveHints'
 import { useLiveHintsSetting } from '@/features/live-hints/useLiveHintsSetting'
 import { bracketRanges } from '@/utils/text'
@@ -20,8 +21,8 @@ export interface ComposerEditorProps {
 
 export function ComposerEditor({ language, value, onChange, onSubmitShortcut, readOnly, focusOnMount }: ComposerEditorProps) {
   const [liveOn, setLiveOn] = useLiveHintsSetting()
-  const live = useLiveHints({ text: value, language, enabled: liveOn && !readOnly })
-  const [openId, setOpenId] = useState<string | null>(null)
+  const [composing, setComposing] = useState(false)
+  const live = useLiveHints({ text: value, language, enabled: liveOn && !readOnly, composing })
   const textarea = useRef<HTMLTextAreaElement | null>(null)
   const attach = useCallback(
     (node: HTMLTextAreaElement | null) => {
@@ -30,30 +31,44 @@ export function ComposerEditor({ language, value, onChange, onSubmitShortcut, re
     },
     [focusOnMount],
   )
-  const open = live.hints.find((hint) => hint.id === openId) ?? null
+  const { open, close, returnToText, textareaEvents } = useHintPopover(live.hints, textarea)
   const accept = (hint: LiveHint) => {
-    setOpenId(null)
+    close()
     if (textarea.current) applyHint(textarea.current, hint)
   }
   const dismiss = (hint: LiveHint) => {
-    setOpenId(null)
+    close()
     live.dismiss(hint.key)
-    textarea.current?.focus()
   }
-  const onTextareaClick = (event: MouseEvent<HTMLTextAreaElement>) => setOpenId(hintAtCaret(live.hints, event.currentTarget)?.id ?? null)
   return (
     <EntryTextField
       id="entry-text"
       label="Your entry"
       value={value}
-      onChange={onChange}
+      onChange={(text) => {
+        close()
+        onChange(text)
+      }}
       onSubmitShortcut={onSubmitShortcut}
       readOnly={readOnly}
       textareaRef={attach}
       decorations={editorDecorations(bracketRanges(value), live.hints)}
-      onTextareaClick={onTextareaClick}
-      overlay={open && <HintPopover hint={open} onAccept={() => accept(open)} onDismiss={() => dismiss(open)} onClose={() => setOpenId(null)} />}
-      footer={<LiveHintsControls on={liveOn} onToggle={setLiveOn} hints={live.hints} onAccept={accept} onDismiss={dismiss} />}
+      textareaEvents={{ ...textareaEvents, onCompositionStart: () => setComposing(true), onCompositionEnd: () => setComposing(false) }}
+      overlay={
+        open && (
+          <HintPopover
+            hint={open}
+            onAccept={() => accept(open)}
+            onDismiss={() => {
+              dismiss(open)
+              textarea.current?.focus()
+            }}
+            onClose={close}
+            onEscape={returnToText}
+          />
+        )
+      }
+      footer={<LiveHintsControls on={liveOn} onToggle={setLiveOn} hints={live.hints} announcement={live.announcement} onAccept={accept} onDismiss={dismiss} />}
     />
   )
 }

@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react'
+import { act, fireEvent, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { delay, http, HttpResponse } from 'msw'
 import { describe, expect, it } from 'vitest'
@@ -81,5 +81,69 @@ describe('ComposerEditor live hint states', () => {
     await delay(100)
     // Assert
     expect(screen.queryByRole('button', { name: /hint/ })).not.toBeInTheDocument()
+  })
+
+  it('drops shown hints when a later check fails', async () => {
+    // Arrange
+    const user = await renderWithDraft('Hoy yo es feliz y tranquilo.')
+    await screen.findByRole('button', { name: '1 hint' })
+    server.use(http.post(apiUrl(ENDPOINTS.check), () => HttpResponse.json({ status: 503 }, { status: 503 })))
+    // Act
+    await user.type(screen.getByLabelText('Your entry'), ' ya')
+    // Assert
+    await waitFor(() => expect(screen.queryByRole('button', { name: /hint/ })).not.toBeInTheDocument(), { timeout: 3000 })
+  })
+
+  it('holds the check while an IME composition is open and runs it after', async () => {
+    // Arrange
+    await renderWithDraft('Hoy yo es feliz y tranquilo.')
+    await screen.findByRole('button', { name: '1 hint' })
+    const seen = countChecks()
+    const editor = screen.getByLabelText('Your entry')
+    // Act
+    fireEvent.compositionStart(editor)
+    fireEvent.change(editor, { target: { value: 'Hoy yo es feliz y tranquilo ya' } })
+    await delay(1600)
+    const during = seen.count
+    fireEvent.compositionEnd(editor)
+    // Assert
+    expect(during).toBe(0)
+    await waitFor(() => expect(seen.count).toBe(1), { timeout: 3000 })
+  })
+
+  it('does not check text over the character limit', async () => {
+    // Arrange
+    const seen = countChecks()
+    // Act
+    await renderWithDraft('palabra '.repeat(700))
+    await delay(100)
+    // Assert
+    expect(seen.count).toBe(0)
+  })
+
+  it('does not check once the entry is being submitted', async () => {
+    // Arrange
+    const user = await renderWithDraft('Hoy yo es feliz y tranquilo.')
+    await screen.findByRole('button', { name: '1 hint' })
+    const seen = countChecks()
+    // Act
+    await user.type(screen.getByLabelText('Your entry'), ' ya')
+    await user.click(screen.getByRole('button', { name: 'Get feedback' }))
+    await act(() => delay(1600))
+    // Assert
+    expect(seen.count).toBe(0)
+  })
+
+  it('announces the count after a pause, not on each keystroke that re-anchors it', async () => {
+    // Arrange
+    const user = await renderWithDraft('Hoy yo es feliz y tranquilo.')
+    await screen.findByRole('button', { name: '1 hint' })
+    const live = () => document.querySelector('[aria-live="polite"]')?.textContent
+    await waitFor(() => expect(live()).toBe('1 hint'), { timeout: 3000 })
+    // Act: typing onto the hinted words drops the hint at once, but the announcement waits.
+    await user.type(screen.getByLabelText('Your entry'), '{Control>}{Home}{/Control}{ArrowRight>6/}x')
+    // Assert
+    expect(screen.queryByRole('button', { name: '1 hint' })).not.toBeInTheDocument()
+    expect(live()).toBe('1 hint')
   })
 })
