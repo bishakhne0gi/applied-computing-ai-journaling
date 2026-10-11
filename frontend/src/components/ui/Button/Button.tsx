@@ -1,11 +1,12 @@
 import type { ComponentProps } from 'react'
 import { cn } from '@/utils/utils'
 
+// Pills for actions, a round icon target, and the inline variant that sits inside running text (highlights).
 const variants = {
-  primary: 'min-h-11 bg-primary px-4 py-2 text-sm font-medium text-primary-contrast hover:opacity-90',
-  secondary: 'min-h-11 border border-border bg-surface px-4 py-2 text-sm font-medium text-fg hover:bg-bg',
-  ghost: 'min-h-11 px-3 py-2 text-sm font-medium text-fg hover:bg-surface',
-  // Highlights sit inside running text, so they keep the text's size and line height.
+  primary: 'min-h-11 rounded-full bg-primary px-5 text-sm font-medium text-primary-contrast shadow-sm hover:bg-primary-pressed',
+  secondary: 'min-h-11 rounded-full border border-border-input bg-bg px-5 text-sm font-medium text-fg hover:border-primary hover:text-primary',
+  ghost: 'min-h-11 rounded-full px-4 text-sm font-medium text-fg-secondary hover:bg-surface hover:text-fg',
+  icon: 'size-11 shrink-0 rounded-full text-fg-secondary hover:bg-surface hover:text-fg',
   inline: 'inline rounded-sm px-0.5',
 } as const
 
@@ -18,7 +19,7 @@ export function Button({ variant = 'secondary', type = 'button', className, ...r
     <button
       type={type}
       className={cn(
-        'inline-flex cursor-pointer items-center justify-center gap-2 rounded-md transition-colors disabled:cursor-not-allowed disabled:opacity-60',
+        'inline-flex cursor-pointer items-center justify-center gap-2 transition-colors disabled:cursor-not-allowed disabled:opacity-60',
         variants[variant],
         className,
       )}

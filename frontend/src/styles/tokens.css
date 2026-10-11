@@ -1,5 +1,6 @@
 /* Design tokens — the ONLY place raw values live. Tailwind generates utilities from @theme.
-   Palette/radius/shadow defaults are wiped: only semantic roles exist (bg-primary, text-muted…). */
+   Palette/radius/shadow defaults are wiped: only semantic roles exist (bg-primary, text-muted…).
+   Visual language and contrast table: /DESIGN.md. Contrast is pinned by tokens.contrast.test.ts. */
 @import 'tailwindcss';
 
 @theme {
@@ -7,60 +8,79 @@
   --radius-*: initial;
   --shadow-*: initial;
 
-  --font-sans: system-ui, -apple-system, 'Segoe UI', 'Roboto', sans-serif;
+  --font-sans: -apple-system, 'BlinkMacSystemFont', 'Segoe UI', system-ui, 'Roboto', 'Helvetica Neue', 'Arial', sans-serif;
 
   --color-bg: #fff;
-  --color-surface: #f8fafc;
-  --color-border: #e2e8f0;
-  --color-fg: #0f172a;
-  --color-muted: #475569;
-  --color-primary: #1d4ed8;
+  --color-surface: #f6f9fc;
+  --color-border: #e3e8ee;
+  --color-border-input: #7a90a8;
+  --color-fg: #0d253d;
+  --color-fg-secondary: #273951;
+  --color-muted: #61718a;
+  --color-primary: #533afd;
+  --color-primary-pressed: #2e2b8c;
+  --color-primary-soft: #eeebff;
   --color-primary-contrast: #fff;
-  --color-danger: #b91c1c;
-  --color-success: #15803d;
-  --color-warning: #a16207;
-  --color-scrim: rgb(15 23 42 / 50%);
-  --color-mark-error: #b91c1c;
-  --color-mark-error-bg: #fef2f2;
-  --color-mark-suggestion: #92400e;
-  --color-mark-suggestion-bg: #fffbeb;
-  --color-mark-vocab: #6d28d9;
-  --color-mark-vocab-bg: #f5f3ff;
+  --color-danger: #c0123c;
+  --color-success: #0b7a3b;
+  --color-warning: #9a5700;
+  --color-scrim: rgb(13 37 61 / 40%);
+  --color-band: #f1efff;
+  --color-mark-error: #c0123c;
+  --color-mark-error-bg: #fdeef1;
+  --color-mark-suggestion: #9a5700;
+  --color-mark-suggestion-bg: #fff4e0;
+  --color-mark-vocab: #7a35c9;
+  --color-mark-vocab-bg: #f4edfc;
 
-  --radius-sm: 0.25rem;
+  --radius-sm: 0.375rem;
   --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
   --radius-full: 999rem;
 
-  --shadow-sm: 0 0.0625rem 0.125rem rgb(0 0 0 / 6%);
-  --shadow-md: 0 0.25rem 0.75rem rgb(0 0 0 / 10%);
+  /* Blue-tinted shadows read as depth on white without greying it; Tailwind inlines these, so dark mode keeps them. */
+  --shadow-sm: 0 0.0625rem 0.125rem rgb(0 55 112 / 8%);
+  --shadow-md: 0 0.25rem 0.75rem rgb(0 55 112 / 8%);
+  --shadow-lg: 0 1rem 2.5rem -0.5rem rgb(0 55 112 / 16%);
+
+  /* Spread-only outline for editor chips: grows the tint without padding, so glyph positions never move. */
+  --shadow-chip: 0 0 0 0.125rem var(--color-primary-soft);
 
   --z-index-dropdown: 10;
   --z-index-sticky: 20;
   --z-index-overlay: 30;
   --z-index-toast: 40;
 
-  --container-content: 64rem;
+  --container-content: 80rem;
+  --container-sidebar: 20rem;
+  --container-main: 44rem;
+  --container-sheet: 36rem;
 }
 
 /* Dark mode = same roles, new values. Components never use `dark:`. */
 @media (prefers-color-scheme: dark) {
   :root {
-    --color-bg: #0b1120;
-    --color-surface: #111827;
-    --color-border: #1f2937;
-    --color-fg: #f1f5f9;
-    --color-muted: #94a3b8;
-    --color-primary: #60a5fa;
-    --color-primary-contrast: #0b1120;
-    --color-danger: #f87171;
-    --color-success: #4ade80;
-    --color-warning: #facc15;
+    --color-bg: #0b1a2b;
+    --color-surface: #10233a;
+    --color-border: #22384f;
+    --color-border-input: #5f7894;
+    --color-fg: #e8eef5;
+    --color-fg-secondary: #c3cfdc;
+    --color-muted: #9aabbf;
+    --color-primary: #9d90ff;
+    --color-primary-pressed: #c2baff;
+    --color-primary-soft: #1d2350;
+    --color-primary-contrast: #0b1a2b;
+    --color-danger: #ff8095;
+    --color-success: #5fd38d;
+    --color-warning: #f2b54a;
     --color-scrim: rgb(0 0 0 / 60%);
-    --color-mark-error: #f87171;
-    --color-mark-error-bg: #3b1219;
-    --color-mark-suggestion: #fbbf24;
-    --color-mark-suggestion-bg: #3a2a0a;
-    --color-mark-vocab: #c4b5fd;
-    --color-mark-vocab-bg: #2e1f5e;
+    --color-band: #121c3f;
+    --color-mark-error: #ff8095;
+    --color-mark-error-bg: #3a1622;
+    --color-mark-suggestion: #f2b54a;
+    --color-mark-suggestion-bg: #33250b;
+    --color-mark-vocab: #c9a7ff;
+    --color-mark-vocab-bg: #2a1d4a;
   }
 }

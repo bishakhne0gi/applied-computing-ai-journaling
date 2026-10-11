@@ -2,5 +2,5 @@ import { Link, type LinkProps } from 'react-router'
 import { cn } from '@/utils/utils'
 
 export function TextLink({ className, ...rest }: LinkProps) {
-  return <Link className={cn('font-medium text-primary underline underline-offset-4 hover:no-underline', className)} {...rest} />
+  return <Link className={cn('font-medium text-primary underline underline-offset-4 hover:text-primary-pressed', className)} {...rest} />
 }

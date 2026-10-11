@@ -15,7 +15,7 @@ export interface BadgeProps extends ComponentProps<'span'> {
 export function Badge({ tone = 'neutral', className, ...rest }: BadgeProps) {
   return (
     <span
-      className={cn('inline-flex items-center rounded-full border bg-surface px-2 py-0.5 text-xs font-medium', toneClasses[tone], className)}
+      className={cn('inline-flex items-center rounded-full border bg-surface px-2 py-0.5 text-xs font-medium tabular-nums', toneClasses[tone], className)}
       {...rest}
     />
   )

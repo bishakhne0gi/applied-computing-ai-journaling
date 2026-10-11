@@ -5,14 +5,14 @@ Three layers. Always use the lowest layer that already solves the problem.
 ## 1. Tokens (`@theme` in `src/styles/tokens.css`) → Tailwind utilities
 | Group | Token | Utility |
 |---|---|---|
-| Color roles | `--color-bg, surface, border, fg, muted, primary, primary-contrast, danger, success, warning, scrim` (modal backdrop) | `bg-surface`, `text-muted`, `border-border`, `bg-primary text-primary-contrast` |
+| Color roles | `--color-bg, surface, border, border-input, fg, fg-secondary, muted, primary, primary-pressed, primary-soft, primary-contrast, danger, success, warning, scrim, band` | `bg-surface`, `text-fg-secondary`, `border-border-input`, `bg-primary hover:bg-primary-pressed`, `bg-linear-to-b from-band to-bg` |
 | Feedback marks | `--color-mark-error`, `mark-suggestion`, `mark-vocab` (+ `-bg` tints) | `bg-mark-error-bg decoration-mark-error` — kind is shown by colour **and** underline style (error wavy, suggestion dashed, word help dotted) |
 | Space / type | Tailwind default rem scale | `p-4`, `gap-3`, `text-sm`, `font-bold` |
-| Shape | `--radius-sm, md, full`, `--shadow-sm, md` | `rounded-md`, `shadow-sm` |
+| Shape | `--radius-sm, md, lg, full`, `--shadow-sm, md, lg, chip` | `rounded-lg`, `shadow-lg`, `shadow-chip` |
 | Layers | `--z-index-dropdown, sticky, overlay, toast` | `z-overlay` — never `z-10` |
-| Layout | `--container-content`, `--font-sans` | `max-w-content`, `font-sans` |
+| Layout | `--container-content` (80rem), `sidebar` (20rem), `main` (44rem), `sheet` (36rem), `--font-sans` | `max-w-content`, `w-sidebar`, `max-w-main`, `max-w-sheet` |
 
-Mark contrast (computed): text `fg` on each tint ≥12.6:1; underline colour on its tint ≥5.9:1 (light) / ≥5.9:1 (dark) — above the 4.5:1 text and 3:1 non-text bars.
+Mark contrast (computed, pinned by src/styles/tokens.contrast.test.ts): text fg on each tint ≥12.7:1; mark colour on its tint ≥5.1:1 light / ≥6.6:1 dark. Visual intent and the full table: /DESIGN.md.
 
 Tailwind's default palette, radius and shadow scales are wiped — only these roles exist.
 Dark mode is handled by tokens (`prefers-color-scheme`) — no `dark:` classes.
@@ -25,7 +25,7 @@ element's props, `ref` as a plain prop (React 19), Tailwind token utilities merg
 | Primitive | Variants | Notes |
 |---|---|---|
 | `TextLink` | — | React Router `Link` in the primary role, underlined; `className` merges last |
-| `Button` | `primary`, `secondary` (default), `ghost`, `inline` (highlights inside text) | the only raw `<button>`; `type="button"` by default; `min-h-11` touch target except `inline`; pointer / not-allowed cursor |
+| `Button` | `primary`, `secondary` (default), `ghost`, `icon` (44px round, needs `aria-label`), `inline` (highlights inside text) | pills (`rounded-full`) except `icon`/`inline`; the only raw `<button>`; `type="button"` by default; `min-h-11` touch target except `inline`; pointer / not-allowed cursor |
 | `Badge` | `tone`: `neutral` (default), `danger`, `success`, `warning` | status and count chips on `bg-surface` (all tones ≥4.7:1) |
 | `ErrorState` | — | `role="alert"` message + retry `Button`; `retryLabel`, `retrying` |
 | `InlineAlert` | — | `role="alert"` one-line danger text for a failed action next to its control; use `ErrorState` when the user must retry from the message |
@@ -34,6 +34,8 @@ element's props, `ref` as a plain prop (React 19), Tailwind token utilities merg
 | `Field` | — | label + control; owns the spacing between them |
 | `LoadingState` | — | `role="status"` + `aria-busy`, muted label in place of content |
 | `EmptyState` | — | dashed box: title + the next useful action as `children` |
+| `Card` | `as`: `div` (default), `section` | hairline card, `shadow-sm`; override padding/background with `className` |
+| `PageHeading` | — | `h1`, light 300, `tabIndex -1`, takes `ref` so the workspace can focus it |
 
 ## 3. Composition
 Features compose primitives. Prefer compound components (`<Tabs><Tabs.List/><Tabs.Panel/></Tabs>`) and

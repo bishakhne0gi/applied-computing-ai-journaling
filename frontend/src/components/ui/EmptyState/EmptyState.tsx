@@ -7,7 +7,7 @@ export interface EmptyStateProps {
 
 export function EmptyState({ title, children }: EmptyStateProps) {
   return (
-    <div className="flex flex-col items-center gap-3 rounded-md border border-dashed border-border p-8 text-center">
+    <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed border-border bg-surface p-8 text-center">
       <p className="font-medium">{title}</p>
       {children}
     </div>

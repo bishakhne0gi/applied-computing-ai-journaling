@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef } from 'react'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
+import { Card } from '@/components/ui/Card'
 import { useEscapeKey } from '@/hooks/misc/useEscapeKey'
 import type { MistakeOut } from '@/types/analysis'
 import { Correction } from './Correction'
@@ -20,7 +21,7 @@ export function MistakePanel({ id, mistake, onClose }: MistakePanelProps) {
   useEffect(() => headingRef.current?.focus(), [mistake.id])
 
   return (
-    <section id={id} aria-labelledby={titleId} className="flex flex-col items-start gap-3 rounded-md border border-border bg-surface p-4">
+    <Card as="section" id={id} aria-labelledby={titleId} className="flex flex-col items-start gap-3 bg-surface p-4 md:p-4">
       <h3 id={titleId} ref={headingRef} tabIndex={-1} className="text-lg font-semibold">
         <Correction original={mistake.original} correction={mistake.correction} />
       </h3>
@@ -30,6 +31,6 @@ export function MistakePanel({ id, mistake, onClose }: MistakePanelProps) {
       </div>
       <p className="text-sm">{mistake.explanation}</p>
       <Button onClick={onClose}>Close</Button>
-    </section>
+    </Card>
   )
 }

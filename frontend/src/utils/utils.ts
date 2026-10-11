@@ -4,7 +4,7 @@ import { extendTailwindMerge } from 'tailwind-merge'
 // Teach tailwind-merge our custom tokens so `z-toast` overrides `z-overlay`, `max-w-full` overrides `max-w-content`.
 const twMerge = extendTailwindMerge({
   extend: {
-    theme: { container: ['content'] },
+    theme: { container: ['content', 'sidebar', 'main', 'sheet'] },
     classGroups: { z: [{ z: ['dropdown', 'sticky', 'overlay', 'toast'] }] },
   },
 })

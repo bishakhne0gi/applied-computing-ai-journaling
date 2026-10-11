@@ -35,4 +35,26 @@ describe('Button', () => {
     // Assert
     expect(onClick).not.toHaveBeenCalled()
   })
+  it('is a pill in its filled and outlined variants', () => {
+    // Arrange
+    render(
+      <>
+        <Button variant="primary">Save</Button>
+        <Button>Cancel</Button>
+      </>,
+    )
+    // Act
+    const buttons = screen.getAllByRole('button')
+    // Assert
+    for (const button of buttons) expect(button).toHaveClass('rounded-full')
+  })
+
+  it('gives icon buttons a round touch-sized target', () => {
+    // Arrange
+    const label = 'Close'
+    // Act
+    render(<Button variant="icon" aria-label={label}>×</Button>)
+    // Assert
+    expect(screen.getByRole('button', { name: 'Close' })).toHaveClass('size-11', 'rounded-full', 'cursor-pointer')
+  })
 })

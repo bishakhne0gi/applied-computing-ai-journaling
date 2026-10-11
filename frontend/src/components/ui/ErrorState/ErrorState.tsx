@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/Button'
+import { Card } from '@/components/ui/Card'
 
 export interface ErrorStateProps {
   message: string
@@ -9,11 +10,11 @@ export interface ErrorStateProps {
 
 export function ErrorState({ message, onRetry, retryLabel = 'Try again', retrying = false }: ErrorStateProps) {
   return (
-    <div role="alert" className="flex flex-col items-start gap-3 rounded-md border border-danger bg-surface p-4 text-sm">
+    <Card role="alert" className="flex flex-col items-start gap-3 border-danger p-4 text-sm shadow-none md:p-4">
       <p>{message}</p>
       <Button onClick={onRetry} disabled={retrying}>
         {retryLabel}
       </Button>
-    </div>
+    </Card>
   )
 }
