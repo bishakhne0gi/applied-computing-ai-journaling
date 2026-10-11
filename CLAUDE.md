@@ -10,6 +10,7 @@ Spec: `docs/superpowers/specs/2026-10-10-ai-language-journal-design.md` · Plans
 ## Rules
 - Backend layers: api → services → repositories → db. Routes never touch the ORM; repositories hold no business rules; services depend on the `Analyzer` protocol, never a provider SDK. (import-linter)
 - `journal_ai` never imports the backend, FastAPI or SQLAlchemy. (import-linter)
+- Visual language: `DESIGN.md` (tokens and primitives: `frontend/DESIGN.md`).
 - Frontend rules: `frontend/CLAUDE.md`. Backend: `backend/CLAUDE.md`. AI: `ai/CLAUDE.md`.
 - Comments explain why, never what. No comments restating code, no commented-out code, no docstrings on obvious functions.
 - Never log entry text or send it to Sentry. Never print or commit `.env`; `.env.example` documents every variable.

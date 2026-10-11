@@ -14,6 +14,9 @@ metadata:
 - 2026-10-11 — Demo/walkthrough docs must satisfy insights thresholds (n≥4 for trends); check seeded-entry counts against §8.
 - 2026-10-11 — Banned-wording checks: `git log --all` also covers unrelated local/legacy branches (legacy-main had Co-Authored-By trailers).
 - 2026-10-11 — Backend rules ported to the TS MSW mock (insights §8) with no shared golden fixture; tie-breaks (id desc) drift silently.
+- 2026-10-11 — Declarative BrowserRouter: setSearchParams/navigate to the same URL pushes a duplicate history entry (no dedupe, unlike Link); check every no-op URL write.
+- 2026-10-11 — TanStack mutate-level callbacks (onSuccess passed to mutate) are dropped on unmount; check any flow whose screen can unmount mid-request (always-visible sidebar).
+- 2026-10-11 — DESIGN.md primitive rows drift after fix waves (e.g. Toast role vs aria-live regions); diff rows against final code.
 
 **Why:** found in the P1 checkpoint review; each one is easy to repeat in later phases.
 **How to apply:** grep for these patterns in every phase review before reading anything else.

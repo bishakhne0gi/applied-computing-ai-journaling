@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test'
 import { expectNoA11yViolations } from '../e2e/a11y'
 import { expectButtonsShowPointer } from '../e2e/cursor'
 import { pickOption } from '../e2e/select'
-import { composerLanguage, mainColumn, openEntries } from '../e2e/workspace'
+import { composerLanguage, ENTRY_TITLE, mainColumn, openEntries } from '../e2e/workspace'
 
 const DEMO_SUMMARY = 'Demo feedback — configure Claude for real corrections.'
 
@@ -26,7 +26,7 @@ test('the real stack saves an entry, returns demo feedback and lists it in the s
   const row = entries.getByRole('listitem').filter({ hasText: text })
   await expect(row).toContainText('1 error')
   await row.getByRole('link').click()
-  await expect(main.getByRole('heading', { level: 1, name: 'Entry' })).toBeVisible()
+  await expect(main.getByRole('heading', { level: 1, name: ENTRY_TITLE })).toBeVisible()
   await expect(main.getByText(DEMO_SUMMARY)).toBeVisible()
   await expectNoA11yViolations(page)
 })

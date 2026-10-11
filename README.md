@@ -4,13 +4,9 @@ Write a short journal entry in the language you are learning, get feedback on it
 mistakes fade over time. Single user, five languages (es, fr, de, it, pt), feedback from Claude — or a
 deterministic demo provider when no API key is set.
 
-| Write | Feedback | Insights |
-|---|---|---|
-| ![Write](docs/qa/p3-write-desktop.png) | ![Feedback with highlights](docs/qa/p3-highlight-desktop.png) | ![Insights](docs/qa/p4-12-real-desktop.png) |
-
-| Failed analysis (entry kept, retry) | History | Mobile |
-|---|---|---|
-| ![Failure](docs/qa/p3-failure-desktop.png) | ![History](docs/qa/p3-history-desktop.png) | ![Mobile](docs/qa/p3-highlight-mobile.png) |
+| Workspace (desktop) | Workspace (phone) |
+|---|---|
+| ![Workspace with entries, composer and feedback](docs/qa/p6-workspace-desktop.png) | ![Workspace on a phone](docs/qa/p6-workspace-mobile.png) |
 
 ## Quick start
 
@@ -63,6 +59,16 @@ FastAPI ── routes → services → repositories → SQLAlchemy 2 (async) →
 
 Layering is enforced by import-linter: routes never touch the ORM, repositories hold no rules, services depend
 on an `Analyzer` protocol, `journal_ai` never imports the backend, and only `journal_ai` touches the provider SDK.
+
+## The workspace (frontend)
+
+One screen, no page changes. The sidebar lists entries (language filter, "Load more", a progress sparkline);
+the main column is either the composer or the selected entry; insights open as a sheet over both. The URL holds
+the state: `?entry=<id>`, `?insights=1`, `?language=es`, so links are shareable and Back works; old links
+(`/entries/<id>`, `/insights`) redirect. On phones the sidebar is a left sheet and insights a bottom sheet.
+Bracketed English words become chips while typing (a mirrored layer behind a native textarea, so IME, undo and
+screen readers are untouched). The theme is light only. Visual language: [`DESIGN.md`](DESIGN.md); motion
+primitives (sheet, tabs, toast) are adapted by hand from SmoothUI (MIT).
 
 ## Product decisions
 
@@ -144,12 +150,13 @@ Pure functions in `backend/app/services/insights/calculations.py`, every thresho
 
 | Choice | Why |
 |---|---|
-| React 19 + Vite SPA | Three screens, one user, no SEO — SSR would add a server for nothing |
+| React 19 + Vite SPA | One workspace screen, one user, no SEO — SSR would add a server for nothing |
 | TypeScript strict | The API contract is typed end to end |
 | Tailwind v4 with semantic tokens | One token file controls colour and spacing; lint rejects raw values |
 | TanStack Query | The server cache is the single owner of server data; invalidation keeps Insights fresh after an analysis |
 | ky | Tiny fetch wrapper with timeouts and typed errors |
-| React Router | Three routes with URL-held filters (`?language=`) |
+| React Router | URL search params are the workspace state (entry, insights, language); old routes redirect |
+| motion (LazyMotion + domAnimation) | Sheet, tab and toast motion ported from SmoothUI; ~5 kB up front, features lazy-loaded, off under reduced motion |
 | MSW | One in-memory API for dev, Vitest, Playwright and the Lighthouse build |
 | FastAPI + Pydantic v2 | Async, typed request/response models, OpenAPI for free |
 | SQLAlchemy 2 async + asyncpg | Explicit queries (`DISTINCT ON`) without hand-written SQL strings |
@@ -172,10 +179,10 @@ Pure functions in `backend/app/services/insights/calculations.py`, every thresho
 |---|---|---|---|
 | AI package | pytest + `FakeProvider` | parsing table, alignment (accents, repeats, fallback, not found), retry → success/failure, timeout, refusal, tracing never leaks text | 166 |
 | Backend | pytest on real Postgres (per-test rollback) | create → analyse → store → retrieve, failed analyses persisted, re-analysis, 404/422, paging, insights rules and the latest-succeeded query | 175 (coverage 99%, floor 85%) |
-| Frontend units/components | Vitest + Testing Library + MSW | every screen's loading/empty/error/ready states, highlights, keyboard, revise loop, insights rules ported for the mock | 279 (coverage band 65–85%) |
-| Frontend e2e | Playwright + axe, 1280 px and 375 px | user journeys with zero axe violations and pointer cursors on every button | 40 |
+| Frontend units/components | Vitest + Testing Library + MSW | every screen's loading/empty/error/ready states, highlights, keyboard, revise loop, insights rules ported for the mock | 479 (coverage band 65–85%) |
+| Frontend e2e | Playwright + axe, 1280 px and 375 px | user journeys with zero axe violations and pointer cursors on every button | 56 |
 | Full stack | Compose + demo provider + Playwright | write → feedback → history → insights through nginx, FastAPI and Postgres | 6 |
-| Performance/a11y | Lighthouse (median of 3) | desktop 100 in every category, mobile performance ≥ 90 | desktop 100, mobile 95 |
+| Performance/a11y | Lighthouse (median of 3) | desktop 100 in every category, mobile performance ≥ 90 | desktop 100, mobile 94 |
 
 Tests never use SQLite and never call a real model; the real model is measured by the eval set instead.
 

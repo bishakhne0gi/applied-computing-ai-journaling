@@ -157,9 +157,11 @@ expected-mistake recall, category accuracy, false-positive rate, p50 latency; op
 
 ## 7. Frontend
 
+> Amended by P6 (`2026-10-11-p6-workspace.md`): one workspace screen on `/`; History, Entry detail and Insights live in its sidebar, main column and insights sheet; URL search params hold the state; old routes redirect.
+
 Kit conventions: `components/` pure library · `features/` composition · data only via `hooks/queries|mutations` ·
 semantic Tailwind tokens · loading/empty/error/ready states · keyboard operable · 375px and 1280px ·
-`prefers-reduced-motion`. React Router for three routes. MSW mocks back dev and tests (`?mock=error|empty|slow|analysis-fail`).
+`prefers-reduced-motion`. React Router for the workspace route plus redirects. MSW mocks back dev and tests (`?mock=error|empty|slow|analysis-fail`).
 
 **Write (`/`)** — language picker (last used remembered), textarea with live word count and bracket hint, draft
 autosaved to localStorage, "Get feedback" (button or ⌘/Ctrl+Enter) → create then analyze; disabled while pending;

@@ -7,17 +7,21 @@ mock build (`pnpm -C frontend build --mode mock && pnpm -C frontend preview`) fo
 | Time | Segment | Show | Say (one line each) |
 |---|---|---|---|
 | 0:00–0:30 | Problem | README top | Learners need feedback after writing, in their own words, and a sense of progress — without being interrupted while writing. |
-| 0:30–2:00 | Write → feedback | Write a Spanish entry with a bracketed word; ⌘/Ctrl+Enter | Saved first, analysed second. Highlights sit in my text; the panel shows correction, category, explanation; the bracket became `vocab_help`; corrected-version toggle. |
-| 2:00–2:30 | Failure | `?mock=analysis-fail` on the mock build | The entry is kept, the failed analysis is a stored resource, "Retry analysis" runs it again. |
-| 2:30–3:00 | Revise | "Revise & re-check" | A new analysis; old ones stay in the switcher on the detail page. |
-| 3:00–3:30 | History | `/entries`, language filter, Load more, open a row | Cursor paging, error-count badge, status per row. |
-| 3:30–4:15 | Insights | `/insights`, choose Spanish | Errors per 100 words over time, earlier vs recent per category, recurring badge, summary sentences generated from numbers. |
+| 0:30–2:00 | Write → feedback | The workspace; type a Spanish entry with `[to travel]` (chip appears); ⌘/Ctrl+Enter | One screen. Saved first, analysed second; highlights in my text; panel; the bracket became `vocab_help`; "Your text / Corrected" tabs. |
+| 2:00–2:30 | Failure | `/?mock=analysis-fail` on the mock build | The entry is kept, the failed analysis is a stored resource, "Retry analysis" runs it again. |
+| 2:30–3:00 | Revise + history | "Revise & re-check"; pick an older entry in the sidebar | The main column swaps in place; the switcher keeps every analysis; my draft is still there when I come back. |
+| 3:00–3:30 | URL as state | Copy `/?entry=…`, Back/Forward, open on a phone width | Selection, sheet and filter live in the URL; phones get sheets, not pages. |
+| 3:30–4:15 | Insights | Progress card → "Open insights", choose Spanish | Errors per 100 words over time, earlier vs recent per category, recurring badge: in a sheet over the workspace. |
 | 4:15–5:00 | Architecture | README diagram; import-linter contracts in `backend/pyproject.toml` | Routes → services → repositories → db, enforced by a tool; `journal_ai` is a pure package behind an `Analyzer` protocol. |
 | 5:00–5:45 | AI handling + evals | `ai/journal_ai/analyzer.py`, `parsing.py`, `alignment.py`; README eval table | Structured output, defensive parsing, one retry, code-point alignment, failure codes; 36-case eval with recall, category accuracy and false positives. |
 | 5:45–6:30 | Tests + harness | `make verify` tail; the `.claude/` rules and hooks | Test pyramid with counts; the repo conventions (rules, hooks) that enforce the standards. |
 | 6:30–7:00 | Trade-offs | README "Deliberately left out" + "Scaling path" | Sync analysis now, a queue later via `analyses.status`; what I'd do next. |
 
 # Deep-dive Q&A
+
+**Why one screen instead of routes?** Every context switch was a page change; with the URL as the only state owner, the workspace keeps shareable links and Back while removing navigation.
+
+**Why port SmoothUI by hand instead of the shadcn CLI?** One token system, no Radix/vaul/CVA, file-size and a11y rules; `motion` is the only new dependency.
 
 **Why synchronous analysis?** One user and ~4 s calls: a queue adds Redis, a worker and polling for no visible gain. The pending row is committed before the model call (`backend/app/services/analyses.py`), so a queue only changes who calls `Analyzer.analyze`.
 

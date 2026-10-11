@@ -8,3 +8,4 @@
 - 2026-10-11 — A hung `screenshot`/`pkill agent-browser` wedges the daemon; recover with pkill -9 -f ".agent-browser/browsers" then retry. No `timeout` binary on macOS. `eval` worked early then got denied (compound/chained eval blocked); simple `eval` single call sometimes OK.
 - 2026-10-11 — `agent-browser open` of the same URL doesn't reset SPA state (a re-submit looked saved but wasn't); open a different route first. `select select <Label>` and `get count "svg circle"` / `get html svg` work well for Insights.
 - 2026-10-11 — agent-browser clicks on History links and "Load more" are flaky, but real Playwright clicks work (app OK). Playwright is at frontend/node_modules/@playwright/test/index.mjs; scripted multi-route Tab/overflow checks there are faster. Real-stack Insights shows empty state until 3 analysed entries per language.
+- [P6 Playwright notes](p6_playwright_notes.md) — scripted QA selectors and gotchas for the workspace
