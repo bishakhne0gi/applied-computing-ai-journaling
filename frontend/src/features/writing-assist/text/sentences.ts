@@ -21,7 +21,7 @@ const ABBREVIATION = /(?:^|[\s¿¡("«])(?:\p{Lu}|sr|sra|srta|dr|dra|ud|uds|vd|v
 // «UU.» / «etc.» can end a sentence, so they only join a following lowercase word.
 const SOFT_ABBREVIATION = /(?:^|[\s¿¡("«])(?:uu|etc|a|b|h|s|t|o)\.\s*$/iu
 // Emoji after a terminator belong to the sentence they decorate, not the next one.
-const LEADING_EMOJI = /^(?:[\p{Extended_Pictographic}\u200d\ufe0f\u{1F3FB}-\u{1F3FF}]+\s*)+/u
+const LEADING_EMOJI = /^(?:(?:\p{Extended_Pictographic}|\p{Emoji_Modifier}|\u{200D}|\u{FE0F})+\s*)+/u
 
 interface Piece {
   start: number
