@@ -1,9 +1,8 @@
 import type { ReactNode } from 'react'
 import { Button } from '@/components/ui/Button'
-import { EntryTextField } from '@/features/editor/EntryTextField'
 import { LanguageSelect } from '@/features/languages/LanguageSelect'
 import { isSubmittableEntry } from '@/utils/text'
-import { useFocusOnMount } from '@/hooks/misc/useFocusOnMount'
+import { ComposerEditor } from './ComposerEditor'
 import type { WritePhase } from './useWriteSession'
 
 const SUBMIT_LABELS: Record<WritePhase, string> = {
@@ -26,7 +25,6 @@ export interface EntryFormProps {
 }
 
 export function EntryForm({ language, onLanguageChange, text, onTextChange, phase, status, focusOnMount, onSubmit }: EntryFormProps) {
-  const focusRef = useFocusOnMount<HTMLTextAreaElement>()
   const locked = phase !== 'editing'
   const canSubmit = !locked && language !== '' && isSubmittableEntry(text)
   const submit = () => {
@@ -45,7 +43,7 @@ export function EntryForm({ language, onLanguageChange, text, onTextChange, phas
       <div className="max-w-xs">
         <LanguageSelect id="entry-language" label="Language" value={language} onChange={onLanguageChange} disabled={locked} />
       </div>
-      <EntryTextField id="entry-text" label="Your entry" value={text} onChange={onTextChange} onSubmitShortcut={submit} readOnly={locked} textareaRef={focusOnMount ? focusRef : undefined} />
+      <ComposerEditor language={language} value={text} onChange={onTextChange} onSubmitShortcut={submit} readOnly={locked} focusOnMount={focusOnMount} />
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
         <Button type="submit" variant="primary" disabled={!canSubmit}>
           {SUBMIT_LABELS[phase]}
