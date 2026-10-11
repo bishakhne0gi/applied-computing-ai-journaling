@@ -27,7 +27,7 @@ element's props, `ref` as a plain prop (React 19), Tailwind token utilities merg
 | `TextLink` | — | React Router `Link` in the primary role, underlined; `className` merges last |
 | `Button` | `primary`, `secondary` (default), `ghost`, `icon` (44px round, needs `aria-label`), `inline` (highlights inside text) | pills (`rounded-full`) except `icon`/`inline`; the only raw `<button>`; `type="button"` by default; `min-h-11` touch target except `inline`; pointer / not-allowed cursor |
 | `Badge` | `tone`: `neutral` (default), `danger`, `success`, `warning` | soft tinted status and count pills (`*-soft` background, tone text, ≥4.5:1 pinned) |
-| `Correction` (feature) | `kind`: `error` (default), `suggestion`, `vocab_help` | original in a tinted pill (danger / warning / vocab) → arrow → correction in a success pill; `whitespace-nowrap`, truncates past `max-w-28` with the full text in `title`; screen readers hear "original should be correction" |
+| `Correction` (feature) | `kind`: `error` (default), `suggestion`, `vocab_help` | original in a tinted pill (danger / warning / vocab) → arrow → correction in a success pill; `whitespace-nowrap`, truncates past `max-w-48` (`compact`, used only in the insights table, `max-w-28`) with the full text in `title`; screen readers hear "original should be correction" |
 | `ErrorState` | — | `role="alert"` message + retry `Button`; `retryLabel`, `retrying` |
 | `InlineAlert` | — | `role="alert"` one-line danger text for a failed action next to its control; use `ErrorState` when the user must retry from the message |
 | `Switch` | — | `role="switch"` ghost `Button` with `aria-checked`; label is the visible text; a small track with a knob that slides (no transition under reduced motion) |

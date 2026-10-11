@@ -69,6 +69,8 @@ test('the Live hints switch turns hints off and stays off after a reload', async
   await mainColumn(page).getByRole('switch', { name: 'Live hints' }).click()
   await page.reload()
   // Assert
+  // The languages query enables the button once it lands; an a11y scan before that races the page's last re-render.
+  await expect(mainColumn(page).getByRole('button', { name: 'Get feedback' })).toBeEnabled()
   await expect(mainColumn(page).getByRole('switch', { name: 'Live hints' })).toHaveAttribute('aria-checked', 'false')
   await expect(underline(page)).toHaveCount(0)
   await expectHealthy(page)

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { RatePointOut } from '@/types/insights'
-import { describeRates, formatRate } from './format'
+import { describeRates, formatRate, trendsNote } from './format'
 
 const point = (rate: number | null): RatePointOut => ({ entry_id: String(rate), created_at: '2026-10-09T18:00:00Z', word_count: 10, error_count: 1, rate })
 
@@ -32,5 +32,11 @@ describe('insights formatting', () => {
     const description = describeRates(points, null)
     // Assert
     expect(description).toBe('Errors per 100 words across 1 entry, oldest to newest: no words to measure.')
+  })
+})
+
+describe('trendsNote', () => {
+  it('names the entry count trends start at, from the same constant the table counts down to', () => {
+    expect(trendsNote()).toBe('Trends start at 4 entries with feedback.')
   })
 })

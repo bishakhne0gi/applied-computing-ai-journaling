@@ -8,7 +8,6 @@ const containerClass = cn(
   'h-48 w-full text-xs md:h-56',
   '[&_.recharts-cartesian-axis-tick_text]:fill-muted',
   '[&_.recharts-cartesian-grid_line]:stroke-border',
-  '[&_.recharts-surface]:outline-hidden',
 )
 
 export interface ChartContainerProps {

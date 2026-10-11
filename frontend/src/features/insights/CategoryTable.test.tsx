@@ -60,6 +60,21 @@ describe('CategoryTable', () => {
     expect(within(screen.getByRole('row', { name: /Preposition/ })).getByText('Getting worse')).toHaveClass('sr-only')
   })
 
+  it.each([
+    ['improving', 'arrowDown', 'bg-success-soft'],
+    ['worsening', 'arrowUp', 'bg-danger-soft'],
+    ['stable', 'minus', 'bg-neutral-soft'],
+  ] as const)('draws a %s trend as the %s icon in its own tone', (trend, icon, tone) => {
+    // Arrange
+    const item = { ...verbs, trend }
+    // Act
+    render(<CategoryTable categories={[item]} recurringWindow={5} totalWords={60} entriesToTrends={0} />)
+    // Assert
+    const glyph = document.querySelector(`svg[data-icon="${icon}"]`)
+    expect(glyph?.closest('[title]')).toHaveClass(tone)
+    expect(document.querySelectorAll('svg[data-icon="arrowDown"], svg[data-icon="arrowUp"], svg[data-icon="minus"]')).toHaveLength(1)
+  })
+
   it('puts the table in a focusable region that scrolls sideways instead of wrapping', () => {
     // Arrange / Act
     render(<CategoryTable categories={[verbs]} recurringWindow={5} totalWords={60} entriesToTrends={0} />)

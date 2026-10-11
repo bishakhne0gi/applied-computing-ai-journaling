@@ -55,19 +55,15 @@ function CategoryRow({ item, recurringWindow, totalWords, entriesToTrends }: Cat
       </td>
       <td className={cellClass}>{trends ? <TrendBadge trend={item.trend} /> : <TrendPending entriesLeft={entriesToTrends} />}</td>
       <td className={cn(cellClass, 'whitespace-nowrap')}>
-        <Correction original={item.latest_example.original} correction={item.latest_example.correction} />
+        <Correction compact original={item.latest_example.original} correction={item.latest_example.correction} />
       </td>
     </tr>
   )
 }
 
-// A scroller must be keyboard-reachable (axe scrollable-region-focusable); jsx-a11y's no-noninteractive-tabindex only
-// reads literal values, and this region is the case the axe rule exists for, so the stop is named instead.
-const SCROLL_STOP = 0
-
 export function CategoryTable({ categories, recurringWindow, totalWords, entriesToTrends }: CategoryTableProps) {
   return (
-    <div role="region" aria-label="Errors by category" tabIndex={SCROLL_STOP} className="overflow-x-auto">
+    <div role="region" aria-label="Errors by category" tabIndex={0} className="overflow-x-auto">
       <table className="w-full text-xs md:text-sm">
         <caption className="pb-2 text-left text-base font-medium">Errors by category</caption>
         <thead>

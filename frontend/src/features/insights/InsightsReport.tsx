@@ -1,6 +1,6 @@
 import type { InsightsOut } from '@/types/insights'
 import { CategoryTable } from './CategoryTable'
-import { entriesToTrends } from './format'
+import { entriesToTrends, trendsNote } from './format'
 import { RateChart } from './RateChart'
 
 export interface InsightsReportProps {
@@ -11,8 +11,7 @@ export function InsightsReport({ insights }: InsightsReportProps) {
   return (
     <div className="flex flex-col gap-8">
       <RateChart points={insights.points} trend={insights.trend} />
-      {/* The server's last summary sentence is the "trends start at N" note; the other bullets repeat the chart and table. */}
-      {insights.status === 'totals_only' && <p className="text-muted">{insights.summary.at(-1)}</p>}
+      {insights.status === 'totals_only' && <p className="text-muted">{trendsNote()}</p>}
       {insights.categories.length > 0 ? (
         <CategoryTable
           categories={insights.categories}

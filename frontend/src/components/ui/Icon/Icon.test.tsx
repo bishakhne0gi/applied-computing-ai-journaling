@@ -13,6 +13,7 @@ describe('Icon', () => {
     // Assert
     const svg = container.querySelector('svg')
     expect(svg).toHaveAttribute('aria-hidden', 'true')
+    expect(svg).toHaveAttribute('data-icon', name)
     expect(svg?.getAttribute('viewBox')).toBe('0 0 256 256')
   })
 })

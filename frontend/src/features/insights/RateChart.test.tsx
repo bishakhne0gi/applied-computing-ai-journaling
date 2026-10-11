@@ -19,6 +19,13 @@ describe('RateChart', () => {
     )
   })
 
+  it('adds no keyboard stop of its own: the table beside the drawing is the accessible form', () => {
+    // Arrange / Act
+    const { container } = render(<RateChart points={points} trend="improving" />)
+    // Assert
+    expect(container.querySelector('[tabindex="0"]')).toBeNull()
+  })
+
   it('draws the rates as one area and keeps every value in the screen-reader table', () => {
     // Arrange / Act
     const { container } = render(<RateChart points={points} trend="improving" />)

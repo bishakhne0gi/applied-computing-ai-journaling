@@ -45,6 +45,9 @@ test('the header stays on one line on a phone', async ({ page }) => {
   // Assert
   const header = page.getByRole('banner')
   await expect(page.getByRole('link', { name: 'Language Journal' })).toBeVisible()
+  // Measure the settled row: the phone layout adds the Entries button after mount, and the web font changes text widths.
+  await expect(page.getByRole('button', { name: 'Entries', exact: true })).toBeVisible()
+  await page.evaluate(() => document.fonts.ready)
   // The header has a fixed height, so a wrapped row would show as overflow and as items on different lines.
   const row = await header.evaluate((element) => {
     const inner = element.firstElementChild as HTMLElement

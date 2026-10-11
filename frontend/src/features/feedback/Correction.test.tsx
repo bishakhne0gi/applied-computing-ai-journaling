@@ -19,6 +19,16 @@ describe('Correction', () => {
     expect(screen.getByText('el problema')).toHaveClass('bg-success-soft', 'text-success')
   })
 
+  it('clips a long phrase at max-w-48, and only a compact one at max-w-28', () => {
+    // Arrange / Act
+    const { rerender } = render(<Correction original="la problema" correction="el problema" />)
+    // Assert
+    expect(screen.getByText('la problema')).toHaveClass('max-w-48')
+    rerender(<Correction compact original="la problema" correction="el problema" />)
+    expect(screen.getByText('la problema')).toHaveClass('max-w-28')
+    expect(screen.getByText('el problema')).toHaveClass('max-w-28')
+  })
+
   it.each([
     ['suggestion', 'bg-warning-soft'],
     ['vocab_help', 'bg-mark-vocab-bg'],

@@ -9,6 +9,8 @@ export function entriesToTrends(entryCount: number): number {
   return Math.max(TRENDS_AT - entryCount, 1)
 }
 
+export const trendsNote = () => `Trends start at ${TRENDS_AT} entries with feedback.`
+
 export const TREND_TEXT: Record<Trend, string> = { improving: 'Improving', stable: 'Steady', worsening: 'Getting worse' }
 
 // The API already rounds to one decimal; toFixed only pads "2" to "2.0".

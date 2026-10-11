@@ -26,6 +26,9 @@ export default tseslint.config(
     } },
     rules: {
       ...reactHooks.configs.recommended.rules,
+      // A labelled scrollable region is a keyboard stop by design (WAI), and axe's scrollable-region-focusable demands it;
+      // the rule's own `roles` option exempts exactly that role, and everything else stays an error.
+      'jsx-a11y/no-noninteractive-tabindex': ['error', { tags: [], roles: ['tabpanel', 'region'], allowExpressionValues: true }],
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
       // Static analysis gates
       complexity: ['error', 10],

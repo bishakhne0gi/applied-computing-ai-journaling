@@ -16,7 +16,7 @@ export function RateTooltip({ points, active, payload }: RateTooltipProps) {
   if (!point) return null
   return (
     <ChartTooltipCard title={formatDateTime(point.created_at)}>
-      <span className="text-fg-secondary">{`${formatRate(point.rate)} per 100 words`}</span>
+      <span className="text-fg-secondary">{point.rate === null ? formatRate(null) : `${formatRate(point.rate)} per 100 words`}</span>
       <span className="text-muted">{`${pluralize(point.error_count, 'error')} in ${pluralize(point.word_count, 'word')}`}</span>
     </ChartTooltipCard>
   )

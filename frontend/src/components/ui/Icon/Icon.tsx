@@ -33,5 +33,5 @@ export interface IconProps {
 
 export function Icon({ name, weight = 'regular', className }: IconProps) {
   const Glyph = ICONS[name]
-  return <Glyph aria-hidden="true" weight={weight} className={cn('size-5 shrink-0', className)} />
+  return <Glyph aria-hidden="true" data-icon={name} weight={weight} className={cn('size-5 shrink-0', className)} />
 }

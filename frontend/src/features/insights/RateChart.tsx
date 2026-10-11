@@ -26,7 +26,7 @@ export function RateChart({ points, trend }: RateChartProps) {
       <figcaption className="font-medium">Errors per 100 words, oldest entry to newest</figcaption>
       {latest && <ChartReadout point={latest} />}
       <ChartContainer label={describeRates(points, trend)}>
-        <AreaChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
+        <AreaChart accessibilityLayer={false} data={data} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
           <defs>
             <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
               <stop offset="5%" stopColor="var(--color-primary)" stopOpacity={0.3} />

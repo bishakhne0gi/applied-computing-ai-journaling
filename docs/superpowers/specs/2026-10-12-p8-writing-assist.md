@@ -248,7 +248,7 @@ screen-reader users may find a per-pause announcement noisy). Rephrase is on dem
 
 ### 6.5 Icons
 
-New dependency `@phosphor-icons/react`, imported **per icon** (`@phosphor-icons/react/<Name>`, which resolves to the
+New dependency `@phosphor-icons/react`, imported **per icon** (`@phosphor-icons/react/dist/csr/<Name>`, which resolves to the
 package's `dist/csr/<Name>.es.js`), never the barrel. The `Icon` primitive keeps its `name` API and renders the
 Phosphor glyph (`weight="regular"` default, `"bold"` for trend arrows), `aria-hidden`; existing names map to
 Phosphor equivalents (close `X`, check `Check`, alert `Warning`, menu `List`, chart `ChartLine`, plus `Plus`,
