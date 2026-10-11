@@ -1,7 +1,7 @@
 # Walkthrough outline (5–7 min)
 
 Before recording: `docker compose up --build` with an API key configured (Claude), a terminal with the repo open,
-the browser at http://localhost:8080 at 1280 px, two or three Spanish entries already written; a second tab on the
+the browser at http://localhost:8080 at 1280 px, at least three Spanish entries already analysed (Insights shows trends only from four); a second tab on the
 mock build (`pnpm -C frontend build --mode mock && pnpm -C frontend preview`) for the failure state.
 
 | Time | Segment | Show | Say (one line each) |

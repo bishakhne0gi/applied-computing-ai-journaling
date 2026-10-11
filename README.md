@@ -34,7 +34,7 @@ open http://localhost:8080
 | `make dev-backend` | FastAPI on :8000 with reload |
 | `make dev-frontend` | Vite on :5173 against the in-memory MSW API; `VITE_API_MOCKS=off make dev-frontend` uses the real backend |
 | `make verify-fast` | lint + types everywhere |
-| `make verify` | every CI gate in CI order: hygiene → ruff → mypy → import-linter → pytest → offline eval → migrations check → frontend (types, lint, dead code, Vitest + coverage band, Playwright + axe, Lighthouse) |
+| `make verify` | every CI gate in CI order: hygiene → ruff → import-linter → mypy → pytest → offline eval → migrations check → frontend (types, lint, dead code, Vitest + coverage band, Playwright + axe, Lighthouse) |
 | `make e2e-stack` | the full Compose stack with the demo provider + Playwright smoke |
 | `make eval` | the eval set against the real model (needs a key) |
 
