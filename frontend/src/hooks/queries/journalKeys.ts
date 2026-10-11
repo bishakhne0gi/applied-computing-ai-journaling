@@ -1,3 +1,5 @@
+import type { CheckRequest } from '@/types/check'
+
 // Query-key factory shared by queries and mutations. `entry(id)` prefixes `analyses(id)`, and `insightsAll` prefixes
 // every `insights(language)`, so one invalidation covers each family.
 export const journalKeys = {
@@ -8,4 +10,5 @@ export const journalKeys = {
   analyses: (id: string) => ['entries', 'detail', id, 'analyses'] as const,
   insightsAll: ['insights'] as const,
   insights: (language: string | null) => ['insights', { language }] as const,
+  check: (request: CheckRequest | null) => ['check', request?.language ?? null, request?.text ?? null] as const,
 }

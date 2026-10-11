@@ -2,11 +2,12 @@ import { delay, http, HttpResponse } from 'msw'
 import { API_BASE } from '@/utils/constants'
 import { ENDPOINTS } from '@/utils/endpoints'
 import { analyzeText, failedAnalysis } from './analyzer'
+import { check } from './check'
 import { addAnalysis, analysedEntries, analysesOf, createEntry, entryDetail, findEntry, listEntries, updateEntry } from './db'
 import { computeInsights } from './insights'
 import { badEntryId, cleanLanguage, cleanText, invalid, LANGUAGES, notFound, parseLanguage, parseListQuery, problem } from './responses'
 
-// `?mock=slow|error|empty|analysis-fail` forces UI states in dev, e2e and ui-qa runs.
+// `?mock=slow|error|empty|analysis-fail|check-unavailable` forces UI states in dev, e2e and ui-qa runs.
 const mockMode = () => (typeof location === 'undefined' ? '' : (new URLSearchParams(location.search).get('mock') ?? ''))
 const url = (path: string) => `${API_BASE}${path}`
 const ENTRY = url(ENDPOINTS.entry(':entryId'))
@@ -82,4 +83,5 @@ export const handlers = [
   http.post(ANALYSES, async ({ params }) => (await forcedResponse()) ?? analyze(String(params.entryId))),
   http.get(ANALYSES, async ({ params }) => (await forcedResponse()) ?? history(String(params.entryId))),
   http.get(url(ENDPOINTS.insights), async ({ request }) => (await forcedResponse()) ?? insights(request.url)),
+  http.post(url(ENDPOINTS.check), async ({ request }) => (await forcedResponse()) ?? check(await request.json(), mockMode())),
 ]

@@ -5,4 +5,5 @@ export const ENDPOINTS = {
   entry: (id: string) => `entries/${id}`,
   analyses: (entryId: string) => `entries/${entryId}/analyses`,
   insights: 'insights',
+  check: 'check',
 } as const
