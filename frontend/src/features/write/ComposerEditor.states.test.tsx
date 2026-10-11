@@ -52,6 +52,25 @@ describe('ComposerEditor live hint states', () => {
     expect(screen.queryByRole('button', { name: /hint/ })).not.toBeInTheDocument()
   })
 
+  it('keeps the last good hints when a newer check is unavailable', async () => {
+    // Arrange
+    const user = await renderWithDraft('Hoy yo es feliz y tranquilo.')
+    await screen.findByRole('button', { name: '1 hint' })
+    let failures = 0
+    server.use(
+      http.post(apiUrl(ENDPOINTS.check), () => {
+        failures += 1
+        return HttpResponse.json({ detail: 'unavailable' }, { status: 503 })
+      }),
+    )
+    // Act: a new check starts for the edited text and fails, then its single retry fails too.
+    await user.type(screen.getByLabelText('Your entry'), ' ya')
+    await waitFor(() => expect(failures).toBe(2), { timeout: 5000 })
+    await delay(50)
+    // Assert
+    expect(screen.getByRole('button', { name: '1 hint' })).toBeInTheDocument()
+  })
+
   it('waits for three words before checking', async () => {
     // Arrange
     const seen = countChecks()
@@ -81,17 +100,6 @@ describe('ComposerEditor live hint states', () => {
     await delay(100)
     // Assert
     expect(screen.queryByRole('button', { name: /hint/ })).not.toBeInTheDocument()
-  })
-
-  it('drops shown hints when a later check fails', async () => {
-    // Arrange
-    const user = await renderWithDraft('Hoy yo es feliz y tranquilo.')
-    await screen.findByRole('button', { name: '1 hint' })
-    server.use(http.post(apiUrl(ENDPOINTS.check), () => HttpResponse.json({ status: 503 }, { status: 503 })))
-    // Act
-    await user.type(screen.getByLabelText('Your entry'), ' ya')
-    // Assert
-    await waitFor(() => expect(screen.queryByRole('button', { name: /hint/ })).not.toBeInTheDocument(), { timeout: 3000 })
   })
 
   it('holds the check while an IME composition is open and runs it after', async () => {

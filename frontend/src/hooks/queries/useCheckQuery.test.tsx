@@ -88,9 +88,32 @@ describe('useCheckQuery', () => {
     expect(result.current.data).toBeUndefined()
   })
 
-  it('does not retry a failed check: hints just stay hidden', async () => {
+  it('retries an unavailable check once, after the debounce interval, then leaves hints hidden', async () => {
     // Arrange
     const counter = countChecks(() => HttpResponse.json({ detail: 'unavailable' }, { status: 503 }))
+    // Act
+    const { result } = renderWithDefaults()()
+    await waitFor(() => expect(counter.requests).toBe(1))
+    await delay(300)
+    // Assert: the retry waits instead of firing at once.
+    expect(counter.requests).toBe(1)
+    await waitFor(() => expect(result.current.isError).toBe(true), { timeout: 3000 })
+    expect(counter.requests).toBe(2)
+  })
+
+  it('recovers when the single retry succeeds', async () => {
+    // Arrange
+    let calls = 0
+    countChecks(() => (++calls === 1 ? HttpResponse.json({ detail: 'unavailable' }, { status: 503 }) : undefined))
+    // Act
+    const { result } = renderWithDefaults()()
+    // Assert
+    await waitFor(() => expect(result.current.isSuccess).toBe(true), { timeout: 3000 })
+  })
+
+  it('does not retry any other failure', async () => {
+    // Arrange
+    const counter = countChecks(() => HttpResponse.json({ detail: 'bad' }, { status: 422 }))
     // Act
     const { result } = renderWithDefaults()()
     // Assert
