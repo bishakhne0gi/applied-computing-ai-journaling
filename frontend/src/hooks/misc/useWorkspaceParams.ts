@@ -31,13 +31,17 @@ export function useWorkspaceParams() {
   const navigate = useNavigate()
   const change = (changes: Changes, options?: { replace?: boolean; state?: unknown }) => setParams(withChanges(params, changes), options)
   const insightsOpen = params.get('insights') === '1'
+  const entryId = params.get('entry') || null
   return {
-    entryId: params.get('entry') || null,
+    entryId,
     insightsOpen,
     language: params.get('language'),
     entryHref: (id: string) => toHref(withChanges(params, { entry: id, insights: null })),
     composerHref: toHref(withChanges(params, { entry: null, insights: null })),
-    selectEntry: (id: string | null) => change({ entry: id }),
+    // The router pushes even an identical URL, so re-selecting (or "New entry" on the composer) would stack a duplicate.
+    selectEntry: (id: string | null) => {
+      if (id !== entryId) change({ entry: id })
+    },
     // A repeat open would stack a duplicate entry, and closing (one step Back) would then leave the sheet open.
     openInsights: () => {
       if (!insightsOpen) change({ insights: '1' }, { state: OPENED_IN_APP })
@@ -52,5 +56,3 @@ export function useWorkspaceParams() {
       change({ language: code }, insightsOpen ? { replace: true } : options),
   }
 }
-
-export type WorkspaceParams = ReturnType<typeof useWorkspaceParams>

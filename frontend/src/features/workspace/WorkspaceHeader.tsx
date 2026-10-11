@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { Link } from 'react-router'
 import { Button } from '@/components/ui/Button'
 import { Icon } from '@/components/ui/Icon'
+import { useWorkspaceParams } from '@/hooks/misc/useWorkspaceParams'
 import { LanguageStatus } from './LanguageStatus'
 
 export interface WorkspaceHeaderProps {
@@ -13,11 +14,12 @@ export interface WorkspaceHeaderProps {
 
 // The gradient band lives here only (DESIGN.md): it marks the frame, never the writing.
 export function WorkspaceHeader({ insights, children }: WorkspaceHeaderProps) {
+  const { composerHref } = useWorkspaceParams()
   return (
     <header className="border-b border-border bg-linear-to-r from-band via-band-violet to-band-pink">
       <div className="flex min-h-15 items-center gap-3 px-4 py-2 lg:px-6">
         {children}
-        <Link to="/" className="shrink-0 text-base font-light tracking-tight whitespace-nowrap text-fg sm:text-lg">
+        <Link to={composerHref} className="shrink-0 text-base font-light tracking-tight whitespace-nowrap text-fg sm:text-lg">
           Language Journal
         </Link>
         <LanguageStatus />

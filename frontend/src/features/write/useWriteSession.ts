@@ -17,8 +17,14 @@ export function useWriteSession(onSaved: () => void, callbacks: AnalysisCallback
   const [entryId, setEntryId] = useState<string | null>(null)
   // A ref, not state: the second click of a double click lands before React re-renders the disabled button.
   const submitting = useRef(false)
-  const create = useCreateEntryMutation()
   const analyze = useRunAnalysisMutation(callbacks)
+  // The learner may open another entry while "Saving…": the composer unmounts, but the save still clears the draft and
+  // starts the analysis, so returning never offers the same text for a second save.
+  const create = useCreateEntryMutation((created) => {
+    setEntryId(created.id)
+    onSaved()
+    analyze.mutate(created.id)
+  })
   // A second instance so "retrying" is just its pending state, not a flag kept beside the first.
   const reanalyze = useRunAnalysisMutation(callbacks)
   const entry = useEntryQuery(entryId).data ?? null
@@ -31,11 +37,6 @@ export function useWriteSession(onSaved: () => void, callbacks: AnalysisCallback
     if (submitting.current || entryId) return
     submitting.current = true
     create.mutate(body, {
-      onSuccess: (created) => {
-        setEntryId(created.id)
-        onSaved()
-        analyze.mutate(created.id)
-      },
       onSettled: () => {
         submitting.current = false
       },

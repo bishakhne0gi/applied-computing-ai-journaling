@@ -30,3 +30,10 @@ export function isSubmittableEntry(text: string): boolean {
 export function bracketRanges(text: string): { start: number; end: number }[] {
   return Array.from(text.matchAll(/\[[^[\]\n]+\]/gu), (match) => ({ start: match.index, end: match.index + match[0].length }))
 }
+
+// Entry ids are UUIDs; anything else in the URL was typed or mangled, and asking the server would only earn a 422.
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+export function isUuid(value: string): boolean {
+  return UUID.test(value)
+}

@@ -49,6 +49,19 @@ describe('Workspace', () => {
     expect(location()).toHaveTextContent(/^\/$/)
   })
 
+  it('does not stack a history entry when "New entry" is pressed on the composer again', async () => {
+    // Arrange
+    const user = renderWorkspace()
+    await user.click(await marketRow())
+    const newEntry = () => within(sidebar()).getByRole('button', { name: 'New entry' })
+    await user.click(newEntry())
+    // Act
+    await user.click(newEntry())
+    await user.click(screen.getByRole('button', { name: 'Go back' }))
+    // Assert
+    expect(location()).toHaveTextContent(`/?entry=${SEEDED.revisedFrench}`)
+  })
+
   it('keeps the draft when the learner peeks at an old entry and comes back', async () => {
     // Arrange
     const user = renderWorkspace()

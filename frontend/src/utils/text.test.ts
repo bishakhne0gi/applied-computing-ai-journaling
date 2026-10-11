@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { MAX_ENTRY_CHARS } from './constants'
-import { bracketRanges, codePointLength, countWords, entryLength, isSubmittableEntry } from './text'
+import { bracketRanges, codePointLength, countWords, entryLength, isSubmittableEntry, isUuid } from './text'
 
 describe('countWords', () => {
   it.each([
@@ -71,5 +71,16 @@ describe('bracketRanges', () => {
     const ranges = bracketRanges(text)
     // Assert
     expect(ranges).toEqual(expected)
+  })
+})
+
+describe('isUuid', () => {
+  it('accepts a UUID in either case and rejects anything else', () => {
+    // Arrange
+    const id = '00000000-0000-4000-8000-00000000000A'
+    // Act + Assert
+    expect(isUuid(id)).toBe(true)
+    expect(isUuid('not-an-id')).toBe(false)
+    expect(isUuid(`${id}0`)).toBe(false)
   })
 })

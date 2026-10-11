@@ -9,6 +9,7 @@ import { useEntryQuery } from '@/hooks/queries/useEntryQuery'
 import type { AnalysisOut } from '@/types/analysis'
 import type { EntryDetailOut } from '@/types/entry'
 import { toErrorMessage } from '@/utils/errorMessage'
+import { isUuid } from '@/utils/text'
 import { EntryNotFound } from './EntryNotFound'
 import { isMissing } from './isMissing'
 import { AnalysisSwitcher } from './AnalysisSwitcher'
@@ -59,10 +60,11 @@ function EntryDetailBody({ entry, analyses }: EntryDetailBodyProps) {
 }
 
 export function EntryDetail({ entryId, focusHeading = false }: EntryDetailProps) {
-  const entry = useEntryQuery(entryId)
-  const analyses = useAnalysesQuery(entryId)
+  const valid = isUuid(entryId)
+  const entry = useEntryQuery(valid ? entryId : null)
+  const analyses = useAnalysesQuery(valid ? entryId : null)
   const headingRef = useFocusOnMount<HTMLHeadingElement>()
-  const missing = entry.isError && !entry.data && isMissing(entry.error)
+  const missing = !valid || (entry.isError && !entry.data && isMissing(entry.error))
   const title = missing ? 'Entry not found' : 'Entry'
   // One heading element in every state: focus moved to it on selection, and swapping it would drop that focus.
   return (
