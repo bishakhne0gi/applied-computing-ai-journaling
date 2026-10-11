@@ -189,9 +189,10 @@ caught mistakes, false-positive rate on clean entries, p50 latency. Where the ta
 | Run | Cases | Recall | Category accuracy | False positives | p50 latency |
 |---|---|---|---|---|---|
 | prompt v1, `claude-opus-5-5`, effort medium, first 14-case set | 14 | 91% | 90% | 0% | 3.6 s |
-| prompt v1, `claude-opus-5-5`, effort medium, current set | ⟨FILL: cases⟩ | ⟨FILL: recall⟩ | ⟨FILL: category_accuracy⟩ | ⟨FILL: false_positive_rate⟩ | ⟨FILL: p50⟩ |
+| prompt v1, `claude-opus-5-5`, effort medium (default), current set | 36 | 97% | 100% | 0% | 2.6 s |
+| prompt v1, `claude-opus-5-5`, effort low, current set | 36 | 97% | 100% | 0% | 2.6 s |
 
-(Add an effort-low row only if the controller ran it.) `make eval args="--limit 6"` samples both languages;
+Low effort scores the same on this set, so it is a viable cost lever; medium stays the default for headroom on longer entries. `make eval args="--limit 6"` samples both languages;
 `make eval-fake` runs the harness offline (CI does too).
 
 ## Observability and privacy
