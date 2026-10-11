@@ -3,7 +3,7 @@ import { Link } from 'react-router'
 import { Badge } from '@/components/ui/Badge'
 import { InlineAlert } from '@/components/ui/InlineAlert'
 import { useWorkspaceParams } from '@/hooks/misc/useWorkspaceParams'
-import { useRunAnalysisMutation } from '@/hooks/mutations/useRunAnalysisMutation'
+import { useAnalyzingEntryIds, useRunAnalysisMutation } from '@/hooks/mutations/useRunAnalysisMutation'
 import { useLanguageName } from '@/features/languages/useLanguageName'
 import type { EntrySummaryOut } from '@/types/entry'
 import { toErrorMessage } from '@/utils/errorMessage'
@@ -16,7 +16,8 @@ export interface EntryRowProps {
 }
 
 // Short visible words keep every row on one meta line; the hidden "Analysis" keeps the spoken status complete.
-function EntryStatus({ entry, id }: EntryRowProps & { id: string }) {
+function EntryStatus({ entry, id, analyzing }: EntryRowProps & { id: string; analyzing: boolean }) {
+  if (analyzing) return <Badge id={id} tone="warning">Analyzing…</Badge>
   if (entry.latest_status === 'succeeded') {
     return <Badge id={id} tone={entry.error_count > 0 ? 'danger' : 'success'}>{pluralize(entry.error_count, 'error')}</Badge>
   }
@@ -45,15 +46,23 @@ export function EntryRow({ entry }: EntryRowProps) {
   const statusId = useId()
   const retried = analyze.data?.status
   const current = entry.id === entryId
+  const analyzing = useAnalyzingEntryIds().has(entry.id)
   // The retry button is gone once the analysis succeeds, so focus would otherwise fall back to the page body.
   useEffect(() => {
     if (retried === 'succeeded') linkRef.current?.focus()
   }, [retried])
   return (
     <li className={cn('relative flex flex-col gap-1.5 rounded-md px-3 py-2.5 transition-colors hover:bg-bg', current && 'bg-primary-soft hover:bg-primary-soft')}>
-      <Link ref={linkRef} to={entryHref(entry.id)} aria-current={current ? 'true' : undefined} aria-describedby={`${metaId} ${statusId}`} data-ring="custom" className={linkClass}>
-        <span className="line-clamp-2">{entry.preview}</span>
-      </Link>
+      {analyzing ? (
+        // Nothing to open yet: the entry has no feedback to show until the analysis lands.
+        <span aria-describedby={`${metaId} ${statusId}`} className="line-clamp-2 text-sm text-fg-secondary">
+          {entry.preview}
+        </span>
+      ) : (
+        <Link ref={linkRef} to={entryHref(entry.id)} aria-current={current ? 'true' : undefined} aria-describedby={`${metaId} ${statusId}`} data-ring="custom" className={linkClass}>
+          <span className="line-clamp-2">{entry.preview}</span>
+        </Link>
+      )}
       <div className="flex min-h-5 items-center justify-between gap-2 text-xs text-fg-secondary">
         <span id={metaId} className="min-w-0 truncate">
           {formatShortDateTime(entry.created_at)} · {languageName}
@@ -64,11 +73,11 @@ export function EntryRow({ entry }: EntryRowProps) {
             <RetryAnalysisButton
               label={entry.latest_status === null ? 'Get feedback' : 'Retry analysis'}
               preview={entry.preview}
-              pending={analyze.isPending}
+              pending={analyzing}
               onRetry={() => analyze.mutate(entry.id)}
             />
           )}
-          <EntryStatus entry={entry} id={statusId} />
+          <EntryStatus entry={entry} id={statusId} analyzing={analyzing} />
         </span>
       </div>
       {analyze.error ? <InlineAlert>{toErrorMessage(analyze.error)}</InlineAlert> : null}

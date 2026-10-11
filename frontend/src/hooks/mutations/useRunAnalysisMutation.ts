@@ -1,9 +1,11 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useMutationState, useQueryClient } from '@tanstack/react-query'
 import { journalKeys } from '@/hooks/queries/journalKeys'
 import type { AnalysisOut } from '@/types/analysis'
 import type { EntryDetailOut } from '@/types/entry'
 import { client } from '@/utils/client'
 import { ENDPOINTS } from '@/utils/endpoints'
+
+const ANALYSIS_KEY = ['run-analysis'] as const
 
 export interface AnalysisCallbacks {
   onAnalysed?: (analysis: AnalysisOut) => void
@@ -15,6 +17,7 @@ export interface AnalysisCallbacks {
 export function useRunAnalysisMutation(callbacks: AnalysisCallbacks = {}) {
   const queryClient = useQueryClient()
   return useMutation({
+    mutationKey: ANALYSIS_KEY,
     mutationFn: (entryId: string) => client.post(ENDPOINTS.analyses(entryId)).json<AnalysisOut>(),
     onSuccess: async (analysis) => {
       const id = analysis.entry_id
@@ -34,4 +37,11 @@ export function useRunAnalysisMutation(callbacks: AnalysisCallbacks = {}) {
     },
     onError: (error) => callbacks.onFailed?.(error),
   })
+}
+
+// Every analysis in flight, wherever it was started (the composer, a row, an open entry): the history reads this so a
+// row can say "Analyzing…" instead of its last status.
+export function useAnalyzingEntryIds(): ReadonlySet<string> {
+  const ids = useMutationState({ filters: { mutationKey: ANALYSIS_KEY, status: 'pending' }, select: (mutation) => mutation.state.variables })
+  return new Set(ids.filter((id): id is string => typeof id === 'string'))
 }

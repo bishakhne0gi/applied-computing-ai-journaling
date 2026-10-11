@@ -2,7 +2,7 @@ import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { SEEDED } from '@/mocks/seed'
-import { failWith, setMockMode } from '@/test/helpers'
+import { failWith, setMockMode, slowDown } from '@/test/helpers'
 import { ENDPOINTS } from '@/utils/endpoints'
 import { renderWithProviders } from '@/test/renderWithProviders'
 import { HistoryList } from './HistoryList'
@@ -127,5 +127,19 @@ describe('history rows', () => {
     // Assert
     expect(await within(row).findByRole('alert')).toHaveTextContent(/on our side/)
     expect(within(row).getByRole('button', { name: /^Retry analysis/ })).toBeEnabled()
+  })
+
+  it('say Analyzing while an analysis runs, and keep the row from being opened', async () => {
+    // Arrange
+    slowDown('post', ENDPOINTS.analyses(':entryId'), 300)
+    const user = await renderRows()
+    const row = rowContaining('Escribo esto antes de dormir')
+    // Act
+    await user.click(within(row).getByRole('button', { name: /^Get feedback/ }))
+    // Assert
+    expect(within(row).getByText('Analyzing…')).toBeInTheDocument()
+    expect(within(row).queryByText('Not analyzed')).not.toBeInTheDocument()
+    expect(within(row).queryByRole('link')).not.toBeInTheDocument()
+    await waitFor(() => expect(within(rowContaining('Escribo esto antes de dormir')).getByRole('link')).toBeInTheDocument())
   })
 })
