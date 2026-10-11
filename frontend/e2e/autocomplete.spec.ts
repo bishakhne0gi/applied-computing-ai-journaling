@@ -5,6 +5,7 @@ import { pickOption } from './select'
 import { composerLanguage, mainColumn } from './workspace'
 
 const TEXT = 'Hoy fui al mercado con mi madre'
+const OFF_OBSERVATION_MS = 1500
 const FULL = `${TEXT} y fue un buen día.`
 
 async function expectHealthy(page: Page): Promise<void> {
@@ -54,15 +55,18 @@ test('the Autocomplete switch is remembered across a reload', async ({ page }) =
   // Assert
   await expect(mainColumn(page).getByRole('switch', { name: 'Autocomplete' })).toHaveAttribute('aria-checked', 'false')
   await pickOption(composerLanguage(page), 'Spanish')
+  const asked = page.waitForRequest('**/complete', { timeout: OFF_OBSERVATION_MS }).then(() => true, () => false)
   await page.getByLabel('Your entry').pressSequentially(TEXT)
-  await page.waitForTimeout(1500)
+  // Nothing is requested while the switch is off, so there is no response to wait for: observe the request channel instead.
+  expect(await asked).toBe(false)
   await expect(ghost(page)).toHaveCount(0)
 })
 
 test('autocomplete unavailable shows nothing', async ({ page }) => {
   // Arrange + Act
+  const answered = page.waitForResponse('**/complete')
   const editor = await write(page, '/?mock=assist-unavailable')
-  await page.waitForTimeout(1500)
+  await answered
   // Assert
   await expect(ghost(page)).toHaveCount(0)
   await expect(page.getByRole('alert')).toHaveCount(0)
