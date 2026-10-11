@@ -37,7 +37,7 @@ describe('rephraseDecorations', () => {
     // Assert
     expect(result).toContainEqual(chip)
     expect(result.filter((d) => d !== chip).map(({ start, end }) => [start, end])).toEqual([[0, 8], [14, 20]])
-    expect(result.filter((d) => d.id.startsWith(REPHRASE_TARGET_ID))).toHaveLength(2)
+    expect(result.filter((d) => d.id?.startsWith(REPHRASE_TARGET_ID))).toHaveLength(2)
     expect(result.find((d) => d.id === REPHRASE_TARGET_ID)).toMatchObject({ start: 0, end: 8 })
   })
 })
