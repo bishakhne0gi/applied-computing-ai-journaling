@@ -1,7 +1,7 @@
 import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
-import { waitForLanguages } from '@/test/helpers'
+import { waitForLanguages, pickOption } from '@/test/helpers'
 import { renderWithProviders } from '@/test/renderWithProviders'
 import { STORAGE_KEYS } from '@/utils/constants'
 import { WriteScreen } from './WriteScreen'
@@ -14,7 +14,7 @@ describe('WriteScreen while drafting', () => {
     renderWithProviders(<WriteScreen />)
     await waitForLanguages()
     // Assert
-    expect(screen.getByLabelText('Language')).toHaveValue('fr')
+    expect(screen.getByLabelText('Language')).toHaveTextContent('French')
   })
 
   it('falls back to the first language when the remembered one is no longer offered', async () => {
@@ -24,7 +24,7 @@ describe('WriteScreen while drafting', () => {
     renderWithProviders(<WriteScreen />)
     await waitForLanguages()
     // Assert
-    expect(screen.getByLabelText('Language')).toHaveValue('es')
+    expect(screen.getByLabelText('Language')).toHaveTextContent('Spanish')
   })
 
   it('remembers a newly chosen language', async () => {
@@ -33,7 +33,7 @@ describe('WriteScreen while drafting', () => {
     renderWithProviders(<WriteScreen />)
     await waitForLanguages()
     // Act
-    await user.selectOptions(screen.getByLabelText('Language'), 'de')
+    await pickOption(user, screen.getByLabelText('Language'), 'German')
     // Assert
     expect(localStorage.getItem(STORAGE_KEYS.language)).toBe('de')
   })

@@ -11,7 +11,7 @@ export interface FieldProps {
 export function Field({ label, htmlFor, children, hideLabel = false }: FieldProps) {
   return (
     <div className="flex flex-col gap-1">
-      <label htmlFor={htmlFor} className={hideLabel ? 'sr-only' : 'text-sm font-medium text-fg-secondary'}>
+      <label id={`${htmlFor}-label`} htmlFor={htmlFor} className={hideLabel ? 'sr-only' : 'text-sm font-medium text-fg-secondary'}>
         {label}
       </label>
       {children}

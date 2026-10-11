@@ -8,17 +8,23 @@
     color: var(--color-fg);
     background: var(--color-bg);
   }
+}
 
-  :focus-visible {
-    outline: 0.125rem solid var(--color-primary);
-    outline-offset: 0.125rem;
-  }
+/* Unlayered on purpose: it must beat the shadow-* utilities (buttons, inputs) that would otherwise hide the ring.
+   Keyboard focus only (:focus-visible), as a soft Stripe-like ring instead of a heavy offset outline. */
+:focus-visible {
+  /* Transparent, not none: forced-colors mode paints it, since it drops box-shadows. */
+  outline: 0.125rem solid transparent;
+  box-shadow: var(--shadow-focus);
+}
 
-  /* Headings, main and dialog panels take focus only programmatically (a navigation landed there); a ring on
-     non-interactive text reads as a bug, and Chrome shows one when no pointer was used yet. */
-  [tabindex='-1']:focus-visible {
-    outline: none;
-  }
+/* Headings, main and dialog panels take focus only programmatically (a navigation landed there); a ring on
+   non-interactive text reads as a bug, and Chrome shows one when no pointer was used yet. `data-ring="custom"`
+   marks a control that draws its own ring (a history row rings the whole row, not its link text). */
+:is(h1, h2, h3, main, [role='dialog'], [role='listbox'])[tabindex='-1']:focus-visible,
+[data-ring='custom']:focus-visible {
+  outline: none;
+  box-shadow: none;
 }
 
 @media (prefers-reduced-motion: reduce) {

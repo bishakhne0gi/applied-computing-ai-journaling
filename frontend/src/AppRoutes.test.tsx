@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { beforeAll, describe, expect, it } from 'vitest'
 import { SEEDED } from '@/mocks/seed'
 import { LocationProbe } from '@/test/LocationProbe'
+import { pickOption } from '@/test/helpers'
 import { renderWithProviders } from '@/test/renderWithProviders'
 import { AppRoutes } from './AppRoutes'
 
@@ -90,9 +91,9 @@ describe('routes', () => {
     const user = userEvent.setup()
     renderAt('/')
     const filter = await screen.findByLabelText('Filter by language')
-    await within(filter).findByRole('option', { name: 'Spanish' })
+    await waitFor(() => expect(filter).toBeEnabled())
     // Act
-    await user.selectOptions(filter, 'es')
+    await pickOption(user, filter, 'Spanish')
     // Assert
     expect(filter).toHaveFocus()
   })

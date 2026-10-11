@@ -9,6 +9,7 @@ const variants = {
   icon: 'size-11 shrink-0 rounded-full text-fg-secondary hover:bg-surface hover:text-fg',
   tab: 'relative min-h-11 rounded-full px-4 text-sm font-medium text-fg-secondary hover:text-fg aria-selected:text-fg',
   plain: 'rounded-sm',
+  field: 'min-h-11 w-full justify-between rounded-md border border-border-input bg-bg px-3 text-left text-sm text-fg shadow-sm',
   inline: 'inline rounded-sm px-0.5',
 } as const
 

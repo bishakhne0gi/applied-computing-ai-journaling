@@ -1,7 +1,8 @@
-import { screen, within } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeAll, describe, expect, it } from 'vitest'
 import { LocationProbe } from '@/test/LocationProbe'
+import { pickOption } from '@/test/helpers'
 import { renderWithProviders } from '@/test/renderWithProviders'
 import { loadInsightsScreen } from './loadInsightsScreen'
 import { Workspace } from './Workspace'
@@ -69,13 +70,13 @@ describe('Workspace insights', () => {
     const user = renderWorkspace('/?insights=1')
     const sheet = await dialog()
     const filter = await within(sheet).findByLabelText('Filter by language')
-    await within(filter).findByRole('option', { name: 'Spanish' })
+    await waitFor(() => expect(filter).toBeEnabled())
     // Act
-    await user.selectOptions(filter, 'es')
+    await pickOption(user, filter, 'Spanish')
     await user.click(within(sheet).getByRole('button', { name: 'Close' }))
     // Assert
     const sidebar = screen.getByRole('complementary', { name: 'Your entries' })
-    expect(await within(sidebar).findByLabelText('Filter by language')).toHaveValue('es')
+    expect(await within(sidebar).findByLabelText('Filter by language')).toHaveTextContent('Spanish')
     expect(location()).toHaveTextContent(/^\/\?language=es$/)
   })
 })

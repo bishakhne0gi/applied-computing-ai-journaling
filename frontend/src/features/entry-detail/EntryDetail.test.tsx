@@ -8,6 +8,7 @@ import { SEEDED } from '@/mocks/seed'
 import { apiUrl, failWith } from '@/test/helpers'
 import { server } from '@/test/server'
 import { ENDPOINTS } from '@/utils/endpoints'
+import { formatDateTime } from '@/utils/formatter'
 import { renderWithProviders } from '@/test/renderWithProviders'
 import { EntryDetail } from './EntryDetail'
 
@@ -29,11 +30,11 @@ describe('EntryDetail', () => {
   it('switches to an earlier analysis, which keeps its own text and highlights', async () => {
     // Arrange
     const user = renderDetail(SEEDED.revisedFrench)
-    const switcher = await screen.findByLabelText('Analysis')
-    const [latest, older] = within(switcher).getAllByRole<HTMLOptionElement>('option')
+    await user.click(await screen.findByLabelText('Analysis'))
+    const [latest, older] = screen.getAllByRole('option')
     expect(latest?.textContent).toMatch(/0 errors \(latest\)$/)
     // Act
-    await user.selectOptions(switcher, older?.value ?? '')
+    if (older) await user.click(older)
     // Assert
     expect(await screen.findByRole('button', { name: /à le/ })).toBeInTheDocument()
     expect(screen.getByRole('region', { name: 'Feedback' })).toHaveTextContent('Je suis allé à le marché avec ma sœur.')
@@ -116,11 +117,13 @@ describe('EntryDetail', () => {
     // Arrange
     const [newer, older] = analysesOf(SEEDED.revisedFrench)
     server.use(http.get(apiUrl(ENDPOINTS.analyses(':entryId')), () => HttpResponse.json([older, newer])))
-    renderDetail(SEEDED.revisedFrench)
+    const user = renderDetail(SEEDED.revisedFrench)
     // Act
-    const options = within(await screen.findByLabelText('Analysis')).getAllByRole('option')
+    await user.click(await screen.findByLabelText('Analysis'))
+    const options = screen.getAllByRole('option')
     // Assert
-    expect(options.map((option) => option.getAttribute('value'))).toEqual([newer?.id, older?.id])
+    expect(options[0]).toHaveTextContent(formatDateTime(newer?.created_at ?? ''))
+    expect(options[1]).toHaveTextContent(formatDateTime(older?.created_at ?? ''))
     expect(options[0]).toHaveTextContent(/\(latest\)$/)
     expect(options[1]).not.toHaveTextContent('(latest)')
   })
@@ -136,11 +139,12 @@ describe('EntryDetail', () => {
     await user.click(screen.getByRole('button', { name: 'Re-check' }))
     // Assert
     expect(await screen.findByText('Great job — no mistakes found!')).toBeInTheDocument()
-    const options = within(screen.getByLabelText('Analysis')).getAllByRole('option')
+    expect(screen.getByLabelText('Analysis')).toHaveTextContent(/\(latest\)$/)
+    await user.click(screen.getByLabelText('Analysis'))
+    const options = screen.getAllByRole('option')
     expect(options).toHaveLength(2)
     expect(options[0]).toHaveTextContent(/\(latest\)$/)
     expect(options.slice(1).some((option) => option.textContent?.includes('(latest)'))).toBe(false)
-    expect(screen.getByLabelText('Analysis')).toHaveDisplayValue(/\(latest\)$/)
   })
 
   it('never shows the old feedback again once a re-check has been requested', async () => {

@@ -2,6 +2,7 @@ import { expect, test, type Page } from '@playwright/test'
 import { expectNoA11yViolations } from './a11y'
 import { expectButtonsShowPointer } from './cursor'
 import { composerLanguage, mainColumn } from './workspace'
+import { pickOption } from './select'
 
 async function expectHealthy(page: Page): Promise<void> {
   await expectNoA11yViolations(page)
@@ -41,13 +42,13 @@ test('the filter narrows insights, and below three entries offers a way to write
   await page.goto('/?insights=1')
   await expect(summary(page)).toBeVisible()
   // Act
-  await insights(page).getByLabel('Filter by language').selectOption('es')
+  await pickOption(insights(page).getByLabel('Filter by language'), 'Spanish')
   // Assert
   await expect(page).toHaveURL(/language=es/)
   await expect(summary(page)).toContainText('Verb conjugation keeps recurring: 3 of your last 5 entries.')
   await expect(insights(page).getByRole('row', { name: /Verb conjugation/ })).toContainText('Recurring · 3 of last 5')
   await expectHealthy(page)
-  await insights(page).getByLabel('Filter by language').selectOption('de')
+  await pickOption(insights(page).getByLabel('Filter by language'), 'German')
   await expect(insights(page).getByText('Insights start after 3 entries with feedback — 3 to go.')).toBeVisible()
   await expectHealthy(page)
   await insights(page).getByRole('link', { name: 'Write an entry' }).click()
@@ -62,7 +63,7 @@ test('a new entry with feedback changes insights that were already loaded', asyn
   await expect(summary(page)).toContainText('0 errors across 3 entries')
   await page.keyboard.press('Escape')
   await expect(insights(page)).toBeHidden()
-  await composerLanguage(page).selectOption('fr')
+  await pickOption(composerLanguage(page), 'French')
   await page.getByLabel('Your entry').fill('Je vais à le cinéma ce soir.')
   // Act
   await mainColumn(page).getByRole('button', { name: 'Get feedback' }).click()

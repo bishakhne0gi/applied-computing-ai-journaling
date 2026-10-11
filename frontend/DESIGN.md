@@ -8,7 +8,7 @@ Three layers. Always use the lowest layer that already solves the problem.
 | Color roles | `--color-bg, surface, border, border-input, fg, fg-secondary, muted, primary, primary-pressed, primary-soft, primary-disabled, primary-contrast, danger, success, warning (+ -soft), neutral-soft, scrim, band, band-violet, band-pink` | `bg-surface`, `text-fg-secondary`, `border-border-input`, `bg-primary hover:bg-primary-pressed`, `bg-linear-to-r from-band via-band-violet to-band-pink`, `bg-danger-soft text-danger` |
 | Feedback marks | `--color-mark-error`, `mark-suggestion`, `mark-vocab` (+ `-bg` tints) | `bg-mark-error-bg decoration-mark-error` — kind is shown by colour **and** underline style (error wavy, suggestion dashed, word help dotted) |
 | Space / type | Tailwind default rem scale | `p-4`, `gap-3`, `text-sm`, `font-bold` |
-| Shape | `--radius-sm, md, lg, full`, `--shadow-sm, md, lg, chip` | `rounded-lg`, `shadow-lg`, `shadow-chip` |
+| Shape | `--radius-sm, md, lg, full`, `--shadow-sm, md, lg, chip, focus` | `rounded-lg`, `shadow-lg`, `shadow-chip`; `--shadow-focus` is the global keyboard ring (1px indigo + 3px indigo glow at 20%, `:focus-visible` only, unlayered in `global.css`; `data-ring="custom"` opts out for a control that draws its own, like a history row) |
 | Layers | `--z-index-dropdown, sticky, overlay, toast` | `z-overlay` — never `z-10` |
 | Layout | `--container-content` (80rem), `sidebar` (20rem), `main` (44rem), `sheet` (36rem), `--font-sans` | `max-w-content`, `w-sidebar`, `max-w-main`, `max-w-sheet` |
 
@@ -29,10 +29,11 @@ element's props, `ref` as a plain prop (React 19), Tailwind token utilities merg
 | `Badge` | `tone`: `neutral` (default), `danger`, `success`, `warning` | soft tinted status and count pills (`*-soft` background, tone text, ≥4.5:1 pinned) |
 | `ErrorState` | — | `role="alert"` message + retry `Button`; `retryLabel`, `retrying` |
 | `InlineAlert` | — | `role="alert"` one-line danger text for a failed action next to its control; use `ErrorState` when the user must retry from the message |
-| `Select` | — | native `<select>`, `min-h-11`, pointer cursor |
+| `Select` | — | custom select-only combobox (WAI-APG; SmoothUI, MIT): `options`, `value`, `onChange(value)`; trigger is a `Button` `field` with a rotating chevron; list fades/scales in (150ms, instant under reduced motion), width clamped to the trigger, flips up when there is no room below; arrows/Home/End/PageUp/PageDown, type-ahead, Enter/Space pick, Esc closes (only consumed while open), Tab and outside clicks close; focus stays on the trigger; label via `Field` (`${id}-label` names the list) or `aria-label` |
 | `Textarea` | — | native `<textarea>`, `min-h-48`, `read-only:` surface tint |
 | `Field` | — | label + control; owns the spacing between them |
 | `LoadingState` | — | `role="status"` + `aria-busy`; muted label, or skeleton `children` with the label `sr-only` |
+| `Button` `field` | — | input-styled trigger (white, `border-input`, `rounded-md`, `min-h-11`) used by `Select` |
 | `Button` `plain` | — | unstyled trigger (focus ring and pointer cursor only) used by `Tooltip` |
 | `Button` `tab` | — | used by `AnimatedTabs`; text turns `fg` when `aria-selected` |
 | `AnimatedTabs` | 2–4 tabs | controlled segmented tabs (SmoothUI, MIT); arrows/Home/End; only the selected tab is tabbable and has `aria-controls`; pair with `role="tabpanel"` using `tabId`/`panelId` |
@@ -43,7 +44,7 @@ element's props, `ref` as a plain prop (React 19), Tailwind token utilities merg
 | `Card` | `as`: `div` (default), `section` | hairline card, `shadow-sm`; override padding/background with `className` |
 | `PageHeading` | — | `h1`, light 300, `tabIndex -1`, takes `ref` so the workspace can focus it |
 | `SectionHeading` | `level`: `2` (default), `3` | section titles one step below `PageHeading`: h2 `text-lg` medium in `fg-secondary`, h3 `text-base` medium; never heavier than the light page title |
-| `Icon` | `name`: `close`, `check`, `alert`, `menu`, `chart`, `plus` | inline 24px stroke SVG, `aria-hidden`; the control around it carries the name |
+| `Icon` | `name`: `close`, `check`, `alert`, `menu`, `chart`, `plus`, `chevron` | inline 24px stroke SVG, `aria-hidden`; the control around it carries the name |
 | `Sheet` | `side`: `left`, `right`, `bottom` | modal dialog in a portal (SmoothUI drawer motion, MIT): heading focused on open, Esc/scrim/Close dismiss, Tab trapped, focus restored unless the user moved on, page scroll locked |
 | `ErrorBoundary` | — | catches a render error (e.g. a failed lazy chunk) and shows `fallback(retry)`; `onRetry` runs first so the caller can start a fresh import |
 

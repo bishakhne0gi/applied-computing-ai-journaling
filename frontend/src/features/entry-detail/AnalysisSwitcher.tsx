@@ -21,13 +21,7 @@ export function AnalysisSwitcher({ analyses, value, onChange }: AnalysisSwitcher
   return (
     <div className="max-w-md">
       <Field label="Analysis" htmlFor={id}>
-        <Select id={id} value={value} onChange={(event) => onChange(event.target.value)}>
-          {analyses.map((analysis, index) => (
-            <option key={analysis.id} value={analysis.id}>
-              {optionLabel(analysis, index === 0)}
-            </option>
-          ))}
-        </Select>
+        <Select id={id} value={value} onChange={onChange} options={analyses.map((analysis, index) => ({ value: analysis.id, label: optionLabel(analysis, index === 0) }))} />
       </Field>
     </div>
   )

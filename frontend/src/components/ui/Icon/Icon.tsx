@@ -8,6 +8,7 @@ const PATHS = {
   menu: 'M4 7h16M4 12h16M4 17h10',
   chart: 'M4 19V5m0 14h16M8 15l3-4 3 2 5-6',
   plus: 'M12 5v14M5 12h14',
+  chevron: 'M6 9l6 6 6-6',
 } as const
 
 export type IconName = keyof typeof PATHS

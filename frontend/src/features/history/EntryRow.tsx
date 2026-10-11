@@ -29,7 +29,7 @@ const OUTCOME_MESSAGE = { succeeded: 'Feedback ready', failed: 'Analysis failed 
 // The link's ::after stretches over the whole row (one big target, one focus ring), so the retry button can share
 // the meta line as a sibling instead of nesting an interactive inside the link.
 const linkClass =
-  'text-sm text-fg after:absolute after:inset-0 after:rounded-md focus-visible:outline-none focus-visible:after:outline-2 focus-visible:after:outline-primary'
+  'text-sm text-fg after:absolute after:inset-0 after:rounded-md focus-visible:after:shadow-focus'
 
 export function EntryRow({ entry }: EntryRowProps) {
   const languageName = useLanguageName(entry.language)
@@ -46,7 +46,7 @@ export function EntryRow({ entry }: EntryRowProps) {
   }, [retried])
   return (
     <li className={cn('relative flex flex-col gap-1.5 rounded-md px-3 py-2.5 transition-colors hover:bg-bg', current && 'bg-primary-soft hover:bg-primary-soft')}>
-      <Link ref={linkRef} to={entryHref(entry.id)} aria-current={current ? 'true' : undefined} aria-describedby={`${metaId} ${statusId}`} className={linkClass}>
+      <Link ref={linkRef} to={entryHref(entry.id)} aria-current={current ? 'true' : undefined} aria-describedby={`${metaId} ${statusId}`} data-ring="custom" className={linkClass}>
         <span className="line-clamp-2">{entry.preview}</span>
       </Link>
       <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 text-xs text-fg-secondary">

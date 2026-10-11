@@ -1,7 +1,7 @@
 import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
-import { clearMockMode, failWith, setMockMode, waitForLanguages } from '@/test/helpers'
+import { clearMockMode, failWith, setMockMode, waitForLanguages, pickOption } from '@/test/helpers'
 import { renderWithProviders } from '@/test/renderWithProviders'
 import { server } from '@/test/server'
 import { ENDPOINTS } from '@/utils/endpoints'
@@ -27,7 +27,7 @@ describe('InsightsScreen', () => {
     renderInsights()
     await waitForLanguages()
     // Act
-    await user.selectOptions(screen.getByLabelText('Filter by language'), 'es')
+    await pickOption(user, screen.getByLabelText('Filter by language'), 'Spanish')
     // Assert
     expect(await screen.findByText('Verb conjugation keeps recurring: 3 of your last 5 entries.')).toBeInTheDocument()
     expect(screen.getByRole('row', { name: /Verb conjugation/ })).toHaveTextContent('Recurring · 3 of last 5')

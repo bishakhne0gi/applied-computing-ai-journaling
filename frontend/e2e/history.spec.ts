@@ -2,6 +2,7 @@ import { expect, test, type Page } from '@playwright/test'
 import { expectNoA11yViolations } from './a11y'
 import { expectButtonsShowPointer } from './cursor'
 import { mainColumn, openEntries } from './workspace'
+import { pickOption } from './select'
 
 async function expectHealthy(page: Page): Promise<void> {
   await expectNoA11yViolations(page)
@@ -18,7 +19,7 @@ test('the sidebar filters and pages entries, then opens one whose past analyses 
   // Act
   await entries.getByRole('button', { name: 'Load more' }).click()
   await expect(rows).toHaveCount(14)
-  await entries.getByLabel('Filter by language').selectOption('fr')
+  await pickOption(entries.getByLabel('Filter by language'), 'French')
   await expect(rows).toHaveCount(4)
   await expectHealthy(page)
   await entries.getByRole('link', { name: /Je suis allé au marché/ }).click()
@@ -28,7 +29,7 @@ test('the sidebar filters and pages entries, then opens one whose past analyses 
   await expect(main.getByText('Great job — no mistakes found!')).toBeVisible()
   await expect(page).toHaveURL(/[?&]entry=00000000-0000-4000-8000-000000000001/)
   await expectHealthy(page)
-  await main.getByLabel('Analysis').selectOption({ index: 1 })
+  await pickOption(main.getByLabel('Analysis'), { index: 1 })
   await expect(main.getByRole('button', { name: /à le/ })).toBeVisible()
   await expectHealthy(page)
 })

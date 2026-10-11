@@ -2,7 +2,7 @@ import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { describe, expect, it, vi } from 'vitest'
-import { apiUrl, clearMockMode, failWith, setMockMode, waitForLanguages } from '@/test/helpers'
+import { apiUrl, clearMockMode, failWith, setMockMode, waitForLanguages, pickOption } from '@/test/helpers'
 import { renderWithProviders } from '@/test/renderWithProviders'
 import { server } from '@/test/server'
 import { ENDPOINTS } from '@/utils/endpoints'
@@ -51,7 +51,7 @@ describe('HistoryList', () => {
     renderHistory()
     await waitForLanguages()
     // Act
-    await user.selectOptions(screen.getByLabelText('Filter by language'), 'fr')
+    await pickOption(user, screen.getByLabelText('Filter by language'), 'French')
     // Assert
     expect(await screen.findByText('Showing 4 entries')).toBeInTheDocument()
     expect(rows().every((row) => row.textContent?.includes('French'))).toBe(true)

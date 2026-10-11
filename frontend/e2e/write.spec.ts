@@ -2,6 +2,7 @@ import { expect, test, type Page } from '@playwright/test'
 import { expectNoA11yViolations } from './a11y'
 import { expectButtonsShowPointer } from './cursor'
 import { composerLanguage, mainColumn } from './workspace'
+import { pickOption } from './select'
 
 const ENTRY = 'Ayer yo es feliz en el [park].'
 
@@ -12,7 +13,7 @@ async function expectHealthy(page: Page): Promise<void> {
 
 async function writeEntry(page: Page, path = '/'): Promise<void> {
   await page.goto(path)
-  await composerLanguage(page).selectOption('es')
+  await pickOption(composerLanguage(page), 'Spanish')
   await page.getByLabel('Your entry').fill(ENTRY)
 }
 
@@ -110,11 +111,11 @@ test('"New entry" starts a fresh, focused editor', async ({ page }) => {
 test('the language last used is remembered across a reload', async ({ page }) => {
   // Arrange
   await page.goto('/')
-  await composerLanguage(page).selectOption('de')
+  await pickOption(composerLanguage(page), 'German')
   // Act
   await page.reload()
   // Assert
-  await expect(composerLanguage(page)).toHaveValue('de')
+  await expect(composerLanguage(page)).toHaveText('German')
   await expectHealthy(page)
 })
 

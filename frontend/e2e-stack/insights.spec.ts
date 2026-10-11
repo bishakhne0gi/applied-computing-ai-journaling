@@ -1,6 +1,9 @@
 import { expect, test, type APIRequestContext } from '@playwright/test'
 import { expectNoA11yViolations } from '../e2e/a11y'
 import { expectButtonsShowPointer } from '../e2e/cursor'
+import { pickOption } from '../e2e/select'
+
+const LANGUAGE_NAMES = { it: 'Italian', pt: 'Portuguese' } as const
 
 // Every entry has «yo es» and the last two «la problema», which the demo FakeProvider marks as errors.
 const ENTRIES = [
@@ -33,7 +36,7 @@ test('the real stack turns analysed entries into insights', async ({ page, reque
   expect(expected.status).toBe('trends')
   // Act
   await page.goto('/insights')
-  await page.getByLabel('Language').selectOption(language)
+  await pickOption(page.getByLabel('Language'), LANGUAGE_NAMES[language])
   // Assert
   const summary = page.getByRole('region', { name: 'Summary' })
   for (const sentence of expected.summary) await expect(summary).toContainText(sentence)

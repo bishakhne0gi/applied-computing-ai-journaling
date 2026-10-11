@@ -1,7 +1,7 @@
 import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
-import { clearMockMode, setMockMode, waitForLanguages } from '@/test/helpers'
+import { clearMockMode, setMockMode, waitForLanguages, pickOption } from '@/test/helpers'
 import { renderWithProviders } from '@/test/renderWithProviders'
 import { LanguageSelect } from './LanguageSelect'
 
@@ -13,7 +13,7 @@ describe('LanguageSelect', () => {
     const select = screen.getByLabelText('Language')
     // Assert
     expect(select).toBeDisabled()
-    expect(screen.getByRole('option', { name: 'Loading languages…' })).toBeInTheDocument()
+    expect(select).toHaveTextContent('Loading languages…')
     await waitForLanguages()
     expect(select).toBeEnabled()
   })
@@ -25,18 +25,21 @@ describe('LanguageSelect', () => {
     renderWithProviders(<LanguageSelect id="l" label="Language" value="es" onChange={onChange} />)
     await waitForLanguages()
     // Act
-    await user.selectOptions(screen.getByLabelText('Language'), 'it')
+    await pickOption(user, screen.getByLabelText('Language'), 'Italian')
     // Assert
     expect(onChange).toHaveBeenCalledWith('it')
   })
 
   it('can offer an option for every language', async () => {
     // Arrange
-    renderWithProviders(<LanguageSelect id="l" label="Language" value="" onChange={vi.fn()} allLabel="All languages" />)
-    // Act
+    const onChange = vi.fn()
+    const user = userEvent.setup()
+    renderWithProviders(<LanguageSelect id="l" label="Language" value="es" onChange={onChange} allLabel="All languages" />)
     await waitForLanguages()
+    // Act
+    await pickOption(user, screen.getByLabelText('Language'), 'All languages')
     // Assert
-    expect(screen.getByRole('option', { name: 'All languages' })).toHaveValue('')
+    expect(onChange).toHaveBeenCalledWith('')
   })
 
   it('offers a retry when the languages cannot load', async () => {

@@ -4,7 +4,7 @@ import { delay, http } from 'msw'
 import { describe, expect, it, vi } from 'vitest'
 import { useLocation, useNavigate } from 'react-router'
 import { Button } from '@/components/ui/Button'
-import { apiUrl, waitForLanguages } from '@/test/helpers'
+import { apiUrl, waitForLanguages, pickOption } from '@/test/helpers'
 import { renderWithProviders } from '@/test/renderWithProviders'
 import { server } from '@/test/server'
 import { ENDPOINTS } from '@/utils/endpoints'
@@ -39,7 +39,7 @@ describe('HistoryList language filter', () => {
     renderAt('/?language=fr')
     // Assert
     expect(await screen.findByText('Showing 4 entries')).toBeInTheDocument()
-    expect(screen.getByLabelText('Filter by language')).toHaveValue('fr')
+    expect(screen.getByLabelText('Filter by language')).toHaveTextContent('French')
   })
 
   it.each([
@@ -50,7 +50,7 @@ describe('HistoryList language filter', () => {
     renderAt(`/${query}`)
     // Assert
     expect(await screen.findByText('Showing 10 entries')).toBeInTheDocument()
-    expect(screen.getByLabelText('Filter by language')).toHaveValue('')
+    expect(screen.getByLabelText('Filter by language')).toHaveTextContent('All languages')
     expect(search()).toBe('')
   })
 
@@ -75,10 +75,10 @@ describe('HistoryList language filter', () => {
     renderAt('/')
     await waitForLanguages()
     // Act
-    await user.selectOptions(screen.getByLabelText('Filter by language'), 'fr')
+    await pickOption(user, screen.getByLabelText('Filter by language'), 'French')
     // Assert
     expect(search()).toBe('?language=fr')
-    await user.selectOptions(screen.getByLabelText('Filter by language'), '')
+    await pickOption(user, screen.getByLabelText('Filter by language'), 'All languages')
     expect(search()).toBe('')
   })
 
@@ -87,13 +87,13 @@ describe('HistoryList language filter', () => {
     const user = userEvent.setup()
     renderAt('/?language=fr')
     await screen.findByText('Showing 4 entries')
-    await user.selectOptions(screen.getByLabelText('Filter by language'), 'es')
+    await pickOption(user, screen.getByLabelText('Filter by language'), 'Spanish')
     await screen.findByText('Showing 10 entries')
     // Act
     await user.click(screen.getByRole('button', { name: 'Go back' }))
     // Assert
     expect(await screen.findByText('Showing 4 entries')).toBeInTheDocument()
-    expect(screen.getByLabelText('Filter by language')).toHaveValue('fr')
+    expect(screen.getByLabelText('Filter by language')).toHaveTextContent('French')
   })
 })
 

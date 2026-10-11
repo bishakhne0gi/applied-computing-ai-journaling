@@ -54,6 +54,9 @@
   --shadow-md: 0 0.25rem 0.75rem rgb(0 55 112 / 8%);
   --shadow-lg: 0 1rem 2.5rem -0.5rem rgb(0 55 112 / 16%);
 
+  /* Soft focus ring: a crisp 1px indigo edge plus a 3px indigo glow, drawn outside any border. */
+  --shadow-focus: 0 0 0 0.0625rem var(--color-primary), 0 0 0 0.25rem rgb(83 58 253 / 20%);
+
   /* Spread-only outline for editor chips: grows the tint without padding, so glyph positions never move. */
   --shadow-chip: 0 0 0 0.125rem var(--color-primary-soft);
 

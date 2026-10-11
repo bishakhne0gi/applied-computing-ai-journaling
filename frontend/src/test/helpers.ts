@@ -1,4 +1,6 @@
-import { screen } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
+import type { UserEvent } from '@testing-library/user-event'
+import { expect } from 'vitest'
 import { delay, http, HttpResponse } from 'msw'
 import { API_BASE } from '@/utils/constants'
 import { server } from './server'
@@ -16,8 +18,16 @@ export function clearMockMode(): void {
   window.history.replaceState(null, '', '/')
 }
 
+// Language selects show a disabled "Loading languages…" placeholder until the list arrives.
 export async function waitForLanguages(): Promise<void> {
-  await screen.findAllByRole('option', { name: 'Spanish' })
+  await screen.findAllByRole('combobox')
+  await waitFor(() => expect(screen.queryByText('Loading languages…')).not.toBeInTheDocument())
+}
+
+// The Select primitive is a custom combobox: open it, then click the option, as a learner would.
+export async function pickOption(user: UserEvent, combobox: HTMLElement, name: string | RegExp): Promise<void> {
+  await user.click(combobox)
+  await user.click(await screen.findByRole('option', { name }))
 }
 
 // Returning nothing falls through to the in-memory handler, so this only adds latency to assert pending states.

@@ -41,7 +41,8 @@ pills (`rounded-full`). Shadows: `sm` resting cards and inputs, `md` popovers, `
 ## Components
 - **Buttons:** primary = filled indigo pill; secondary = white pill with input-border outline, indigo on hover;
   ghost = text pill; icon = 44px round target. Disabled = 60% opacity + not-allowed cursor; the primary instead turns `primary-disabled` (lighter indigo).
-- **Inputs:** white, `border-input`, `rounded-md` (selects) / `rounded-lg` (editor), visible indigo focus ring.
+- **Inputs:** white, `border-input`, `rounded-md` (selects) / `rounded-lg` (editor). Selects are custom listboxes (white card, hairline, `shadow-md`, soft indigo active row, indigo check on the selected one), never the OS menu.
+- **Focus:** keyboard only (`:focus-visible`): a soft ring, 1px indigo edge plus a 3px indigo glow; never on headings or panels that receive focus programmatically.
 - **Cards:** white, hairline border, `shadow-sm`, `rounded-lg`; soft cards (`surface`) for secondary panels.
 - **Badges:** soft tinted pills (`danger-soft` etc.), tone colour on the text, no border.
 - **Sheets:** white panel, hairline edge, `shadow-lg`, scrim `fg` at 40%; slide with a short spring.
