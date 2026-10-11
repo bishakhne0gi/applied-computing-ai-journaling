@@ -1,14 +1,13 @@
 import { useCallback, useRef, useState } from 'react'
 import { EntryTextField } from '@/features/editor/EntryTextField'
-import { applyHint } from '@/features/live-hints/applyHint'
-import { editorDecorations } from '@/features/live-hints/editorDecorations'
+import { mergeEvents } from '@/features/editor/mergeEvents'
+import { useTextareaSelection } from '@/features/editor/useTextareaSelection'
 import { HintPopover } from '@/features/live-hints/HintPopover'
 import { LiveHintsControls } from '@/features/live-hints/LiveHintsControls'
-import type { LiveHint } from '@/features/live-hints/reanchor'
-import { useHintPopover } from '@/features/live-hints/useHintPopover'
-import { useLiveHints } from '@/features/live-hints/useLiveHints'
-import { useLiveHintsSetting } from '@/features/live-hints/useLiveHintsSetting'
-import { bracketRanges } from '@/utils/text'
+import { useComposerHints } from '@/features/live-hints/useComposerHints'
+import { ComposerRephrase, RephraseButton } from '@/features/writing-assist/rephrase/ComposerRephrase'
+import { rephraseDecorations } from '@/features/writing-assist/rephrase/rephraseDecorations'
+import { useComposerRephrase } from '@/features/writing-assist/rephrase/useComposerRephrase'
 
 export interface ComposerEditorProps {
   language: string
@@ -20,9 +19,7 @@ export interface ComposerEditorProps {
 }
 
 export function ComposerEditor({ language, value, onChange, onSubmitShortcut, readOnly, focusOnMount }: ComposerEditorProps) {
-  const [liveOn, setLiveOn] = useLiveHintsSetting()
   const [composing, setComposing] = useState(false)
-  const live = useLiveHints({ text: value, language, enabled: liveOn && !readOnly, composing })
   const textarea = useRef<HTMLTextAreaElement | null>(null)
   const attach = useCallback(
     (node: HTMLTextAreaElement | null) => {
@@ -31,44 +28,48 @@ export function ComposerEditor({ language, value, onChange, onSubmitShortcut, re
     },
     [focusOnMount],
   )
-  const { open, close, returnToText, textareaEvents } = useHintPopover(live.hints, textarea)
-  const accept = (hint: LiveHint) => {
-    close()
-    if (textarea.current) applyHint(textarea.current, hint)
-  }
-  const dismiss = (hint: LiveHint) => {
-    close()
-    live.dismiss(hint.key)
-  }
+  const selection = useTextareaSelection()
+  const hints = useComposerHints({ value, language, readOnly, composing, textarea })
+  const rephrase = useComposerRephrase({ value, language, readOnly, selection: selection.selection, textarea })
+  const { open } = hints
+  const composingEvents = { onCompositionStart: () => setComposing(true), onCompositionEnd: () => setComposing(false) }
   return (
     <EntryTextField
       id="entry-text"
       label="Your entry"
       value={value}
       onChange={(text) => {
-        close()
+        hints.close()
         onChange(text)
       }}
+      onTextareaChange={selection.sync}
       onSubmitShortcut={onSubmitShortcut}
       readOnly={readOnly}
       textareaRef={attach}
-      decorations={editorDecorations(bracketRanges(value), live.hints)}
-      textareaEvents={{ ...textareaEvents, onCompositionStart: () => setComposing(true), onCompositionEnd: () => setComposing(false) }}
+      decorations={rephraseDecorations(hints.decorations, rephrase.open?.span ?? null)}
+      textareaEvents={mergeEvents(selection.events, rephrase.events, hints.events, composingEvents)}
       overlay={
-        open && (
-          <HintPopover
-            hint={open}
-            onAccept={() => accept(open)}
-            onDismiss={() => {
-              dismiss(open)
-              textarea.current?.focus()
-            }}
-            onClose={close}
-            onEscape={returnToText}
-          />
-        )
+        <>
+          {open && !rephrase.open && (
+            <HintPopover
+              hint={open}
+              onAccept={() => hints.accept(open)}
+              onDismiss={() => {
+                hints.dismiss(open)
+                textarea.current?.focus()
+              }}
+              onClose={hints.close}
+              onEscape={hints.returnToText}
+            />
+          )}
+          <ComposerRephrase rephrase={rephrase} />
+        </>
       }
-      footer={<LiveHintsControls on={liveOn} onToggle={setLiveOn} hints={live.hints} announcement={live.announcement} onAccept={accept} onDismiss={dismiss} />}
+      footer={
+        <LiveHintsControls {...hints.controls} message={rephrase.announcement}>
+          <RephraseButton rephrase={rephrase} />
+        </LiveHintsControls>
+      }
     />
   )
 }

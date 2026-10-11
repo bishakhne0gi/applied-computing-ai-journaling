@@ -1,4 +1,4 @@
-import { useId, useLayoutEffect, useRef, useState } from 'react'
+import { useId, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Icon } from '@/components/ui/Icon'
 import { Switch } from '@/components/ui/Switch'
@@ -15,9 +15,14 @@ export interface LiveHintsControlsProps {
   announcement: number
   onAccept: (hint: LiveHint) => void
   onDismiss: (hint: LiveHint) => void
+  // A one-off spoken message (a sentence was replaced) shares the polite region; it wins over the hint count until it clears.
+  message?: string
+  children?: ReactNode // other composer actions share the switch row
 }
 
-export function LiveHintsControls({ on, onToggle, hints, announcement, onAccept, onDismiss }: LiveHintsControlsProps) {
+const spoken = (message: string, hints: number) => message || (hints > 0 ? pluralize(hints, 'hint') : '')
+
+export function LiveHintsControls({ on, onToggle, hints, announcement, onAccept, onDismiss, message = '', children }: LiveHintsControlsProps) {
   const [expanded, setExpanded] = useState(false)
   const root = useRef<HTMLDivElement>(null)
   // Where focus goes once the acted-on hint is gone: its neighbour, or the switch when the list empties.
@@ -50,9 +55,10 @@ export function LiveHintsControls({ on, onToggle, hints, announcement, onAccept,
             <Icon name="chevron" className={cn('size-4 transition-transform motion-reduce:transition-none', expanded && 'rotate-180')} />
           </Button>
         )}
+        {children}
         {/* aria-live, not role="status": the composer's save status stays the only status. */}
         <p aria-live="polite" className="sr-only">
-          {on && announcement > 0 ? pluralize(announcement, 'hint') : ''}
+          {spoken(message, on ? announcement : 0)}
         </p>
       </div>
       {visible && expanded && <HintList id={listId} hints={hints} onAccept={(hint) => fromList(hint, onAccept)} onDismiss={(hint) => fromList(hint, onDismiss)} />}

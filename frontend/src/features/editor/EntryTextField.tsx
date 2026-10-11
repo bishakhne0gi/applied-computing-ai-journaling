@@ -6,6 +6,8 @@ import { pluralize } from '@/utils/formatter'
 import { bracketRanges, countWords, entryLength } from '@/utils/text'
 import { cn } from '@/utils/utils'
 
+export type TextareaEvents = Pick<ComponentProps<'textarea'>, 'onClick' | 'onSelect' | 'onBlur' | 'onFocus' | 'onKeyUp' | 'onKeyDown' | 'onCompositionStart' | 'onCompositionEnd'>
+
 export interface EntryTextFieldProps {
   id: string
   label: string
@@ -17,13 +19,15 @@ export interface EntryTextFieldProps {
   // Replaces the default `[word]` chips; callers that add decorations merge the chips themselves.
   decorations?: readonly Decoration[]
   // Extra listeners on the textarea (the live-hint popover follows the caret); Ctrl/Cmd+Enter stays this component's.
-  textareaEvents?: Pick<ComponentProps<'textarea'>, 'onClick' | 'onSelect' | 'onBlur' | 'onKeyDown' | 'onCompositionStart' | 'onCompositionEnd'>
+  textareaEvents?: TextareaEvents
+  // Called with the element before `onChange`, so a selection owner updates in the same render as the value.
+  onTextareaChange?: (textarea: HTMLTextAreaElement) => void
   // Positioned over the editor (absolute, inside a relative frame): the live-hint popover.
   overlay?: ReactNode
   footer?: ReactNode
 }
 
-export function EntryTextField({ id, label, value, onChange, onSubmitShortcut, readOnly = false, textareaRef, decorations, textareaEvents, overlay, footer }: EntryTextFieldProps) {
+export function EntryTextField({ id, label, value, onChange, onSubmitShortcut, readOnly = false, textareaRef, decorations, textareaEvents, onTextareaChange, overlay, footer }: EntryTextFieldProps) {
   const hintId = `${id}-hint`
   const countId = `${id}-count`
   const overId = `${id}-over`
@@ -48,7 +52,10 @@ export function EntryTextField({ id, label, value, onChange, onSubmitShortcut, r
           readOnly={readOnly}
           aria-describedby={over > 0 ? `${hintId} ${countId} ${overId}` : `${hintId} ${countId}`}
           aria-invalid={over > 0}
-          onChange={(event) => onChange(event.target.value)}
+          onChange={(event) => {
+            onTextareaChange?.(event.target)
+            onChange(event.target.value)
+          }}
           {...textareaEvents}
           onKeyDown={onKeyDown}
         />
