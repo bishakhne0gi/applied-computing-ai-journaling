@@ -22,6 +22,13 @@ describe('Button', () => {
     expect(screen.getByRole('button', { name: 'Go' })).toHaveClass('bg-primary', 'cursor-pointer', 'min-h-11')
   })
 
+  it('has an option variant: a full-width, left-aligned row that tints on hover', () => {
+    // Arrange + Act
+    render(<Button variant="option">Pick me</Button>)
+    // Assert
+    expect(screen.getByRole('button', { name: 'Pick me' })).toHaveClass('w-full', 'justify-start', 'text-left', 'hover:bg-primary-soft')
+  })
+
   it('does not fire when disabled', async () => {
     // Arrange
     const onClick = vi.fn()

@@ -11,6 +11,7 @@ const variants = {
   plain: 'rounded-sm',
   field: 'min-h-11 w-full justify-between rounded-md border border-border-input bg-bg px-3 text-left text-sm text-fg shadow-sm',
   inline: 'inline rounded-sm px-0.5',
+  option: 'min-h-11 w-full justify-start rounded-md px-2 py-1 text-left text-base text-fg hover:bg-primary-soft',
 } as const
 
 export interface ButtonProps extends ComponentProps<'button'> {
