@@ -95,4 +95,11 @@ describe('Workspace', () => {
     expect(await within(main()).findByRole('heading', { level: 1, name: 'Entry not found' })).toBeInTheDocument()
     expect(within(main()).queryByRole('button', { name: 'Try again' })).not.toBeInTheDocument()
   })
+
+  it('says in the header which language the workspace is filtered to', async () => {
+    // Arrange + Act
+    renderWorkspace('/?language=fr')
+    // Assert
+    expect(await within(screen.getByRole('banner')).findByText('French')).toBeInTheDocument()
+  })
 })

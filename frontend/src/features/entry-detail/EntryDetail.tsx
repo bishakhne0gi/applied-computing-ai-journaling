@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { ErrorState } from '@/components/ui/ErrorState'
 import { LoadingState } from '@/components/ui/LoadingState'
+import { Skeleton } from '@/components/ui/Skeleton'
 import { PageHeading } from '@/components/ui/PageHeading'
 import { useFocusOnMount } from '@/hooks/misc/useFocusOnMount'
 import { useAnalysesQuery } from '@/hooks/queries/useAnalysesQuery'
@@ -46,7 +47,14 @@ function EntryDetailBody({ entry, analyses }: EntryDetailBodyProps) {
   if (analyses.isError && !analyses.data) {
     return <ErrorState message={toErrorMessage(analyses.error)} onRetry={() => void analyses.refetch()} />
   }
-  if (!entry.data || !analyses.data) return <LoadingState label="Loading entry…" />
+  if (!entry.data || !analyses.data) {
+    return (
+      <LoadingState label="Loading entry…">
+        <Skeleton className="h-5 w-1/2" />
+        <Skeleton className="h-40" />
+      </LoadingState>
+    )
+  }
   return <EntryDetailReady entry={entry.data} analyses={analyses.data} />
 }
 

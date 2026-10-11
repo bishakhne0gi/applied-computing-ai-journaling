@@ -1,6 +1,7 @@
 import { Link } from 'react-router'
 import { Button } from '@/components/ui/Button'
 import { Icon } from '@/components/ui/Icon'
+import { LanguageStatus } from './LanguageStatus'
 
 export interface WorkspaceHeaderProps {
   // Absent off the workspace (the not-found page): the brand stays, the sheet trigger has nothing to open over.
@@ -15,6 +16,7 @@ export function WorkspaceHeader({ insights }: WorkspaceHeaderProps) {
         <Link to="/" className="text-lg font-light tracking-tight text-fg">
           Language Journal
         </Link>
+        <LanguageStatus />
         {insights && (
           <Button className="ml-auto" aria-haspopup="dialog" aria-expanded={insights.open} onClick={insights.onOpen}>
             <Icon name="chart" className="size-4" />

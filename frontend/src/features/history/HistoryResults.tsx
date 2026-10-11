@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/Button'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { ErrorState } from '@/components/ui/ErrorState'
 import { LoadingState } from '@/components/ui/LoadingState'
+import { Skeleton } from '@/components/ui/Skeleton'
 import type { useEntriesQuery } from '@/hooks/queries/useEntriesQuery'
 import { toErrorMessage } from '@/utils/errorMessage'
 import { pluralize } from '@/utils/formatter'
@@ -15,9 +16,11 @@ export interface HistoryResultsProps {
   onStartWriting: () => void
 }
 
+const ROW_PLACEHOLDERS = [0, 1, 2, 3].map((n) => <Skeleton key={n} className="h-14" />)
+
 export function HistoryResults({ entries, filtered, onStartWriting }: HistoryResultsProps) {
   const { listRef, expectRowsAfter } = useFocusNewRows(entries.data?.length ?? 0)
-  if (entries.isPending) return <LoadingState label="Loading entries…" />
+  if (entries.isPending) return <LoadingState label="Loading entries…">{ROW_PLACEHOLDERS}</LoadingState>
   // With pages already loaded, a failed "Load more" is reported next to its button instead.
   if (entries.isError && !entries.data) {
     return <ErrorState message={toErrorMessage(entries.error)} onRetry={() => void entries.refetch()} />

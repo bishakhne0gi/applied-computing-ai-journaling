@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test'
 import { expectNoA11yViolations } from './a11y'
 import { expectButtonsShowPointer } from './cursor'
-import { composerLanguage, mainColumn } from './workspace'
+import { composerLanguage, mainColumn, openEntries } from './workspace'
 import { pickOption } from './select'
 
 async function expectHealthy(page: Page): Promise<void> {
@@ -129,4 +129,17 @@ test('a long unbroken example wraps instead of scrolling the page sideways on a 
   // Assert
   await expect(insights(page).getByRole('row', { name: /Verb conjugation/ })).toContainText('x'.repeat(120))
   await expectNoHorizontalScroll(page)
+})
+
+test('the progress card in the sidebar opens insights for the same language', async ({ page }) => {
+  // Arrange
+  await page.goto('/?language=es')
+  const entries = await openEntries(page)
+  const progress = entries.getByRole('region', { name: 'Progress' })
+  await expect(progress.getByRole('img', { name: /Errors per 100 words/ })).toBeVisible()
+  await expectHealthy(page)
+  // Act
+  await progress.getByRole('button', { name: 'Open insights' }).click()
+  // Assert
+  await expect(summary(page)).toContainText('Verb conjugation keeps recurring')
 })

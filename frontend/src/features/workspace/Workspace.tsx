@@ -28,7 +28,7 @@ export function Workspace() {
           aria-label="Your entries"
           className="order-last border-t border-border bg-surface px-4 py-8 lg:order-none lg:w-sidebar lg:shrink-0 lg:border-t-0 lg:border-r lg:px-6"
         >
-          <Sidebar onNewEntry={startNewEntry} />
+          <Sidebar onNewEntry={startNewEntry} onOpenInsights={openInsights} />
         </aside>
         <main id="main" tabIndex={-1} className="min-w-0 flex-1 px-4 py-8 lg:px-10">
           <div className="flex max-w-main flex-col gap-6">
