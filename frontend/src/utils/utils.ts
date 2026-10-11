@@ -1,10 +1,10 @@
 import { clsx, type ClassValue } from 'clsx'
 import { extendTailwindMerge } from 'tailwind-merge'
 
-// Teach tailwind-merge our custom tokens so `z-toast` overrides `z-overlay`, `max-w-full` overrides `max-w-content`.
+// Teach tailwind-merge our custom tokens so `z-toast` overrides `z-overlay`, `max-w-full` overrides `max-w-main`.
 const twMerge = extendTailwindMerge({
   extend: {
-    theme: { container: ['content', 'sidebar', 'main', 'sheet'] },
+    theme: { container: ['sidebar', 'main', 'sheet'] },
     classGroups: { z: [{ z: ['dropdown', 'sticky', 'overlay', 'toast'] }] },
   },
 })

@@ -3,8 +3,6 @@ import { AnimatePresence } from 'motion/react'
 import { createPortal } from 'react-dom'
 import { SheetPanel, type SheetPanelProps } from './SheetPanel'
 
-export type { SheetSide } from './SheetPanel'
-
 export interface SheetProps extends SheetPanelProps {
   open: boolean
 }

@@ -54,7 +54,7 @@ export function HighlightedTextarea({ value, decorations, className, onScroll, r
           syncScroll()
           onScroll?.(event)
         }}
-        className={cn(layerClass, 'relative block resize-y bg-transparent text-transparent caret-fg placeholder:text-muted selection:bg-primary/25 read-only:bg-transparent', className)}
+        className={cn(layerClass, 'relative block resize-y bg-transparent text-transparent caret-fg selection:bg-primary/25 placeholder:text-muted read-only:bg-transparent', className)}
         {...rest}
       />
     </div>

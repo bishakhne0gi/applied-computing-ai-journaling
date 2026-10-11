@@ -15,7 +15,7 @@ describe('cn', () => {
 describe('cn with custom tokens', () => {
   it('lets a caller override the layer and width tokens instead of keeping both', () => {
     // Arrange
-    const base = 'z-overlay max-w-content'
+    const base = 'z-overlay max-w-main'
     // Act
     const merged = cn(base, 'z-toast max-w-full')
     // Assert
