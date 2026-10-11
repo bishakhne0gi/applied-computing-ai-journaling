@@ -12,10 +12,10 @@ describe('labels', () => {
   })
 
   it.each([
-    ['provider_timeout', 'The AI took too long to respond. Your entry is saved — try again.'],
-    ['invalid_output', 'The AI sent back feedback we could not read. Your entry is saved — try again.'],
-    ['provider_error', 'The AI service is unavailable right now. Your entry is saved — try again.'],
-    [null, 'The analysis did not finish. Your entry is saved — try again.'],
+    ['provider_timeout', 'The AI took too long to respond. Your entry is saved. Try again.'],
+    ['invalid_output', 'The AI sent back feedback we could not read. Your entry is saved. Try again.'],
+    ['provider_error', 'The AI service is unavailable right now. Your entry is saved. Try again.'],
+    [null, 'The analysis did not finish. Your entry is saved. Try again.'],
   ] as const)('explains %s and reassures that the entry is saved', (code, expected) => {
     // Arrange
     const failure = code

@@ -34,7 +34,7 @@ describe('mock analyzer', () => {
     const analysis = analyzeText('entry-1', text)
     // Assert
     expect(analysis.mistakes).toEqual([])
-    expect(analysis.feedback_summary).toBe('Great job — no mistakes found!')
+    expect(analysis.feedback_summary).toBe('Great job, no mistakes found!')
   })
 
   it('does not match a phrase hidden inside a longer word', () => {

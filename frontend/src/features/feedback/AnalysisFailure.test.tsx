@@ -13,7 +13,7 @@ describe('AnalysisFailure', () => {
     // Act
     await userEvent.setup().click(screen.getByRole('button', { name: 'Retry analysis' }))
     // Assert
-    expect(screen.getByRole('alert')).toHaveTextContent('The AI took too long to respond. Your entry is saved — try again.')
+    expect(screen.getByRole('alert')).toHaveTextContent('The AI took too long to respond. Your entry is saved. Try again.')
     expect(onRetry).toHaveBeenCalledTimes(1)
   })
 

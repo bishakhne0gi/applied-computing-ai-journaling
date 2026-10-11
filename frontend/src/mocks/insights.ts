@@ -107,9 +107,9 @@ function trendSentence(subject: string, trend: Trend | null, earlier: number | n
 
 function summarise(body: Body): string[] {
   if (body.status === 'insufficient_data') {
-    return [`Insights start after ${MIN_ENTRIES} entries with feedback — ${MIN_ENTRIES - body.entry_count} to go.`]
+    return [`Insights start after ${MIN_ENTRIES} entries with feedback (${MIN_ENTRIES - body.entry_count} to go).`]
   }
-  const perHundred = body.error_rate === null ? '' : ` — ${body.error_rate.toFixed(1)} per 100 words`
+  const perHundred = body.error_rate === null ? '' : `, ${body.error_rate.toFixed(1)} per 100 words`
   const moving = body.categories.filter((item) => item.trend !== 'stable')
   return [
     `${pluralize(body.total_errors, 'error')} across ${body.entry_count} entries${perHundred}.`,

@@ -31,7 +31,7 @@ async def test_no_entries_yet_means_three_to_go(client: AsyncClient) -> None:
         "recurring_window": 0,
         "points": [],
         "categories": [],
-        "summary": ["Insights start after 3 entries with feedback — 3 to go."],
+        "summary": ["Insights start after 3 entries with feedback (3 to go)."],
     }
 
 
@@ -53,7 +53,7 @@ async def test_four_analysed_entries_report_trends_from_their_errors(make_api: A
     assert categories["article"]["latest_example"] == {"original": "a el", "correction": "al"}
     assert categories["gender_agreement"]["trend"] == "improving"
     assert [point["error_count"] for point in body["points"]] == [1, 1, 0, 1]
-    assert body["summary"][0] == "3 errors across 4 entries — 17.6 per 100 words."
+    assert body["summary"][0] == "3 errors across 4 entries, 17.6 per 100 words."
 
 
 async def test_re_analysing_an_entry_never_counts_it_twice(make_api: ApiFactory) -> None:

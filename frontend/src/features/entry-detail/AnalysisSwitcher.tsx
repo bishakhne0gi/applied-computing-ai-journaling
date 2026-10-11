@@ -13,7 +13,7 @@ export interface AnalysisSwitcherProps {
 function optionLabel(analysis: AnalysisOut, latest: boolean): string {
   const errors = analysis.mistakes.filter((mistake) => mistake.kind === 'error').length
   const outcome = analysis.status === 'succeeded' ? pluralize(errors, 'error') : analysis.status === 'pending' ? 'interrupted' : 'failed'
-  return `${formatDateTime(analysis.created_at)} — ${outcome}${latest ? ' (latest)' : ''}`
+  return `${formatDateTime(analysis.created_at)} · ${outcome}${latest ? ' (latest)' : ''}`
 }
 
 export function AnalysisSwitcher({ analyses, value, onChange }: AnalysisSwitcherProps) {

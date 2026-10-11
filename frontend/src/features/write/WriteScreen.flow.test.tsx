@@ -65,7 +65,7 @@ describe('WriteScreen submitting', () => {
     const user = await startWithDraft()
     await user.click(getFeedback())
     const alert = await screen.findByRole('alert')
-    expect(alert).toHaveTextContent('The AI took too long to respond. Your entry is saved — try again.')
+    expect(alert).toHaveTextContent('The AI took too long to respond. Your entry is saved. Try again.')
     // Act
     await user.click(within(alert).getByRole('button', { name: 'Retry analysis' }))
     // Assert
@@ -107,7 +107,7 @@ describe('WriteScreen submitting', () => {
     await user.type(editor, 'Ayer fui feliz.')
     await user.click(screen.getByRole('button', { name: 'Re-check' }))
     // Assert
-    expect(await screen.findByText('Great job — no mistakes found!')).toBeInTheDocument()
+    expect(await screen.findByText('Great job, no mistakes found!')).toBeInTheDocument()
   })
 
   it('starts a fresh, focused entry from "New entry"', async () => {

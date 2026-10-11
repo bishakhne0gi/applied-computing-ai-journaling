@@ -29,7 +29,7 @@ test('insights open over the workspace with the summary, the chart and the categ
   await openInsights(page)
   // Assert
   await expect(page).toHaveURL('/?insights=1')
-  await expect(summary(page)).toContainText('6 errors across 11 entries — 7.6 per 100 words.')
+  await expect(summary(page)).toContainText('6 errors across 11 entries, 7.6 per 100 words.')
   await expect(insights(page).getByRole('img', { name: /across 11 entries.*Overall: steady/ })).toBeVisible()
   await expect(insights(page).getByRole('row', { name: /Verb conjugation/ })).toContainText('Getting worse')
   await expect(insights(page).getByRole('row', { name: /Article/ })).toContainText('Improving')
@@ -49,7 +49,7 @@ test('the filter narrows insights, and below three entries offers a way to write
   await expect(insights(page).getByRole('row', { name: /Verb conjugation/ })).toContainText('Recurring · 3 of last 5')
   await expectHealthy(page)
   await pickOption(insights(page).getByLabel('Filter by language'), 'German')
-  await expect(insights(page).getByText('Insights start after 3 entries with feedback — 3 to go.')).toBeVisible()
+  await expect(insights(page).getByText('Insights start after 3 entries with feedback (3 to go).')).toBeVisible()
   await expectHealthy(page)
   await insights(page).getByRole('link', { name: 'Write an entry' }).click()
   await expect(insights(page)).toBeHidden()

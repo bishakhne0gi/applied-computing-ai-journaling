@@ -55,7 +55,7 @@ describe('query hooks', () => {
     // Act
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
     // Assert
-    expect(result.current.data?.latest_analysis?.feedback_summary).toBe('Great job — no mistakes found!')
+    expect(result.current.data?.latest_analysis?.feedback_summary).toBe('Great job, no mistakes found!')
   })
 
   it('lists past analyses newest first', async () => {

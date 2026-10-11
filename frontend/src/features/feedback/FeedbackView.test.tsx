@@ -125,7 +125,7 @@ describe('FeedbackView', () => {
 
   it('says when there is nothing to correct', () => {
     // Arrange
-    const clean = buildAnalysis({ mistakes: [], feedback_summary: 'Great job — no mistakes found!' })
+    const clean = buildAnalysis({ mistakes: [], feedback_summary: 'Great job, no mistakes found!' })
     // Act
     render(<FeedbackView analysis={clean} />)
     // Assert

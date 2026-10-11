@@ -13,4 +13,6 @@ export async function expectNoA11yViolations(page: Page): Promise<void> {
   const { violations } = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze()
   const blocking = violations.filter((v) => v.impact === 'serious' || v.impact === 'critical')
   expect(blocking.map((v) => `${v.id}: ${v.help}`)).toEqual([])
+  // House style: no em dashes in any copy the learner sees, including text that comes from the API.
+  expect(await page.locator('body').innerText()).not.toContain('\u2014')
 }

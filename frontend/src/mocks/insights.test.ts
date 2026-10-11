@@ -33,7 +33,7 @@ describe('mock insights', () => {
     // Assert
     expect(insights).toMatchObject({ status: 'trends', entry_count: 11, total_errors: 6, earlier_rate: 8.8, recent_rate: 7.7, trend: 'stable' })
     expect(insights.summary).toEqual([
-      '6 errors across 11 entries — 7.6 per 100 words.',
+      '6 errors across 11 entries, 7.6 per 100 words.',
       'Overall, your error rate is steady (8.8 → 7.7 per 100 words).',
       'Verb conjugation is getting worse (2.9 → 5.1 per 100 words).',
       'Article is improving (2.9 → 0.0 per 100 words).',
@@ -47,7 +47,7 @@ describe('mock insights', () => {
     const insights = insightsFor(language)
     // Assert
     expect(insights.summary).toEqual([
-      '6 errors across 8 entries — 9.8 per 100 words.',
+      '6 errors across 8 entries, 9.8 per 100 words.',
       'Overall, your error rate is getting worse (3.8 → 14.3 per 100 words).',
       'Verb conjugation is getting worse (0.0 → 8.6 per 100 words).',
       'Gender agreement is improving (3.8 → 2.9 per 100 words).',
@@ -65,7 +65,7 @@ describe('mock insights', () => {
     // Assert
     expect(insights).toMatchObject({ status: 'totals_only', entry_count: 3, total_errors: 0, categories: [], trend: null })
     expect(insights.points).toHaveLength(3)
-    expect(insights.summary).toEqual(['0 errors across 3 entries — 0.0 per 100 words.', 'Trends start at 4 entries with feedback.'])
+    expect(insights.summary).toEqual(['0 errors across 3 entries, 0.0 per 100 words.', 'Trends start at 4 entries with feedback.'])
   })
 
   it('says how many entries are still needed below three', () => {
@@ -75,7 +75,7 @@ describe('mock insights', () => {
     const insights = insightsFor(language)
     // Assert
     expect(insights).toMatchObject({ status: 'insufficient_data', entry_count: 0, points: [], categories: [] })
-    expect(insights.summary).toEqual(['Insights start after 3 entries with feedback — 3 to go.'])
+    expect(insights.summary).toEqual(['Insights start after 3 entries with feedback (3 to go).'])
   })
 
   it('keeps an entry’s last good feedback when a newer analysis failed', () => {

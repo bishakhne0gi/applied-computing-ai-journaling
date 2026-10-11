@@ -56,10 +56,10 @@ def _demo_response(entry: str) -> str:
             mistakes.append(_item("error", category, found.group(0), right, explanation))
         corrected = pattern.sub(_case_preserving(right), corrected)
     for match in _BRACKETED.finditer(entry):
-        explanation = "Demo mode cannot translate — set ANTHROPIC_API_KEY for real help."
+        explanation = "Demo mode cannot translate. Set ANTHROPIC_API_KEY for real help."
         mistakes.append(_item("vocab_help", Category.VOCABULARY, match.group(0), match.group(1), explanation))
     corrected = _BRACKETED.sub(r"\1", corrected)
-    summary = "Demo feedback — configure Claude for real corrections."
+    summary = "Demo feedback. Configure Claude for real corrections."
     return json.dumps({"corrected_text": corrected, "feedback_summary": summary, "mistakes": mistakes})
 
 

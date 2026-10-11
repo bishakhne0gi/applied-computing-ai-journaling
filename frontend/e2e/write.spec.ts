@@ -69,7 +69,7 @@ test('revising an entry re-checks it and shows the new feedback', async ({ page 
   await expectHealthy(page)
   await page.getByRole('button', { name: 'Re-check' }).click()
   // Assert
-  await expect(page.getByText('Great job — no mistakes found!')).toBeVisible()
+  await expect(page.getByText('Great job, no mistakes found!')).toBeVisible()
   await expectHealthy(page)
 })
 

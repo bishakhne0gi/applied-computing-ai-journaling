@@ -81,7 +81,7 @@ function applyFixes(text: string, hits: Hit[]): string {
 }
 
 function summarise(count: number): string {
-  return count === 0 ? 'Great job — no mistakes found!' : `Good effort! ${pluralize(count, 'thing')} to look at.`
+  return count === 0 ? 'Great job, no mistakes found!' : `Good effort! ${pluralize(count, 'thing')} to look at.`
 }
 
 export function analyzeText(entryId: string, text: string, createdAt = new Date().toISOString()): AnalysisOut {

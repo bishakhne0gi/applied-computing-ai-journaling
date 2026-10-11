@@ -19,7 +19,7 @@ const FAILURE_MESSAGES: Record<FailureCode, string> = {
 
 export function failureMessage(code: FailureCode | null): string {
   const reason = code ? FAILURE_MESSAGES[code] : 'The analysis did not finish.'
-  return `${reason} Your entry is saved — try again.`
+  return `${reason} Your entry is saved. Try again.`
 }
 
 export const KIND_HINTS: Record<MistakeKind, string> = {

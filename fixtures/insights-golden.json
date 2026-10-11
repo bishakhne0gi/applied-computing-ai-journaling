@@ -78,7 +78,7 @@
         "points": [],
         "categories": [],
         "summary": [
-          "Insights start after 3 entries with feedback — 1 to go."
+          "Insights start after 3 entries with feedback (1 to go)."
         ]
       }
     },
@@ -235,7 +235,7 @@
           }
         ],
         "summary": [
-          "8 errors across 3 entries — 2.7 per 100 words.",
+          "8 errors across 3 entries, 2.7 per 100 words.",
           "Article keeps recurring: 3 of your last 3 entries.",
           "Trends start at 4 entries with feedback."
         ]
@@ -560,7 +560,7 @@
           }
         ],
         "summary": [
-          "39 errors across 8 entries — 1.6 per 100 words.",
+          "39 errors across 8 entries, 1.6 per 100 words.",
           "Overall, your error rate is improving (2.0 → 1.5 per 100 words).",
           "Article is improving (2.0 → 1.1 per 100 words).",
           "Article keeps recurring: 4 of your last 5 entries.",

@@ -24,7 +24,7 @@ describe('EntryDetail', () => {
     // Assert
     expect(screen.getByRole('status')).toHaveTextContent('Loading entry…')
     await waitFor(() => expect(screen.getByRole('status').querySelectorAll('[aria-hidden="true"]')).toHaveLength(2))
-    expect(await screen.findByText('Great job — no mistakes found!')).toBeInTheDocument()
+    expect(await screen.findByText('Great job, no mistakes found!')).toBeInTheDocument()
     expect(await screen.findByText(/French · .* · 8 words/)).toBeInTheDocument()
   })
 
@@ -106,14 +106,14 @@ describe('EntryDetail', () => {
   it('keeps showing the entry when a background refresh fails', async () => {
     // Arrange
     const { client } = renderWithProviders(<EntryDetail entryId={SEEDED.revisedFrench} />)
-    await screen.findByText('Great job — no mistakes found!')
+    await screen.findByText('Great job, no mistakes found!')
     failWith('get', ENDPOINTS.entry(':entryId'))
     failWith('get', ENDPOINTS.analyses(':entryId'))
     // Act
     await act(() => client.refetchQueries({ queryKey: journalKeys.entry(SEEDED.revisedFrench) }))
     await waitFor(() => expect(client.getQueryState(journalKeys.entry(SEEDED.revisedFrench))?.status).toBe('error'))
     // Assert
-    expect(screen.getByText('Great job — no mistakes found!')).toBeInTheDocument()
+    expect(screen.getByText('Great job, no mistakes found!')).toBeInTheDocument()
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   })
 
@@ -142,7 +142,7 @@ describe('EntryDetail', () => {
     await user.type(editor, 'Hoy fue difícil, pero soy optimista.')
     await user.click(screen.getByRole('button', { name: 'Re-check' }))
     // Assert
-    expect(await screen.findByText('Great job — no mistakes found!')).toBeInTheDocument()
+    expect(await screen.findByText('Great job, no mistakes found!')).toBeInTheDocument()
     expect(screen.getByLabelText('Analysis')).toHaveTextContent(/\(latest\)$/)
     await user.click(screen.getByLabelText('Analysis'))
     const options = screen.getAllByRole('option')
@@ -167,7 +167,7 @@ describe('EntryDetail', () => {
     observer.observe(document.body, { childList: true, subtree: true, characterData: true })
     // Act
     await user.click(screen.getByRole('button', { name: 'Re-check' }))
-    await screen.findByText('Great job — no mistakes found!')
+    await screen.findByText('Great job, no mistakes found!')
     observer.disconnect()
     // Assert
     expect(sawOld).toBe(false)

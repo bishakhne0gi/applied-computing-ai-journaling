@@ -61,7 +61,7 @@ export function EntryTextField({ id, label, value, onChange, onSubmitShortcut, r
       </div>
       {over > 0 && (
         <p id={overId} className="text-sm text-danger">
-          {`${pluralize(over, 'character')} too long — shorten the entry to get feedback.`}
+          {`${pluralize(over, 'character')} too long. Shorten the entry to get feedback.`}
         </p>
       )}
       {footer}

@@ -26,7 +26,7 @@ test('the sidebar filters and pages entries, then opens one whose past analyses 
   // Assert
   const main = mainColumn(page)
   await expect(main.getByRole('heading', { level: 1, name: ENTRY_TITLE })).toBeFocused()
-  await expect(main.getByText('Great job — no mistakes found!')).toBeVisible()
+  await expect(main.getByText('Great job, no mistakes found!')).toBeVisible()
   await expect(page).toHaveURL(/[?&]entry=00000000-0000-4000-8000-000000000001/)
   await expectHealthy(page)
   await pickOption(main.getByLabel('Analysis'), { index: 1 })

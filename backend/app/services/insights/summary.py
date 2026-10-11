@@ -22,7 +22,7 @@ def category_label(category: Category) -> str:
 def summarize(insights: Insights) -> tuple[str, ...]:
     if insights.status is InsightsStatus.INSUFFICIENT_DATA:
         remaining = MIN_ENTRIES - insights.entry_count
-        return (f"Insights start after {MIN_ENTRIES} entries with feedback — {remaining} to go.",)
+        return (f"Insights start after {MIN_ENTRIES} entries with feedback ({remaining} to go).",)
     overall = _trend_sentence(
         "Overall, your error rate", insights.trend, insights.earlier_rate, insights.recent_rate
     )
@@ -41,7 +41,7 @@ def _headline(insights: Insights) -> str:
     counted = f"{insights.total_errors} {noun} across {insights.entry_count} entries"
     if insights.error_rate is None:
         return f"{counted}."
-    return f"{counted} — {insights.error_rate:.1f} per 100 words."
+    return f"{counted}, {insights.error_rate:.1f} per 100 words."
 
 
 def _trend_sentence(
