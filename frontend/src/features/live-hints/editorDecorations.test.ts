@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { CHIP_CLASS } from '@/components/ui/HighlightedTextarea'
-import { underlineClasses } from '@/features/feedback/markClasses'
+import { liveUnderlineClasses } from '@/features/feedback/markClasses'
 import { editorDecorations } from './editorDecorations'
 import type { LiveHint } from './reanchor'
 
@@ -28,20 +28,20 @@ describe('editorDecorations', () => {
     // Arrange + Act
     const decorations = editorDecorations([], [liveHint(4, 9, 'suggestion')])
     // Assert
-    expect(decorations).toEqual([{ id: 'k4@4', start: 4, end: 9, className: underlineClasses.suggestion }])
+    expect(decorations).toEqual([{ id: 'k4@4', start: 4, end: 9, className: liveUnderlineClasses.suggestion }])
   })
 
   it('combines a hint on a chip into one tinted, underlined decoration', () => {
     // Arrange + Act
     const decorations = editorDecorations([{ start: 6, end: 12 }], [liveHint(6, 12, 'vocab_help')])
     // Assert
-    expect(decorations).toEqual([{ id: 'k6@6', start: 6, end: 12, className: `${CHIP_CLASS} ${underlineClasses.vocab_help}` }])
+    expect(decorations).toEqual([{ id: 'k6@6', start: 6, end: 12, className: `${CHIP_CLASS} ${liveUnderlineClasses.vocab_help}` }])
   })
 
   it('lets a hint win over a chip it only partly covers', () => {
     // Arrange + Act
     const decorations = editorDecorations([{ start: 6, end: 12 }], [liveHint(4, 8)])
     // Assert
-    expect(decorations).toEqual([{ id: 'k4@4', start: 4, end: 8, className: underlineClasses.error }])
+    expect(decorations).toEqual([{ id: 'k4@4', start: 4, end: 8, className: liveUnderlineClasses.error }])
   })
 })

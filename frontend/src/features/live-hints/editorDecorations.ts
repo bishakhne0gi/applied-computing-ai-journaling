@@ -1,5 +1,5 @@
 import { CHIP_CLASS, type Decoration } from '@/components/ui/HighlightedTextarea'
-import { underlineClasses } from '@/features/feedback/markClasses'
+import { liveUnderlineClasses } from '@/features/feedback/markClasses'
 import type { LiveHint } from './reanchor'
 
 interface Range {
@@ -13,7 +13,7 @@ const overlaps = (a: Range, b: Range) => a.start < b.end && b.start < a.end
 export function editorDecorations(chips: readonly Range[], hints: readonly LiveHint[]): Decoration[] {
   const fromHints = hints.map((hint) => {
     const onChip = chips.some((chip) => chip.start === hint.start && chip.end === hint.end)
-    const className = onChip ? `${CHIP_CLASS} ${underlineClasses[hint.kind]}` : underlineClasses[hint.kind]
+    const className = onChip ? `${CHIP_CLASS} ${liveUnderlineClasses[hint.kind]}` : liveUnderlineClasses[hint.kind]
     return { id: hint.id, start: hint.start, end: hint.end, className }
   })
   const freeChips = chips.filter((chip) => !hints.some((hint) => overlaps(chip, hint))).map((chip) => ({ ...chip, className: CHIP_CLASS }))

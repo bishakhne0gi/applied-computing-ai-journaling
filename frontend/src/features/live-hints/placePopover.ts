@@ -10,7 +10,7 @@ export interface Size {
   height: number
 }
 
-const POPOVER_GAP = 6
+const POPOVER_GAP = 10
 const POPOVER_MARGIN = 8
 
 // Below the words by default; above when below would run past the viewport or the editor frame (which would cover the
