@@ -32,6 +32,17 @@ describe('textNodes', () => {
     const root = paragraph()
     // Act + Assert
     expect(textOffsetOf(root, root, 0)).toBe(0)
+    expect(textOffsetOf(root, root, 2)).toBe(9) // after the second child: «Hoy » + «yo es»
+    expect(textOffsetOf(root, root, 3)).toBe(16)
+  })
+
+  it('maps an offset inside an element to the text before that child', () => {
+    // Arrange
+    const root = paragraph()
+    const button = root.querySelector('button') as HTMLElement
+    // Act + Assert
+    expect(textOffsetOf(root, button, 0)).toBe(4)
+    expect(textOffsetOf(root, button, 1)).toBe(9)
   })
 
   it('finds a box for an offset inside the text and none past the end', () => {

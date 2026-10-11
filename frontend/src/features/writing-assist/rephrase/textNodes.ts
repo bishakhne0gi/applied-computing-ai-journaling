@@ -3,15 +3,14 @@ function* texts(root: Node): Generator<Text> {
   for (let node = walker.nextNode(); node; node = walker.nextNode()) yield node as Text
 }
 
-// UTF-16 offset of (node, offset) in root's text, as a selection reports it; null when the node is elsewhere.
+// UTF-16 offset of (node, offset) in root's text, as a selection reports it (a text offset, or a child index for an
+// element); null when the node is elsewhere.
 export function textOffsetOf(root: Node, node: Node, offset: number): number | null {
   if (!root.contains(node)) return null
-  let total = 0
-  for (const text of texts(root)) {
-    if (text === node) return total + offset
-    total += text.length
-  }
-  return node === root ? offset : null
+  const range = document.createRange()
+  range.setStart(root, 0)
+  range.setEnd(node, offset)
+  return range.toString().length
 }
 
 // The box of the character just before `offset` (a collapsed range has no box in some engines).

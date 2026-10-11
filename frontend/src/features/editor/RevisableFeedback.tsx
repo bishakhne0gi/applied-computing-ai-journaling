@@ -1,4 +1,4 @@
-import { useRef, useState, type ReactNode } from 'react'
+import { useRef, useState, type ReactNode, type Ref } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Icon } from '@/components/ui/Icon'
 import { FeedbackView } from '@/features/feedback/FeedbackView'
@@ -25,6 +25,32 @@ function selectedOffset(): number | null {
   return textOffsetOf(root, selection.anchorNode, selection.anchorOffset)
 }
 
+// Reads the entry selection on pointer-down, because some browsers collapse it when a button is pressed; a pointer that
+// leaves or is cancelled forgets it, so a later keyboard press reads the selection as it is then.
+function RephraseOpener({ onOpen, ref }: { onOpen: (offset: number | null) => void; ref: Ref<HTMLButtonElement> }) {
+  const pressed = useRef<number | null | undefined>(undefined)
+  const forget = () => {
+    pressed.current = undefined
+  }
+  return (
+    <Button
+      ref={ref}
+      onPointerDown={() => {
+        pressed.current = selectedOffset()
+      }}
+      onPointerLeave={forget}
+      onPointerCancel={forget}
+      onClick={() => {
+        onOpen(pressed.current === undefined ? selectedOffset() : pressed.current)
+        forget()
+      }}
+    >
+      <Icon name="sparkle" className="size-4 text-primary" />
+      Rephrase a sentence
+    </Button>
+  )
+}
+
 export function RevisableFeedback({ entry, analysis, extraActions, onRevised, focusFeedback = false }: RevisableFeedbackProps) {
   const [revising, setRevising] = useState(false)
   // The new analysis the editor is waiting to see arrive as the `analysis` prop; the editor stays up until it does.
@@ -34,7 +60,6 @@ export function RevisableFeedback({ entry, analysis, extraActions, onRevised, fo
   // undefined = closed. Read on pointer-down because some browsers collapse the selection when a button is pressed.
   const [rephraseAt, setRephraseAt] = useState<number | null | undefined>(undefined)
   const opener = useRef<HTMLButtonElement>(null)
-  const pressed = useRef<number | null | undefined>(undefined)
   if (revising && analysis.id !== awaitedId) {
     const cancel = () => {
       setRevising(false)
@@ -53,24 +78,13 @@ export function RevisableFeedback({ entry, analysis, extraActions, onRevised, fo
         variant="primary"
         onClick={() => {
           setAwaitedId(null)
+          setRephraseAt(undefined)
           setRevising(true)
         }}
       >
         Revise &amp; re-check
       </Button>
-      <Button
-        ref={opener}
-        onPointerDown={() => {
-          pressed.current = selectedOffset()
-        }}
-        onClick={() => {
-          setRephraseAt(pressed.current === undefined ? selectedOffset() : pressed.current)
-          pressed.current = undefined
-        }}
-      >
-        <Icon name="sparkle" className="size-4 text-primary" />
-        Rephrase a sentence
-      </Button>
+      <RephraseOpener ref={opener} onOpen={setRephraseAt} />
       {extraActions}
     </>
   )

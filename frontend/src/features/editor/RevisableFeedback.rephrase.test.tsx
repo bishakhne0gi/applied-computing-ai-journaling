@@ -1,4 +1,4 @@
-import { screen, within } from '@testing-library/react'
+import { fireEvent, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { buildAnalysis, buildMistake } from '@/mocks/factories'
@@ -51,6 +51,43 @@ describe('RevisableFeedback rephrase', () => {
     window.getSelection()?.removeAllRanges()
     // Act
     await user.click(opener())
+    // Assert
+    expect(await screen.findByRole('combobox', { name: 'Sentence' })).toHaveTextContent('Ayer fui al mercado.')
+  })
+
+  it('moves focus to the opened section', async () => {
+    // Arrange
+    const user = renderFeedback()
+    // Act
+    await user.click(opener())
+    // Assert
+    expect(await screen.findByRole('region', { name: 'Rephrase' })).toHaveFocus()
+  })
+
+  it('closes the section when the learner revises, and focus lands on the feedback heading after cancelling', async () => {
+    // Arrange
+    const user = renderFeedback()
+    await user.click(opener())
+    await screen.findByRole('region', { name: 'Rephrase' })
+    // Act
+    await user.click(screen.getByRole('button', { name: /Revise/ }))
+    await user.click(screen.getByRole('button', { name: 'Cancel' }))
+    // Assert
+    expect(screen.queryByRole('region', { name: 'Rephrase' })).not.toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Feedback' })).toHaveFocus()
+  })
+
+  it('forgets a selection read on pointer-down when the pointer leaves the button', async () => {
+    // Arrange
+    renderFeedback()
+    const word = within(document.querySelector('[data-entry-text]') as HTMLElement).getByRole('button', { name: /yo es/ })
+    const text = word.firstChild as Text
+    window.getSelection()?.setBaseAndExtent(text, 1, text, 3)
+    fireEvent.pointerDown(opener())
+    window.getSelection()?.removeAllRanges()
+    // Act
+    fireEvent.pointerLeave(opener())
+    fireEvent.click(opener())
     // Assert
     expect(await screen.findByRole('combobox', { name: 'Sentence' })).toHaveTextContent('Ayer fui al mercado.')
   })
