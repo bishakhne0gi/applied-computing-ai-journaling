@@ -1,8 +1,16 @@
 import type { Locator, Page } from '@playwright/test'
 
-/** The entries sidebar (the left column). Task 8 turns it into a sheet on phones; specs already go through here. */
+/** The entries sidebar: the left column on desktop, a sheet behind the header's "Entries" button on phones. */
 export async function openEntries(page: Page): Promise<Locator> {
-  return page.getByRole('complementary', { name: 'Your entries' })
+  const button = page.getByRole('button', { name: 'Entries', exact: true })
+  const aside = page.getByRole('complementary', { name: 'Your entries' })
+  // The layout is decided on mount, so wait for whichever of the two appears.
+  await button.or(aside).waitFor()
+  if (await button.isVisible()) {
+    await button.click()
+    return page.getByRole('dialog', { name: 'Entries' })
+  }
+  return aside
 }
 
 export const mainColumn = (page: Page): Locator => page.getByRole('main')
