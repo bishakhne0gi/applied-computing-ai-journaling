@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { buildAnalysis, buildMistake } from '@/mocks/factories'
 import { FeedbackView } from './FeedbackView'
+import { KIND_HINTS } from './labels'
 
 // Code points: H o y ␠ 😀 ␠ → "yo es" starts at 6; "[park]" spans 24–30.
 const analysis = buildAnalysis({
@@ -63,17 +64,38 @@ describe('FeedbackView', () => {
     expect(notes).toHaveTextContent('Overlaps another highlight.')
   })
 
-  it('toggles the corrected version and hides the highlights meanwhile', async () => {
+  it('switches to the corrected version in a tab and hides the highlights meanwhile', async () => {
     // Arrange
     const user = userEvent.setup()
     render(<FeedbackView analysis={analysis} />)
-    const toggle = screen.getByRole('button', { name: 'Show corrected version' })
     // Act
-    await user.click(toggle)
+    await user.click(screen.getByRole('tab', { name: 'Corrected' }))
     // Assert
-    expect(toggle).toHaveAttribute('aria-pressed', 'true')
-    expect(screen.getByText('Hoy 😀 yo soy feliz en el parque.')).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'Corrected' })).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByRole('tabpanel', { name: 'Corrected' })).toHaveTextContent('Hoy 😀 yo soy feliz en el parque.')
     expect(screen.queryByRole('button', { name: /yo es/ })).not.toBeInTheDocument()
+  })
+
+  it('closes an open mistake panel when the version changes', async () => {
+    // Arrange
+    const user = userEvent.setup()
+    render(<FeedbackView analysis={analysis} />)
+    await user.click(screen.getByRole('button', { name: 'yo es (error)' }))
+    // Act
+    await user.click(screen.getByRole('tab', { name: 'Corrected' }))
+    await user.click(screen.getByRole('tab', { name: 'Your text' }))
+    // Assert
+    expect(screen.getByRole('button', { name: 'yo es (error)' })).toHaveAttribute('aria-expanded', 'false')
+  })
+
+  it('explains what each kind of mark means', async () => {
+    // Arrange
+    const user = userEvent.setup()
+    render(<FeedbackView analysis={analysis} />)
+    // Act
+    await user.click(screen.getByText('Suggestion'))
+    // Assert
+    expect(screen.getByRole('tooltip')).toHaveTextContent(KIND_HINTS.suggestion)
   })
 
   it('says when there is nothing to correct', () => {

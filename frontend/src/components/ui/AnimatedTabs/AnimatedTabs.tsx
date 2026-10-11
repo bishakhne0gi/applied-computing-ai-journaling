@@ -43,10 +43,10 @@ export function AnimatedTabs({ label, idPrefix, tabs, value, onChange }: Animate
     document.getElementById(tabId(idPrefix, next.id))?.focus()
   }
   return (
-    <div role="tablist" aria-label={label} className={cn('relative inline-grid rounded-full bg-surface p-1', columns[tabs.length])}>
-      <span aria-hidden="true" className="pointer-events-none absolute inset-1">
+    <div role="tablist" aria-label={label} className={cn('relative inline-grid border-b border-border', columns[tabs.length])}>
+      <span aria-hidden="true" className="pointer-events-none absolute inset-x-0 -bottom-px h-0.5">
         <m.span
-          className={cn('block h-full rounded-full border border-border bg-bg shadow-sm', indicatorWidths[tabs.length])}
+          className={cn('block h-full rounded-full bg-primary', indicatorWidths[tabs.length])}
           initial={false}
           animate={{ x: `${activeIndex * 100}%` }}
           transition={reduce ? { duration: 0 } : SPRING}

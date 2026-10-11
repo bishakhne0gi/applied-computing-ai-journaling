@@ -7,7 +7,7 @@ const variants = {
   secondary: 'min-h-11 rounded-full border border-border-input bg-bg px-5 text-sm font-medium text-fg hover:border-primary hover:text-primary',
   ghost: 'min-h-11 rounded-full px-4 text-sm font-medium text-fg-secondary hover:bg-surface hover:text-fg',
   icon: 'size-11 shrink-0 rounded-full text-fg-secondary hover:bg-surface hover:text-fg',
-  tab: 'relative min-h-11 rounded-full px-4 text-sm font-medium text-fg-secondary hover:text-fg aria-selected:text-fg',
+  tab: 'relative min-h-11 rounded-md px-5 text-sm font-medium text-muted transition-colors hover:text-fg aria-selected:text-primary',
   plain: 'rounded-sm',
   field: 'min-h-11 w-full justify-between rounded-md border border-border-input bg-bg px-3 text-left text-sm text-fg shadow-sm',
   inline: 'inline rounded-sm px-0.5',

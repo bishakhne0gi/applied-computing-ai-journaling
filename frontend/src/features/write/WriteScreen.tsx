@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { RevisableFeedback } from '@/features/editor/RevisableFeedback'
+import { useBackgroundToasts } from './useBackgroundToasts'
 import { useDraft } from './useDraft'
 import { useWriteSession } from './useWriteSession'
 import { WriteEditor } from './WriteEditor'
@@ -13,7 +14,7 @@ export interface WriteScreenProps {
 
 export function WriteScreen({ focusEditor = false }: WriteScreenProps) {
   const draft = useDraft()
-  const session = useWriteSession(draft.clearText)
+  const session = useWriteSession(draft.clearText, useBackgroundToasts())
   // Seeded from the prop; "New entry" inside a finished session focuses the fresh editor too.
   const [editorFocused, setEditorFocused] = useState(focusEditor)
   const { entry, analysis, phase } = session

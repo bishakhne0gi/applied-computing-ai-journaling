@@ -1,6 +1,5 @@
 import { SectionHeading } from '@/components/ui/SectionHeading'
 import { useCallback, useId, useRef, useState, type ReactNode } from 'react'
-import { Button } from '@/components/ui/Button'
 import { useFocusOnMount } from '@/hooks/misc/useFocusOnMount'
 import type { AnalysisOut, MistakeOut } from '@/types/analysis'
 import { AnnotatedText } from './AnnotatedText'
@@ -8,6 +7,7 @@ import { Legend } from './Legend'
 import { MistakePanel } from './MistakePanel'
 import { OtherNotes } from './OtherNotes'
 import { placeMistakes } from './segmentText'
+import { TextVersions } from './TextVersions'
 
 export interface FeedbackViewProps {
   analysis: AnalysisOut
@@ -15,10 +15,9 @@ export interface FeedbackViewProps {
   focusHeading?: boolean
 }
 
-// Callers key this by analysis id, so switching analyses resets the open panel and the toggle.
+// Callers key this by analysis id, so switching analyses resets the open panel and the text version.
 export function FeedbackView({ analysis, actions, focusHeading = false }: FeedbackViewProps) {
   const [selected, setSelected] = useState<MistakeOut | null>(null)
-  const [showCorrected, setShowCorrected] = useState(false)
   const triggerRef = useRef<HTMLButtonElement | null>(null)
   const headingId = useId()
   const headingRef = useFocusOnMount<HTMLHeadingElement>()
@@ -34,10 +33,6 @@ export function FeedbackView({ analysis, actions, focusHeading = false }: Feedba
     triggerRef.current = trigger
     setSelected(mistake)
   }
-  const toggleCorrected = () => {
-    setSelected(null)
-    setShowCorrected((shown) => !shown)
-  }
 
   return (
     <section aria-labelledby={headingId} className="flex flex-col gap-4">
@@ -47,16 +42,9 @@ export function FeedbackView({ analysis, actions, focusHeading = false }: Feedba
       <p>{analysis.feedback_summary}</p>
       {analysis.mistakes.length === 0 && <p className="text-muted">Nothing to correct in this entry.</p>}
       <Legend mistakes={analysis.mistakes} />
-      <div>
-        <Button aria-pressed={showCorrected} onClick={toggleCorrected}>
-          Show corrected version
-        </Button>
-      </div>
-      {showCorrected ? (
-        <p className="text-lg leading-loose whitespace-pre-wrap">{analysis.corrected_text ?? analysis.input_text}</p>
-      ) : (
+      <TextVersions analysis={analysis} onSwitch={() => setSelected(null)}>
         <AnnotatedText text={analysis.input_text} placed={placed} selectedId={selected?.id ?? null} panelId={panelId} onSelect={open} />
-      )}
+      </TextVersions>
       {selected && <MistakePanel id={panelId} mistake={selected} onClose={close} />}
       <OtherNotes mistakes={unplaced} />
       {actions && <div className="flex flex-wrap gap-2">{actions}</div>}

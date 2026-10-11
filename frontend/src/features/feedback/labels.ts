@@ -21,3 +21,9 @@ export function failureMessage(code: FailureCode | null): string {
   const reason = code ? FAILURE_MESSAGES[code] : 'The analysis did not finish.'
   return `${reason} Your entry is saved — try again.`
 }
+
+export const KIND_HINTS: Record<MistakeKind, string> = {
+  error: 'A grammar or spelling mistake. Errors count towards your errors per 100 words.',
+  suggestion: 'Correct, but a native speaker would put it differently. Not counted as an error.',
+  vocab_help: 'The word you were looking for, from your [brackets]. Not counted as an error.',
+}

@@ -5,8 +5,14 @@ import type { EntryDetailOut } from '@/types/entry'
 import { client } from '@/utils/client'
 import { ENDPOINTS } from '@/utils/endpoints'
 
+export interface AnalysisCallbacks {
+  onAnalysed?: (analysis: AnalysisOut) => void
+  onFailed?: (error: Error) => void
+}
+
 // A failed model call still resolves (201, status "failed"); only transport errors reject.
-export function useRunAnalysisMutation() {
+// Callbacks are hook-level, not mutate-level: TanStack runs them even after the caller unmounted.
+export function useRunAnalysisMutation(callbacks: AnalysisCallbacks = {}) {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (entryId: string) => client.post(ENDPOINTS.analyses(entryId)).json<AnalysisOut>(),
@@ -24,6 +30,8 @@ export function useRunAnalysisMutation() {
       void queryClient.invalidateQueries({ queryKey: journalKeys.entryLists })
       // Any new analysis can move every insights view, filtered or not.
       void queryClient.invalidateQueries({ queryKey: journalKeys.insightsAll })
+      callbacks.onAnalysed?.(analysis)
     },
+    onError: (error) => callbacks.onFailed?.(error),
   })
 }
