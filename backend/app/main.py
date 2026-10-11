@@ -15,11 +15,14 @@ from app.db.session import create_engine, create_sessionmaker
 from journal_ai import Analyzer, build_provider, build_tracer
 
 
+def _api_key(settings: Settings) -> str | None:
+    return settings.anthropic_api_key.get_secret_value() if settings.anthropic_api_key else None
+
+
 def _build_analyzer(settings: Settings) -> Analyzer:
-    api_key = settings.anthropic_api_key.get_secret_value() if settings.anthropic_api_key else None
     provider = build_provider(
         settings.resolved_ai_provider,
-        api_key=api_key,
+        api_key=_api_key(settings),
         model=settings.ai_model,
         effort=settings.ai_effort,
         timeout_seconds=settings.ai_timeout_seconds,
@@ -37,6 +40,19 @@ def _build_analyzer(settings: Settings) -> Analyzer:
     return Analyzer(provider, tracer)
 
 
+def _build_live_analyzer(settings: Settings) -> Analyzer:
+    provider = build_provider(
+        settings.resolved_ai_provider,
+        api_key=_api_key(settings),
+        model=settings.ai_live_model,
+        effort="low",
+        timeout_seconds=settings.ai_live_timeout_seconds,
+        workspace_id=settings.anthropic_workspace_id,
+    )
+    # Untraced: checks fire on every pause, and tracing calls nobody stores would multiply Langfuse volume.
+    return Analyzer(provider, max_attempts=1)
+
+
 def create_app(settings: Settings | None = None) -> FastAPI:
     settings = settings or get_settings()
     configure_logging(settings.log_level, settings.log_format)
@@ -49,11 +65,14 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         try:
             yield
         finally:
-            # Closes the provider's pooled HTTP client and flushes queued traces before the process exits.
+            # Closes both providers' pooled HTTP clients and flushes queued traces before the process exits.
             try:
                 await app.state.analyzer.aclose()
             finally:
-                await engine.dispose()
+                try:
+                    await app.state.live_analyzer.aclose()
+                finally:
+                    await engine.dispose()
 
     app = FastAPI(title="Language Journal API", version=settings.release, lifespan=lifespan)
     app.add_middleware(
@@ -66,6 +85,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.add_middleware(RequestContextMiddleware)
     register_exception_handlers(app)
     app.state.analyzer = _build_analyzer(settings)
+    app.state.live_analyzer = _build_live_analyzer(settings)
     app.include_router(health.router)
     app.include_router(api_router)
     return app

@@ -34,6 +34,9 @@ class Settings(BaseSettings):
     ai_model: str = "claude-opus-5-5"
     ai_effort: Literal["low", "medium", "high"] = "medium"
     ai_timeout_seconds: float = 30.0
+    # Live hints (POST /check): a fast model, one attempt, a short timeout; nothing is stored.
+    ai_live_model: str = "claude-haiku-5-5"
+    ai_live_timeout_seconds: float = 8.0
     anthropic_api_key: SecretStr | None = None
     anthropic_workspace_id: str | None = None
     # Tracing is off unless all three are set (journal_ai.build_tracer decides).

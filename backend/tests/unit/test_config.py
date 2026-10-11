@@ -83,3 +83,20 @@ def test_langfuse_is_unset_by_default() -> None:
     assert settings.langfuse_public_key is None
     assert settings.langfuse_secret_key is None
     assert settings.langfuse_host is None
+
+
+def test_live_hints_default_to_a_fast_model_with_a_short_timeout() -> None:
+    settings = Settings(_env_file=None)
+
+    assert settings.ai_live_model == "claude-haiku-5-5"
+    assert settings.ai_live_timeout_seconds == 8.0
+
+
+def test_the_live_model_can_be_overridden(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("AI_LIVE_MODEL", "claude-other")
+    monkeypatch.setenv("AI_LIVE_TIMEOUT_SECONDS", "5")
+
+    settings = Settings(_env_file=None)
+
+    assert settings.ai_live_model == "claude-other"
+    assert settings.ai_live_timeout_seconds == 5.0

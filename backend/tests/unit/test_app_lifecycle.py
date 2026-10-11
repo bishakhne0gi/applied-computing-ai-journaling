@@ -52,6 +52,15 @@ class _OrderedAnalyzer:
             raise RuntimeError("provider close failed")
 
 
+class _NamedAnalyzer:
+    def __init__(self, calls: list[str], name: str) -> None:
+        self._calls = calls
+        self._name = name
+
+    async def aclose(self) -> None:
+        self._calls.append(self._name)
+
+
 class _OrderedEngine:
     def __init__(self, calls: list[str]) -> None:
         self._calls = calls
@@ -136,3 +145,36 @@ def test_empty_langfuse_values_from_the_example_env_file_mean_off(monkeypatch: p
     )
 
     assert [bool(seen[k]) for k in ("public_key", "secret_key", "host")] == [False, False, False]
+
+
+def test_the_live_analyzer_uses_the_live_model_at_low_effort_with_its_own_timeout(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: list[dict[str, Any]] = []
+    real_build_provider = main.build_provider
+
+    def spy(name: Any, **kwargs: Any) -> Any:
+        calls.append(kwargs)
+        return real_build_provider(name, **kwargs)
+
+    monkeypatch.setattr(main, "build_provider", spy)
+
+    main.create_app(Settings(_env_file=None, ai_live_model="m-live", ai_live_timeout_seconds=5))
+
+    live = [c for c in calls if c["model"] == "m-live"]
+    assert live == [{**live[0], "effort": "low", "timeout_seconds": 5}]
+
+
+async def test_shutdown_closes_both_analyzers_before_the_engine(
+    settings: Settings, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    calls: list[str] = []
+    _record_engine(monkeypatch, calls)
+    app = main.create_app(settings)
+    app.state.analyzer = _OrderedAnalyzer(calls)
+    app.state.live_analyzer = _NamedAnalyzer(calls, "live.aclose")
+
+    async with app.router.lifespan_context(app):
+        pass
+
+    assert calls == ["analyzer.aclose", "live.aclose", "engine.dispose"]
