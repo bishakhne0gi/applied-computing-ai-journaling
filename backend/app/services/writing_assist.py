@@ -1,5 +1,4 @@
 import asyncio
-import unicodedata
 from typing import Protocol
 
 import structlog
@@ -7,7 +6,7 @@ import structlog
 from app.core.errors import ServiceUnavailableError
 from app.services.entries import count_words
 from app.services.slots import claim_slot
-from journal_ai import CompletionOutcome, RephraseOutcome, Rephrasing
+from journal_ai import CompletionOutcome, RephraseOutcome, Rephrasing, unify_text
 
 logger = structlog.get_logger()
 
@@ -60,7 +59,7 @@ class CompletionService:
         self._slots = slots
 
     async def complete(self, text: str, language: str) -> str:
-        prefix = unicodedata.normalize("NFC", text.replace("\r\n", "\n").replace("\r", "\n"))
+        prefix = unify_text(text)
         if count_words(prefix) < MIN_WORDS:
             return ""
         async with claim_slot(self._slots, COMPLETE_UNAVAILABLE):

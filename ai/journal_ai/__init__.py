@@ -22,7 +22,7 @@ from journal_ai.schema import (
     Version,
     VocabularyItem,
 )
-from journal_ai.text import normalize_text
+from journal_ai.text import normalize_text, unify_text
 from journal_ai.tracing import NoopTracer, Tracer
 
 __all__ = [
@@ -51,4 +51,5 @@ __all__ = [
     "build_provider",
     "build_tracer",
     "normalize_text",
+    "unify_text",
 ]

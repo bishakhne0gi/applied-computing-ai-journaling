@@ -1,6 +1,6 @@
 import unicodedata
 
-from journal_ai.text import normalize_text
+from journal_ai.text import normalize_text, unify_text
 
 
 def test_normalize_text_composes_accents() -> None:
@@ -12,3 +12,9 @@ def test_normalize_text_composes_accents() -> None:
 
 def test_normalize_text_unifies_line_endings_and_trims() -> None:
     assert normalize_text("  Hola\r\nmundo\r ") == "Hola\nmundo"
+
+
+def test_unify_text_keeps_edge_whitespace_for_a_prefix() -> None:
+    decomposed = unicodedata.normalize("NFD", "café \r\nhoy ")
+
+    assert unify_text(decomposed) == "café \nhoy "

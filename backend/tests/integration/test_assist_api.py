@@ -156,29 +156,35 @@ async def test_fewer_than_three_words_complete_to_nothing_without_calling_the_mo
     assert response.json() == {"completion": ""}
 
 
-@pytest.mark.parametrize(("path", "body"), BOTH)
+@pytest.mark.parametrize(
+    ("path", "body", "detail"),
+    [(*BOTH[0], "Rephrasing is unavailable right now"), (*BOTH[1], "Autocomplete is unavailable right now")],
+)
 @pytest.mark.parametrize(
     "step",
     [ProviderError("down"), ProviderTimeoutError("slow"), "not json"],
     ids=["error", "timeout", "unusable"],
 )
 async def test_an_unavailable_model_is_503_problem_json(
-    make_assist_api: AssistApiFactory, path: str, body: dict[str, Any], step: str | Exception
+    make_assist_api: AssistApiFactory, path: str, body: dict[str, Any], detail: str, step: str | Exception
 ) -> None:
     async with make_assist_api([step]) as client:
         response = await client.post(path, json=body)
 
     assert response.status_code == 503
     assert response.headers["content-type"].startswith("application/problem+json")
+    assert response.json()["title"] == "Service Unavailable"
+    assert response.json()["detail"] == detail
 
 
 class _GatedAssist:
     """Holds every call open until released, recording how many are in flight."""
 
-    def __init__(self) -> None:
+    def __init__(self, *, gate: tuple[str, ...] = ("rephrase", "complete")) -> None:
         self.release = asyncio.Event()
         self.entered = 0
         self.two_in = asyncio.Event()
+        self._gate = gate
 
     async def _wait(self) -> None:
         self.entered += 1
@@ -187,7 +193,8 @@ class _GatedAssist:
         await self.release.wait()
 
     async def rephrase(self, text: str, start: int, end: int, language: str) -> Any:
-        await self._wait()
+        if "rephrase" in self._gate:
+            await self._wait()
         return RephraseOutcome(
             result=Rephrasing(sentence=text[start:end], versions=(), vocabulary=()),
             failure=None,
@@ -197,7 +204,8 @@ class _GatedAssist:
         )
 
     async def complete(self, prefix: str, language: str) -> Any:
-        await self._wait()
+        if "complete" in self._gate:
+            await self._wait()
         return CompletionOutcome(completion="x", failure=None, model="m", latency_ms=1, usage=Usage())
 
 
@@ -211,7 +219,8 @@ async def test_a_third_concurrent_rephrase_is_refused_at_once(make_assist_api: A
         first = asyncio.create_task(post(client))
         second = asyncio.create_task(post(client))
         await gated.two_in.wait()
-        refused = await client.post("/api/v1/rephrase", json=_rephrase())
+        # A queueing claim_slot would hang here rather than refuse.
+        refused = await asyncio.wait_for(client.post("/api/v1/rephrase", json=_rephrase()), timeout=1)
         gated.release.set()
         statuses = [await first, await second]
 
@@ -221,7 +230,7 @@ async def test_a_third_concurrent_rephrase_is_refused_at_once(make_assist_api: A
 
 
 async def test_rephrase_and_complete_have_separate_slots(make_assist_api: AssistApiFactory) -> None:
-    gated = _GatedAssist()
+    gated = _GatedAssist(gate=("complete",))
 
     async def post(client: Any) -> int:
         return (await client.post("/api/v1/complete", json=COMPLETE)).status_code
@@ -230,8 +239,9 @@ async def test_rephrase_and_complete_have_separate_slots(make_assist_api: Assist
         first = asyncio.create_task(post(client))
         second = asyncio.create_task(post(client))
         await gated.two_in.wait()
+        # Both completion slots are held; a rephrase must still get through on its own.
+        rephrased = await asyncio.wait_for(client.post("/api/v1/rephrase", json=_rephrase()), timeout=1)
         gated.release.set()
-        rephrased = await client.post("/api/v1/rephrase", json=_rephrase())
         statuses = [await first, await second]
 
     assert rephrased.status_code == 200
