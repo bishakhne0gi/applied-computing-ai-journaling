@@ -34,6 +34,16 @@ describe('history rows', () => {
     expect(within(row).getByText('2 errors')).toBeInTheDocument()
   })
 
+  it('name each link by its preview and describe it with date, language and status', async () => {
+    // Arrange
+    await renderRows()
+    // Act
+    const link = within(rowContaining('Mañana voy a el cine')).getByRole('link')
+    // Assert
+    expect(link).toHaveAccessibleName('Mañana voy a el cine con mis amigos.')
+    expect(link).toHaveAccessibleDescription(/^Oct \d{1,2}, 2026, .* · Spanish Analysis failed$/)
+  })
+
   it('mark the open entry as the current one', async () => {
     // Arrange + Act
     await renderRows(`/?entry=${SEEDED.emoji}`)

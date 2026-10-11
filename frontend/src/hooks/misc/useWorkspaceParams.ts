@@ -35,6 +35,7 @@ export function useWorkspaceParams() {
     insightsOpen: params.get('insights') === '1',
     language: params.get('language'),
     entryHref: (id: string) => toHref(withChanges(params, { entry: id, insights: null })),
+    composerHref: toHref(withChanges(params, { entry: null, insights: null })),
     selectEntry: (id: string | null) => change({ entry: id }),
     openInsights: () => change({ insights: '1' }, { state: OPENED_IN_APP }),
     closeInsights: () => {

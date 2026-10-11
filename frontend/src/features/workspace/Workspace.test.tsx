@@ -70,12 +70,21 @@ describe('Workspace', () => {
     expect(document.body).toHaveFocus()
   })
 
+  it('leaves focus alone on a first load of the composer', async () => {
+    // Arrange + Act
+    renderWorkspace('/')
+    await waitForLanguages()
+    // Assert
+    expect(within(main()).getByLabelText('Your entry')).toBeInTheDocument()
+    expect(document.body).toHaveFocus()
+  })
+
   it('explains a missing entry in the main column and keeps the sidebar usable', async () => {
     // Arrange + Act
-    renderWorkspace(`/?entry=${MISSING}`)
+    renderWorkspace(`/?entry=${MISSING}&language=fr`)
     // Assert
     expect(await within(main()).findByRole('heading', { level: 1, name: 'Entry not found' })).toBeInTheDocument()
-    expect(within(main()).getByRole('link', { name: 'Write a new entry' })).toHaveAttribute('href', '/')
+    expect(within(main()).getByRole('link', { name: 'Write a new entry' })).toHaveAttribute('href', '/?language=fr')
     expect(await marketRow()).toBeInTheDocument()
   })
 
