@@ -92,6 +92,35 @@ describe('useWorkspaceParams', () => {
     expect(location()).toHaveTextContent(/^\/x$/)
   })
 
+  it('ignores a second open while insights is already open, so closing still lands where the learner was', async () => {
+    // Arrange
+    const user = renderAt('/?language=fr')
+    await user.click(button('open'))
+    await user.click(button('open'))
+    // Act
+    await user.click(button('close'))
+    // Assert
+    expect(location()).toHaveTextContent(/^\/\?language=fr$/)
+  })
+
+  it('changes the language inside open insights without a history entry Back would reopen the sheet from', async () => {
+    // Arrange
+    const user = userEvent.setup()
+    render(
+      <MemoryRouter initialEntries={['/x', '/']} initialIndex={1}>
+        <Probe />
+      </MemoryRouter>,
+    )
+    await user.click(button('open'))
+    await user.click(button('es'))
+    // Act
+    await user.click(button('close'))
+    // Assert
+    expect(location()).toHaveTextContent(/^\/\?language=es$/)
+    await user.click(button('Go back'))
+    expect(location()).toHaveTextContent(/^\/$/)
+  })
+
   it('closes deep-linked insights by replacing the URL, so closing never leaves the app', async () => {
     // Arrange
     const user = renderAt('/?insights=1&language=fr')

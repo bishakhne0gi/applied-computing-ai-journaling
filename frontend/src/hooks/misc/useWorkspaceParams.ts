@@ -30,19 +30,26 @@ export function useWorkspaceParams() {
   const { state } = useLocation()
   const navigate = useNavigate()
   const change = (changes: Changes, options?: { replace?: boolean; state?: unknown }) => setParams(withChanges(params, changes), options)
+  const insightsOpen = params.get('insights') === '1'
   return {
     entryId: params.get('entry') || null,
-    insightsOpen: params.get('insights') === '1',
+    insightsOpen,
     language: params.get('language'),
     entryHref: (id: string) => toHref(withChanges(params, { entry: id, insights: null })),
     composerHref: toHref(withChanges(params, { entry: null, insights: null })),
     selectEntry: (id: string | null) => change({ entry: id }),
-    openInsights: () => change({ insights: '1' }, { state: OPENED_IN_APP }),
+    // A repeat open would stack a duplicate entry, and closing (one step Back) would then leave the sheet open.
+    openInsights: () => {
+      if (!insightsOpen) change({ insights: '1' }, { state: OPENED_IN_APP })
+    },
     closeInsights: () => {
       if (openedInApp(state)) void navigate(-1)
       else change({ insights: null }, { replace: true })
     },
-    setLanguage: (code: string | null, options?: { replace?: boolean }) => change({ language: code }, options),
+    // Filtering inside the sheet replaces and drops the opened-in-app mark: closing then replaces too, so Back
+    // returns to before the sheet opened instead of reopening it.
+    setLanguage: (code: string | null, options?: { replace?: boolean }) =>
+      change({ language: code }, insightsOpen ? { replace: true } : options),
   }
 }
 

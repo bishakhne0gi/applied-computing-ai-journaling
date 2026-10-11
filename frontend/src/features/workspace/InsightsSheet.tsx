@@ -1,8 +1,28 @@
+import { lazy, Suspense, useState } from 'react'
+import { ErrorBoundary } from '@/components/ui/ErrorBoundary'
+import { ErrorState } from '@/components/ui/ErrorState'
+import { LoadingState } from '@/components/ui/LoadingState'
 import { Sheet } from '@/components/ui/Sheet'
-import { InsightsScreen } from '@/features/insights/InsightsScreen'
 import { useMediaQuery } from '@/hooks/misc/useMediaQuery'
 import { useWorkspaceParams } from '@/hooks/misc/useWorkspaceParams'
 import { DESKTOP_QUERY } from '@/utils/constants'
+import { loadInsightsScreen } from './loadInsightsScreen'
+
+// The shell opens at once (focus moves in, the opener is recorded); only the report and its charts are code-split.
+function InsightsContent() {
+  // React caches a rejected lazy import, so a retry needs a fresh one.
+  const [Screen, setScreen] = useState(() => lazy(loadInsightsScreen))
+  return (
+    <ErrorBoundary
+      onRetry={() => setScreen(() => lazy(loadInsightsScreen))}
+      fallback={(retry) => <ErrorState message="Insights didn’t load. Check your connection and try again." onRetry={retry} />}
+    >
+      <Suspense fallback={<LoadingState label="Loading insights…" />}>
+        <Screen />
+      </Suspense>
+    </ErrorBoundary>
+  )
+}
 
 // A layer over the workspace, never a place: closing it lands exactly where the learner was.
 export function InsightsSheet() {
@@ -16,7 +36,7 @@ export function InsightsSheet() {
       title="Insights"
       description="How your errors change as you write. Suggestions and word help don’t count."
     >
-      <InsightsScreen />
+      <InsightsContent />
     </Sheet>
   )
 }

@@ -1,12 +1,10 @@
-import { lazy, Suspense, useState } from 'react'
+import { useState } from 'react'
 import { useChangedSinceMount } from '@/hooks/misc/useChangedSinceMount'
 import { useWorkspaceParams } from '@/hooks/misc/useWorkspaceParams'
+import { InsightsSheet } from './InsightsSheet'
 import { MainColumn } from './MainColumn'
 import { Sidebar } from './Sidebar'
 import { WorkspaceHeader } from './WorkspaceHeader'
-
-// Insights (and its chart code) load on first open, keeping them off the writing screen's critical path.
-const InsightsSheet = lazy(() => import('./InsightsSheet').then((module) => ({ default: module.InsightsSheet })))
 
 export function Workspace() {
   const { entryId, insightsOpen, selectEntry, openInsights } = useWorkspaceParams()
@@ -38,11 +36,7 @@ export function Workspace() {
           </div>
         </main>
       </div>
-      {insightsSeen && (
-        <Suspense fallback={null}>
-          <InsightsSheet />
-        </Suspense>
-      )}
+      {insightsSeen && <InsightsSheet />}
     </div>
   )
 }

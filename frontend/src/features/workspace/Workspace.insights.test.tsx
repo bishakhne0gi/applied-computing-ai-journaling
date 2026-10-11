@@ -3,10 +3,12 @@ import userEvent from '@testing-library/user-event'
 import { beforeAll, describe, expect, it } from 'vitest'
 import { LocationProbe } from '@/test/LocationProbe'
 import { renderWithProviders } from '@/test/renderWithProviders'
+import { loadInsightsScreen } from './loadInsightsScreen'
 import { Workspace } from './Workspace'
 
-// The sheet is code-split; loading it up front keeps a cold transform (slow under coverage) out of the 1s findBy budget.
-beforeAll(() => import('./InsightsSheet'))
+// The report is code-split; loading it up front keeps a cold transform (slow under coverage) out of the 1s findBy budget.
+beforeAll(loadInsightsScreen)
+
 
 function renderWorkspace(route = '/') {
   renderWithProviders(
