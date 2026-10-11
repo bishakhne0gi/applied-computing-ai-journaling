@@ -1,3 +1,4 @@
+import { SectionHeading } from '@/components/ui/SectionHeading'
 import { useId } from 'react'
 import type { MistakeOut } from '@/types/analysis'
 import { Correction } from './Correction'
@@ -12,9 +13,9 @@ export function OtherNotes({ mistakes }: OtherNotesProps) {
   if (mistakes.length === 0) return null
   return (
     <section aria-labelledby={headingId} className="flex flex-col gap-2">
-      <h3 id={headingId} className="text-base font-semibold">
+      <SectionHeading level={3} id={headingId}>
         Other notes
-      </h3>
+      </SectionHeading>
       <ul className="flex flex-col gap-2">
         {mistakes.map((mistake) => (
           <li key={mistake.id} className="flex flex-col gap-1 rounded-md border border-border p-3 text-sm">

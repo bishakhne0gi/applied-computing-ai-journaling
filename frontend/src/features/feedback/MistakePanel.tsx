@@ -1,3 +1,4 @@
+import { SectionHeading } from '@/components/ui/SectionHeading'
 import { useEffect, useId, useRef } from 'react'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
@@ -22,9 +23,9 @@ export function MistakePanel({ id, mistake, onClose }: MistakePanelProps) {
 
   return (
     <Card as="section" id={id} aria-labelledby={titleId} className="flex flex-col items-start gap-3 bg-surface p-4 md:p-4">
-      <h3 id={titleId} ref={headingRef} tabIndex={-1} className="text-lg font-semibold">
+      <SectionHeading level={3} id={titleId} ref={headingRef} tabIndex={-1}>
         <Correction original={mistake.original} correction={mistake.correction} />
-      </h3>
+      </SectionHeading>
       <div className="flex flex-wrap gap-2">
         <Badge>{categoryLabel(mistake.category)}</Badge>
         <Badge>{KIND_LABELS[mistake.kind]}</Badge>

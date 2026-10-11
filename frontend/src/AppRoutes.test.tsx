@@ -64,6 +64,7 @@ describe('routes', () => {
     // Assert
     expect(screen.getByRole('heading', { level: 1, name: 'Page not found' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Back to writing' })).toHaveAttribute('href', '/')
+    expect(within(screen.getByRole('banner')).getByRole('link', { name: 'Language Journal' })).toHaveAttribute('href', '/')
   })
 
   it('moves focus to the workspace heading when coming back from a missing page', async () => {

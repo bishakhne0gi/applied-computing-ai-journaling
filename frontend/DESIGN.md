@@ -42,6 +42,7 @@ element's props, `ref` as a plain prop (React 19), Tailwind token utilities merg
 | `EmptyState` | — | dashed box: title + the next useful action as `children` |
 | `Card` | `as`: `div` (default), `section` | hairline card, `shadow-sm`; override padding/background with `className` |
 | `PageHeading` | — | `h1`, light 300, `tabIndex -1`, takes `ref` so the workspace can focus it |
+| `SectionHeading` | `level`: `2` (default), `3` | section titles one step below `PageHeading`: h2 `text-lg` medium in `fg-secondary`, h3 `text-base` medium; never heavier than the light page title |
 | `Icon` | `name`: `close`, `check`, `alert`, `menu`, `chart`, `plus` | inline 24px stroke SVG, `aria-hidden`; the control around it carries the name |
 | `Sheet` | `side`: `left`, `right`, `bottom` | modal dialog in a portal (SmoothUI drawer motion, MIT): heading focused on open, Esc/scrim/Close dismiss, Tab trapped, focus restored unless the user moved on, page scroll locked |
 | `ErrorBoundary` | — | catches a render error (e.g. a failed lazy chunk) and shows `fallback(retry)`; `onRetry` runs first so the caller can start a fresh import |

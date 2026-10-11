@@ -21,6 +21,18 @@ describe('HistoryList', () => {
     expect(rows()).toHaveLength(10)
   })
 
+  it('heads the list with the number of loaded entries, marked + while more pages exist', async () => {
+    // Arrange
+    const user = userEvent.setup()
+    renderHistory()
+    const section = await screen.findByRole('region', { name: 'History' })
+    expect(await within(section).findByText('10+')).toBeInTheDocument()
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Load more' }))
+    // Assert
+    expect(await within(section).findByText('14')).toBeInTheDocument()
+  })
+
   it('loads the next page with "Load more" until none are left', async () => {
     // Arrange
     const user = userEvent.setup()

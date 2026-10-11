@@ -11,15 +11,16 @@ export interface LanguageSelectProps {
   onChange: (code: string) => void
   allLabel?: string
   disabled?: boolean
+  hideLabel?: boolean
 }
 
-export function LanguageSelect({ id, label, value, onChange, allLabel, disabled = false }: LanguageSelectProps) {
+export function LanguageSelect({ id, label, value, onChange, allLabel, disabled = false, hideLabel }: LanguageSelectProps) {
   const languages = useLanguagesQuery()
   if (languages.isError) {
     return <ErrorState message={toErrorMessage(languages.error)} onRetry={() => void languages.refetch()} />
   }
   return (
-    <Field label={label} htmlFor={id}>
+    <Field label={label} htmlFor={id} hideLabel={hideLabel}>
       <Select id={id} value={value} disabled={disabled || languages.isPending} onChange={(event) => onChange(event.target.value)}>
         {languages.isPending ? (
           <option value={value}>Loading languages…</option>

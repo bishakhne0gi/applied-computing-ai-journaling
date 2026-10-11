@@ -37,7 +37,8 @@ export function HistoryResults({ entries, filtered, onStartWriting }: HistoryRes
           <EntryRow key={entry.id} entry={entry} />
         ))}
       </ul>
-      <p role="status" className="text-xs text-muted">
+      {/* The heading shows the count; this line announces it when "Load more" or a filter changes it. */}
+      <p role="status" className="sr-only">
         Showing {pluralize(items.length, 'entry', 'entries')}
       </p>
       <LoadMore

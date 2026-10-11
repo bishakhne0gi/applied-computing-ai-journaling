@@ -1,3 +1,4 @@
+import { SectionHeading } from '@/components/ui/SectionHeading'
 import type { InsightsOut } from '@/types/insights'
 import { CategoryTable } from './CategoryTable'
 import { RateChart } from './RateChart'
@@ -10,9 +11,7 @@ export function InsightsReport({ insights }: InsightsReportProps) {
   return (
     <div className="flex flex-col gap-8">
       <section aria-labelledby="insights-summary" className="flex flex-col gap-2">
-        <h2 id="insights-summary" className="text-lg font-semibold">
-          Summary
-        </h2>
+        <SectionHeading id="insights-summary">Summary</SectionHeading>
         <ul className="flex list-disc flex-col gap-1 pl-5">
           {insights.summary.map((sentence, index) => (
             <li key={index}>{sentence}</li>

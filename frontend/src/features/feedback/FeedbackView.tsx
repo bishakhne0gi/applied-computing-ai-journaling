@@ -1,3 +1,4 @@
+import { SectionHeading } from '@/components/ui/SectionHeading'
 import { useCallback, useId, useRef, useState, type ReactNode } from 'react'
 import { Button } from '@/components/ui/Button'
 import { useFocusOnMount } from '@/hooks/misc/useFocusOnMount'
@@ -40,9 +41,9 @@ export function FeedbackView({ analysis, actions, focusHeading = false }: Feedba
 
   return (
     <section aria-labelledby={headingId} className="flex flex-col gap-4">
-      <h2 id={headingId} ref={focusHeading ? headingRef : undefined} tabIndex={-1} className="text-xl font-semibold">
+      <SectionHeading id={headingId} ref={focusHeading ? headingRef : undefined} tabIndex={-1}>
         Feedback
-      </h2>
+      </SectionHeading>
       <p>{analysis.feedback_summary}</p>
       {analysis.mistakes.length === 0 && <p className="text-muted">Nothing to correct in this entry.</p>}
       <Legend mistakes={analysis.mistakes} />

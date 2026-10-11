@@ -15,4 +15,16 @@ describe('Field', () => {
     // Assert
     expect(screen.getByRole('textbox', { name: 'Your entry' })).toBeInTheDocument()
   })
+
+  it('can hide its label visually and keep it as the accessible name', () => {
+    // Arrange + Act
+    render(
+      <Field label="Filter by language" htmlFor="filter" hideLabel>
+        <select id="filter" />
+      </Field>,
+    )
+    // Assert
+    expect(screen.getByText('Filter by language')).toHaveClass('sr-only')
+    expect(screen.getByRole('combobox', { name: 'Filter by language' })).toBeInTheDocument()
+  })
 })

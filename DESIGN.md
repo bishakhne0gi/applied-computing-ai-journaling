@@ -26,10 +26,12 @@ Every text pair is ≥4.5:1 and every control boundary ≥3:1 in both modes; the
 
 ## Type
 System stack (`-apple-system, Segoe UI, Roboto…`) with `font-feature-settings: "ss01"`. Display headings light (300)
-with tight tracking (`text-3xl font-light tracking-tight`); controls and labels 400–500; numbers `tabular-nums`.
+with tight tracking (`text-3xl font-light tracking-tight`); section headings step down by size and colour, not weight
+(h2 `text-lg font-medium text-fg-secondary`, h3 `text-base font-medium`); controls and labels 400–500; numbers
+`tabular-nums`.
 
 ## Space, layout, shape
-8px grid (Tailwind's 0.25rem scale, even steps). Header, then sidebar `20rem` + main column `≤44rem` centred;
+8px grid (Tailwind's 0.25rem scale, even steps). Header, then sidebar `20rem` + main column `≤44rem` aligned to the sidebar edge (not centred, so it never floats);
 insights sheet `36rem` from the right (bottom sheet on phones). Radii 6 / 8 / 12px (`rounded-sm|md|lg`); actions are
 pills (`rounded-full`). Shadows: `sm` resting cards and inputs, `md` popovers, `lg` sheets and toasts.
 
