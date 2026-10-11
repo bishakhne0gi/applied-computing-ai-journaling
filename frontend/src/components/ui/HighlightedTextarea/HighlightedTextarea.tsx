@@ -37,7 +37,7 @@ export function HighlightedTextarea({ value, decorations, className, onScroll, r
       <div ref={backdropRef} aria-hidden="true" translate="no" className={cn(layerClass, 'pointer-events-none absolute inset-0 border-transparent text-fg')}>
         {decorate(value, decorations).map((segment, index) =>
           segment.className ? (
-            <mark key={index} className={cn('bg-transparent text-fg', segment.className)}>
+            <mark key={index} data-decoration-id={segment.id} className={cn('bg-transparent text-fg', segment.className)}>
               {segment.text}
             </mark>
           ) : (

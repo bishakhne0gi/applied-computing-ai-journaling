@@ -1,10 +1,12 @@
 export interface Decoration {
+  id?: string
   start: number
   end: number
   className: string
 }
 
 export interface DecoratedSegment {
+  id?: string
   text: string
   className: string | null
 }
@@ -14,10 +16,10 @@ export interface DecoratedSegment {
 export function decorate(text: string, decorations: readonly Decoration[]): DecoratedSegment[] {
   const segments: DecoratedSegment[] = []
   let cursor = 0
-  for (const { start, end, className } of [...decorations].sort((a, b) => a.start - b.start)) {
+  for (const { id, start, end, className } of [...decorations].sort((a, b) => a.start - b.start)) {
     if (start < cursor || end <= start || end > text.length) continue
     if (start > cursor) segments.push({ text: text.slice(cursor, start), className: null })
-    segments.push({ text: text.slice(start, end), className })
+    segments.push({ id, text: text.slice(start, end), className })
     cursor = end
   }
   if (cursor < text.length) segments.push({ text: text.slice(cursor), className: null })

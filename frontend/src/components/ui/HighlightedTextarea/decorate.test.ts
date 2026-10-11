@@ -18,4 +18,11 @@ describe('decorate', () => {
     expect(segments).toEqual(expected)
     expect(segments.map((segment) => segment.text).join('')).toBe(text)
   })
+
+  it('carries decoration ids onto their segments', () => {
+    // Arrange + Act
+    const segments = decorate('ab', [{ id: 'h1', start: 0, end: 2, className: 'chip' }])
+    // Assert
+    expect(segments).toEqual([{ id: 'h1', text: 'ab', className: 'chip' }])
+  })
 })

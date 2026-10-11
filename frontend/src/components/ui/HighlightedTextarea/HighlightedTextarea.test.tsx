@@ -105,4 +105,11 @@ describe('HighlightedTextarea', () => {
     // Assert
     expect(backdrop(container)?.scrollTop).toBe(25)
   })
+
+  it('labels each decorated mark with its id so overlays can find it', () => {
+    // Arrange + Act
+    const { container } = render(<HighlightedTextarea aria-label="Entry" value="ab" readOnly decorations={[{ id: 'h1', start: 0, end: 2, className: CHIP_CLASS }]} />)
+    // Assert
+    expect(container.querySelector('mark')).toHaveAttribute('data-decoration-id', 'h1')
+  })
 })
