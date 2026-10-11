@@ -27,7 +27,8 @@ class CheckOut(BaseModel):
     analyzed_text: str = Field(
         description=(
             "The NFC-normalised, trimmed text that hint offsets index. It can differ from the request text; "
-            "clients map offsets into their own string units and re-anchor by `original`."
+            "clients map offsets into their own string units and carry each span across their later edits. "
+            "`original` is display-only, not an anchor."
         )
     )
     hints: list[HintOut]

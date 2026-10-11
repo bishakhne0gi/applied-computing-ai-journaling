@@ -26,15 +26,17 @@ class AnthropicProvider:
         effort: str,
         timeout_seconds: float,
         workspace_id: str | None = None,
+        max_retries: int = 1,
         client: AsyncAnthropic | None = None,
     ) -> None:
         self._model = model
         self._effort = effort
-        # One SDK retry keeps a synchronous request's worst case bounded; the analyzer adds one parse retry.
+        # One SDK retry by default bounds a synchronous request's worst case (the analyzer adds a parse
+        # retry); a caller that promises a single attempt passes 0.
         # User-scoped keys must name a workspace, or every request fails with 400.
         headers = {"anthropic-workspace-id": workspace_id} if workspace_id else None
         self._client = client or AsyncAnthropic(
-            api_key=api_key, timeout=timeout_seconds, max_retries=1, default_headers=headers
+            api_key=api_key, timeout=timeout_seconds, max_retries=max_retries, default_headers=headers
         )
 
     @property

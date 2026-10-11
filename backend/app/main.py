@@ -50,6 +50,8 @@ def _build_live_analyzer(settings: Settings) -> Analyzer:
         effort="low",
         timeout_seconds=settings.ai_live_timeout_seconds,
         workspace_id=settings.anthropic_workspace_id,
+        # A check is one attempt: an SDK retry would silently double the worst case past the live timeout.
+        max_retries=0,
     )
     # Untraced: checks fire on every pause, and tracing calls nobody stores would multiply Langfuse volume.
     return Analyzer(provider, max_attempts=1)

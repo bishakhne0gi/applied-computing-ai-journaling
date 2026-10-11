@@ -41,3 +41,12 @@ def test_workspace_id_is_passed_to_the_anthropic_provider() -> None:
 
 def test_workspace_id_is_ignored_by_the_fake_provider() -> None:
     assert isinstance(build_provider("fake", api_key=None, workspace_id="w", **COMMON), FakeProvider)
+
+
+def test_the_sdk_retries_once_by_default_and_not_at_all_when_asked() -> None:
+    default = build_provider("anthropic", api_key="k", **COMMON)
+    single = build_provider("anthropic", api_key="k", max_retries=0, **COMMON)
+
+    assert isinstance(default, AnthropicProvider)
+    assert isinstance(single, AnthropicProvider)
+    assert (default._client.max_retries, single._client.max_retries) == (1, 0)

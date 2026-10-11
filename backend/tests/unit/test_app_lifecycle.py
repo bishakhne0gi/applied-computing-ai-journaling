@@ -162,7 +162,8 @@ def test_the_live_analyzer_uses_the_live_model_at_low_effort_with_its_own_timeou
     main.create_app(Settings(_env_file=None, ai_live_model="m-live", ai_live_timeout_seconds=5))
 
     live = [c for c in calls if c["model"] == "m-live"]
-    assert live == [{**live[0], "effort": "low", "timeout_seconds": 5}]
+    assert live == [{**live[0], "effort": "low", "timeout_seconds": 5, "max_retries": 0}]
+    assert all("max_retries" not in c for c in calls if c["model"] != "m-live")
 
 
 async def test_shutdown_closes_both_analyzers_before_the_engine(

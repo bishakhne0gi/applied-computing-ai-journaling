@@ -15,6 +15,7 @@ def build_provider(
     effort: str,
     timeout_seconds: float,
     workspace_id: str | None = None,
+    max_retries: int = 1,
 ) -> CompletionProvider:
     if effort not in _EFFORTS:
         raise ValueError(f"AI_EFFORT must be one of {', '.join(_EFFORTS)}, got {effort!r}")
@@ -28,4 +29,5 @@ def build_provider(
         effort=effort,
         timeout_seconds=timeout_seconds,
         workspace_id=workspace_id,
+        max_retries=max_retries,
     )
