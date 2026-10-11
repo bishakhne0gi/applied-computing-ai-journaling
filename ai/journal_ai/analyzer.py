@@ -1,3 +1,5 @@
+import asyncio
+import contextlib
 import time
 from dataclasses import dataclass, field
 
@@ -9,6 +11,7 @@ from journal_ai.prompts.v1 import PROMPT_VERSION, build_messages, build_retry_pr
 from journal_ai.providers.base import CompletionProvider, ProviderError, ProviderTimeoutError
 from journal_ai.schema import RESPONSE_JSON_SCHEMA, AnalysisOutcome, AnalysisResult, FailureCode, Usage
 from journal_ai.text import normalize_text
+from journal_ai.tracing import NOOP_TRACE, NoopTracer, Trace, Tracer
 
 MAX_ATTEMPTS = 2
 MAX_DETAIL_CHARS = 300
@@ -37,27 +40,44 @@ class _Run:
     served_model: str | None = None
 
 
+def _start_trace(tracer: Tracer, language: str) -> Trace:
+    try:
+        return tracer.start(language=language)
+    except Exception:
+        return NOOP_TRACE
+
+
 class Analyzer:
-    def __init__(self, provider: CompletionProvider) -> None:
+    def __init__(self, provider: CompletionProvider, tracer: Tracer | None = None) -> None:
         self._provider = provider
+        self._tracer: Tracer = tracer or NoopTracer()
 
     async def aclose(self) -> None:
         await self._provider.aclose()
+        # The SDK flush is blocking network I/O; keep it off the event loop, and never let it block shutdown.
+        with contextlib.suppress(Exception):
+            await asyncio.to_thread(self._tracer.shutdown)
 
     async def analyze(self, text: str, language: str) -> AnalysisOutcome:
         # Callers rely on analyze() never raising for provider or output problems; only a bad language does.
         text = normalize_text(text)
         system, user = build_messages(text, language)
+        trace = _start_trace(self._tracer, language)
+        outcome = await self._run(text, system, user)
+        # Tracing is diagnostics: a broken exporter must never turn a good analysis into an error.
+        with contextlib.suppress(Exception):
+            trace.finish(outcome)
+        return outcome
+
+    async def _run(self, text: str, system: str, user: str) -> AnalysisOutcome:
         run = _Run(text=text)
         prompt = user
-
         while run.attempts < MAX_ATTEMPTS:
             run.attempts += 1
             step = await self._attempt(run, system, prompt)
             if isinstance(step, AnalysisOutcome):
                 return step
             prompt = build_retry_prompt(user, step)
-
         return self._outcome(run, failure=FailureCode.INVALID_OUTPUT)
 
     async def _attempt(self, run: _Run, system: str, prompt: str) -> AnalysisOutcome | str:

@@ -146,7 +146,10 @@ the analysis is a resource and its outcome is data.
 5. On `InvalidOutput`: one retry with the validation error appended; then failure `invalid_output`.
    Timeout → `provider_timeout`; API errors and refusals → `provider_error`. Raw response stored whenever present.
 
-Tracing (P5): Langfuse wraps `analyze()` only when `LANGFUSE_PUBLIC_KEY` is set. Model, latency and tokens are always logged.
+Tracing (P5): a `Tracer` wraps `analyze()`; the Langfuse adapter is built only when `LANGFUSE_PUBLIC_KEY`,
+`LANGFUSE_SECRET_KEY` and `LANGFUSE_HOST` are all set (no silent default region). Traces are metadata-only — model,
+prompt version, latency, tokens, status, failure code, mistake counts — never entry text, which only the model
+provider sees. Tracer errors never change an outcome. Model, latency and tokens are always logged.
 Supported languages are defined once in `journal_ai` (`SUPPORTED_LANGUAGES`) and reused by the backend.
 
 Evals (`ai/evals`, `make eval`): ~15 labelled entries per language (es, fr initially) plus clean sentences; reports
@@ -248,5 +251,5 @@ Each phase: failing tests first, small commits per step, `make verify` output sh
 
 `DATABASE_URL, AI_PROVIDER (anthropic|fake), AI_MODEL, AI_EFFORT, AI_TIMEOUT_SECONDS, ANTHROPIC_API_KEY,
 LOG_LEVEL, LOG_FORMAT (json|console), SENTRY_DSN, SENTRY_ENVIRONMENT, RELEASE,
-LANGFUSE_PUBLIC_KEY, LANGFUSE_SECRET_KEY, LANGFUSE_HOST, CORS_ORIGINS`; frontend `VITE_API_BASE, VITE_API_MOCKS,
+LANGFUSE_PUBLIC_KEY, LANGFUSE_SECRET_KEY, LANGFUSE_HOST (passed to the v4 SDK as `base_url`), CORS_ORIGINS`; frontend `VITE_API_BASE, VITE_API_MOCKS,
 VITE_SENTRY_DSN`. `.env.example` documents all; Compose defaults to `AI_PROVIDER=fake` when no key is set.

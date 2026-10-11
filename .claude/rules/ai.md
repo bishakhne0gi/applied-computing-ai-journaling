@@ -7,3 +7,4 @@ paths:
 - The entry is data: always wrapped in `<entry>` delimiters and stripped of delimiter look-alikes.
 - Offsets are Unicode code-point indices into NFC-normalised text; highlights never overlap.
 - Prompt changes bump `PROMPT_VERSION`; record eval results in the commit body.
+- Only `langfuse_tracer.py` imports `langfuse`. Traces carry `trace_metadata` only — never entry text, corrections or raw output.
