@@ -6,7 +6,7 @@ import { pluralize } from '@/utils/formatter'
 import { bracketRanges, countWords, entryLength } from '@/utils/text'
 import { cn } from '@/utils/utils'
 
-export type TextareaEvents = Pick<ComponentProps<'textarea'>, 'onClick' | 'onSelect' | 'onBlur' | 'onFocus' | 'onKeyUp' | 'onKeyDown' | 'onCompositionStart' | 'onCompositionEnd'>
+export type TextareaEvents = Pick<ComponentProps<'textarea'>, 'onClick' | 'onPointerDown' | 'onSelect' | 'onBlur' | 'onFocus' | 'onKeyUp' | 'onKeyDown' | 'onCompositionStart' | 'onCompositionEnd'>
 
 export const BRACKET_HINT = "Stuck on a word? Write it in English, in [brackets] or not, and you'll get the word."
 

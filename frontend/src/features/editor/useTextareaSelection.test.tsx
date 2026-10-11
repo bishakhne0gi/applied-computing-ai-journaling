@@ -21,7 +21,7 @@ describe('useTextareaSelection', () => {
     act(() => result.current.events.onSelect?.({ currentTarget: el } as unknown as SyntheticEvent<HTMLTextAreaElement>))
     act(() => result.current.events.onBlur?.({ currentTarget: el } as never))
     // Assert
-    expect(result.current.selection).toEqual({ start: 2, end: 6, focused: false })
+    expect(result.current.selection).toEqual({ start: 2, end: 6, focused: false, dragging: false })
     el.remove()
   })
 

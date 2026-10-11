@@ -13,7 +13,7 @@ import type { ComposerRephraseState } from './useComposerRephrase'
 function SelectionPill({ rephrase, selection }: { rephrase: ComposerRephraseState; selection: TextareaSelection }) {
   // Touch has its own selection menu where the pill would sit; jsdom has no pointer media, hence false.
   const finePointer = useMediaQuery('(pointer: fine)', false)
-  const shown = finePointer && !rephrase.open && rephrase.target && selection.focused && selection.end > selection.start
+  const shown = finePointer && !rephrase.open && rephrase.target && selection.focused && !selection.dragging && selection.end > selection.start
   return shown ? <RephrasePill offset={selection.end} onOpen={rephrase.openCard} /> : null
 }
 

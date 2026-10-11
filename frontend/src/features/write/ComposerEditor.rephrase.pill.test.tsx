@@ -80,4 +80,19 @@ describe('ComposerEditor selection pill', () => {
     // Assert
     expect(pill()).not.toBeInTheDocument()
   })
+
+  it('waits for the mouse button to come up before showing', () => {
+    // Arrange
+    pointer(true)
+    renderComposer()
+    // Act
+    fireEvent.pointerDown(editor(), { pointerType: 'mouse' })
+    select('yo es feliz')
+    // Assert
+    expect(pill()).not.toBeInTheDocument()
+    // Act
+    fireEvent.pointerUp(document, { pointerType: 'mouse' })
+    // Assert
+    expect(pill()).toBeInTheDocument()
+  })
 })

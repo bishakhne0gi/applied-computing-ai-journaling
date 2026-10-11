@@ -83,9 +83,10 @@ test('a mouse-width selection shows a Rephrase pill that opens the card on it', 
   await write(page)
   const editor = page.getByLabel('Your entry')
   // Act
-  await editor.press('End')
-  const wordLeft = process.platform === 'darwin' ? 'Alt+Shift+ArrowLeft' : 'Control+Shift+ArrowLeft'
-  for (let i = 0; i < 4; i++) await editor.press(wordLeft)
+  // The live-hint check lands asynchronously and re-renders the editor; select once it has settled.
+  await expect(mainColumn(page).getByRole('button', { name: /^\d+ hints?$/ })).toBeVisible()
+  await editor.evaluate((el: HTMLTextAreaElement, from) => el.setSelectionRange(from, from), TEXT.indexOf('con mi'))
+  await editor.press('Shift+End') // a real key, so the selection is made the way a learner makes it
   const pill = mainColumn(page).getByRole('button', { name: 'Rephrase selection' })
   await expect(pill).toBeVisible()
   await expect(editor).toBeFocused()
