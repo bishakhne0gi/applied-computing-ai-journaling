@@ -49,16 +49,22 @@ export function LiveHintsControls({ on, onToggle, hints, announcement, onAccept,
   }
   return (
     <div ref={root} className="flex flex-col gap-2">
-      <div className="-ml-2 flex flex-wrap items-center gap-1">
-        <Switch label="Live hints" checked={on} onChange={onToggle} />
-        {beside}
-        {visible && (
-          <Button variant="ghost" className="gap-1 px-3" aria-expanded={expanded} aria-controls={listId} onClick={() => setExpanded((open) => !open)}>
-            {pluralize(hints.length, 'hint')}
-            <Icon name="chevron" className={cn('size-4 transition-transform motion-reduce:transition-none', expanded && 'rotate-180')} />
-          </Button>
-        )}
-        {children}
+      <div className="-ml-2 flex flex-wrap items-center gap-x-1">
+        <div className="flex items-center gap-1">
+          <Switch label="Live hints" checked={on} onChange={onToggle} />
+          {beside}
+        </div>
+        {/* Its own group: on a phone it wraps as a whole to a second row aligned with the switches, and the hint count
+            comes last so showing or hiding it never moves Rephrase. */}
+        <div className="flex items-center gap-1">
+          {children}
+          {visible && (
+            <Button variant="ghost" className="gap-1 px-3" aria-expanded={expanded} aria-controls={listId} onClick={() => setExpanded((open) => !open)}>
+              {pluralize(hints.length, 'hint')}
+              <Icon name="chevron" className={cn('size-4 transition-transform motion-reduce:transition-none', expanded && 'rotate-180')} />
+            </Button>
+          )}
+        </div>
         {/* aria-live, not role="status": the composer's save status stays the only status. */}
         <p aria-live="polite" className="sr-only">
           {spoken(message, on ? announcement : 0)}
