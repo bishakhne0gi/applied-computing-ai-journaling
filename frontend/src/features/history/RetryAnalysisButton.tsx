@@ -15,7 +15,7 @@ export function RetryAnalysisButton({ label, preview, pending, error, onRetry }:
   const text = pending ? 'Analyzing…' : label
   return (
     <>
-      <Button onClick={onRetry} disabled={pending} aria-label={`${text}: ${preview}`}>
+      <Button variant="ghost" onClick={onRetry} disabled={pending} aria-label={`${text}: ${preview}`} className="-ml-3 px-3 text-primary hover:text-primary-pressed">
         {text}
       </Button>
       {error ? <InlineAlert>{toErrorMessage(error)}</InlineAlert> : null}

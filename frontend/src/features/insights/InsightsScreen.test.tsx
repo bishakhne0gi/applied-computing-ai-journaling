@@ -27,7 +27,7 @@ describe('InsightsScreen', () => {
     renderInsights()
     await waitForLanguages()
     // Act
-    await user.selectOptions(screen.getByLabelText('Language'), 'es')
+    await user.selectOptions(screen.getByLabelText('Filter by language'), 'es')
     // Assert
     expect(await screen.findByText('Verb conjugation keeps recurring: 3 of your last 5 entries.')).toBeInTheDocument()
     expect(screen.getByRole('row', { name: /Verb conjugation/ })).toHaveTextContent('Recurring · 3 of last 5')

@@ -1,6 +1,6 @@
 import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { SEEDED } from '@/mocks/seed'
 import { failWith, setMockMode } from '@/test/helpers'
 import { ENDPOINTS } from '@/utils/endpoints'
@@ -15,9 +15,9 @@ function rowContaining(text: string): HTMLElement {
   return row
 }
 
-async function renderRows() {
+async function renderRows(route = '/') {
   const user = userEvent.setup()
-  renderWithProviders(<HistoryList />, { route: '/entries' })
+  renderWithProviders(<HistoryList onStartWriting={vi.fn()} />, { route })
   await screen.findByText('Showing 10 entries')
   return user
 }
@@ -29,9 +29,17 @@ describe('history rows', () => {
     // Act
     const row = rowContaining('Hoy 😀 la problema')
     // Assert
-    expect(within(row).getByRole('link')).toHaveAttribute('href', `/entries/${SEEDED.emoji}`)
+    expect(within(row).getByRole('link')).toHaveAttribute('href', `/?entry=${SEEDED.emoji}`)
     expect(row).toHaveTextContent(/Oct \d{1,2}, 2026/)
     expect(within(row).getByText('2 errors')).toBeInTheDocument()
+  })
+
+  it('mark the open entry as the current one', async () => {
+    // Arrange + Act
+    await renderRows(`/?entry=${SEEDED.emoji}`)
+    // Assert
+    expect(within(rowContaining('Hoy 😀 la problema')).getByRole('link')).toHaveAttribute('aria-current', 'true')
+    expect(within(rowContaining('Escribo esto antes de dormir')).getByRole('link')).not.toHaveAttribute('aria-current')
   })
 
   it('mark entries that were never analysed', async () => {

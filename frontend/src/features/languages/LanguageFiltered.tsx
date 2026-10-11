@@ -16,7 +16,7 @@ export function LanguageFiltered({ id, loadingLabel, children }: LanguageFiltere
   return (
     <div className="flex flex-col gap-4">
       <div className="max-w-xs">
-        <LanguageSelect id={id} label="Language" value={filter.language ?? ''} onChange={filter.changeLanguage} allLabel="All languages" />
+        <LanguageSelect id={id} label="Filter by language" value={filter.language ?? ''} onChange={filter.changeLanguage} allLabel="All languages" />
       </div>
       {filter.state === 'ready' && children(filter.language)}
       {filter.state === 'pending' && <LoadingState label={loadingLabel} />}

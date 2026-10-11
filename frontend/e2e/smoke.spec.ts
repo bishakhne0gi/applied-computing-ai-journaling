@@ -1,28 +1,30 @@
 import { expect, test } from '@playwright/test'
 import { expectNoA11yViolations } from './a11y'
 import { expectButtonsShowPointer } from './cursor'
+import { mainColumn, openEntries } from './workspace'
 
-test('the app shell loads with the brand, the Write page and no a11y violations', async ({ page }) => {
+test('the workspace loads with the brand, the composer and the entries, with no a11y violations', async ({ page }) => {
   // Arrange
   await page.goto('/')
   // Act
-  const heading = page.getByRole('heading', { level: 1 })
+  const entries = await openEntries(page)
   // Assert
   await expect(page.getByRole('link', { name: 'Language Journal' })).toBeVisible()
-  await expect(heading).toHaveText('Write')
+  await expect(mainColumn(page).getByRole('heading', { level: 1 })).toHaveText('Write')
   await expect(page).toHaveTitle('Write · Language Journal')
+  await expect(entries.getByRole('list', { name: 'Entries' }).getByRole('listitem')).toHaveCount(10)
   await expectNoA11yViolations(page)
   await expectButtonsShowPointer(page)
 })
 
-test('the main navigation reaches History', async ({ page }) => {
+test('a link from before the workspace opens that entry in it', async ({ page }) => {
   // Arrange
-  await page.goto('/')
+  const id = '00000000-0000-4000-8000-000000000002'
   // Act
-  await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'History' }).click()
+  await page.goto(`/entries/${id}?language=es`)
   // Assert
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('History')
-  await expectNoA11yViolations(page)
+  await expect(page).toHaveURL(`/?language=es&entry=${id}`)
+  await expect(mainColumn(page).getByRole('heading', { level: 1, name: 'Entry' })).toBeVisible()
 })
 
 test('unknown paths show a not-found page with a way back', async ({ page }) => {
@@ -32,5 +34,5 @@ test('unknown paths show a not-found page with a way back', async ({ page }) => 
   await page.getByRole('link', { name: 'Back to writing' }).click()
   // Assert
   await expect(page).toHaveURL('/')
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Write')
+  await expect(mainColumn(page).getByRole('heading', { level: 1 })).toHaveText('Write')
 })

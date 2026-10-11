@@ -1,6 +1,7 @@
 import { expect, test, type Page } from '@playwright/test'
 import { expectNoA11yViolations } from './a11y'
 import { expectButtonsShowPointer } from './cursor'
+import { composerLanguage, mainColumn } from './workspace'
 
 async function expectHealthy(page: Page): Promise<void> {
   await expectNoA11yViolations(page)
@@ -13,13 +14,13 @@ async function expectNoHorizontalScroll(page: Page): Promise<void> {
 }
 
 const summary = (page: Page) => page.getByRole('region', { name: 'Summary' })
-const nav = (page: Page, name: string) => page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name })
+const insightsLink = (page: Page) => page.getByRole('link', { name: 'Insights', exact: true })
 
 test('insights summarise every language, chart the rate and break errors down by category', async ({ page }) => {
   // Arrange
   await page.goto('/')
   // Act
-  await nav(page, 'Insights').click()
+  await insightsLink(page).click()
   // Assert
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Insights')
   await expect(summary(page)).toContainText('6 errors across 11 entries — 7.6 per 100 words.')
@@ -35,14 +36,14 @@ test('the language filter narrows insights and below three entries offers a way 
   await page.goto('/insights')
   await expect(summary(page)).toBeVisible()
   // Act
-  await page.getByLabel('Language').selectOption('es')
+  await page.getByLabel('Filter by language').selectOption('es')
   // Assert
   await expect(page).toHaveURL(/language=es/)
   await expect(summary(page)).toContainText('Verb conjugation keeps recurring: 3 of your last 5 entries.')
   await expect(page.getByRole('row', { name: /Verb conjugation/ })).toContainText('Recurring · 3 of last 5')
   await expectHealthy(page)
   await expectNoHorizontalScroll(page)
-  await page.getByLabel('Language').selectOption('de')
+  await page.getByLabel('Filter by language').selectOption('de')
   await expect(page.getByText('Insights start after 3 entries with feedback — 3 to go.')).toBeVisible()
   await expectHealthy(page)
   await page.getByRole('link', { name: 'Write an entry' }).click()
@@ -53,17 +54,16 @@ test('a new entry with feedback changes insights that were already loaded', asyn
   // Arrange
   await page.goto('/insights?language=fr')
   await expect(summary(page)).toContainText('0 errors across 3 entries')
-  await nav(page, 'Write').click()
-  // Wait for the new page: the Insights filter is also labelled "Language" until it unmounts.
+  await page.getByRole('link', { name: 'Back to your journal' }).click()
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Write')
-  await page.getByLabel('Language').selectOption('fr')
+  await composerLanguage(page).selectOption('fr')
   await page.getByLabel('Your entry').fill('Je vais à le cinéma ce soir.')
   // Act
-  await page.getByRole('button', { name: 'Get feedback' }).click()
+  await mainColumn(page).getByRole('button', { name: 'Get feedback' }).click()
   await expect(page.getByRole('heading', { name: 'Feedback' })).toBeVisible()
-  await nav(page, 'Insights').click()
+  await insightsLink(page).click()
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Insights')
-  await page.getByLabel('Language').selectOption('fr')
+  await page.getByLabel('Filter by language').selectOption('fr')
   // Assert
   await expect(summary(page)).toContainText('Article is getting worse (0.0 → 6.7 per 100 words).')
   await expectHealthy(page)

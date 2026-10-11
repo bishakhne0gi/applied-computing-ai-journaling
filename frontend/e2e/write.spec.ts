@@ -1,6 +1,7 @@
 import { expect, test, type Page } from '@playwright/test'
 import { expectNoA11yViolations } from './a11y'
 import { expectButtonsShowPointer } from './cursor'
+import { composerLanguage, mainColumn } from './workspace'
 
 const ENTRY = 'Ayer yo es feliz en el [park].'
 
@@ -11,7 +12,7 @@ async function expectHealthy(page: Page): Promise<void> {
 
 async function writeEntry(page: Page, path = '/'): Promise<void> {
   await page.goto(path)
-  await page.getByLabel('Language').selectOption('es')
+  await composerLanguage(page).selectOption('es')
   await page.getByLabel('Your entry').fill(ENTRY)
 }
 
@@ -20,10 +21,10 @@ test('writing an entry shows inline feedback, a detail panel and the corrected v
   await writeEntry(page)
   await expectHealthy(page)
   // Act
-  await page.getByRole('button', { name: 'Get feedback' }).click()
+  await mainColumn(page).getByRole('button', { name: 'Get feedback' }).click()
   // Assert
   await expect(page.getByRole('heading', { name: 'Feedback' })).toBeVisible()
-  await expect(page.getByRole('status')).toHaveText('Saved')
+  await expect(mainColumn(page).getByRole('status')).toHaveText('Saved')
   await expectHealthy(page)
   const highlight = page.getByRole('button', { name: /yo es/ })
   await highlight.click()
@@ -44,7 +45,7 @@ test('a failed analysis keeps the entry and can be retried', async ({ page }) =>
   // Arrange
   await writeEntry(page, '/?mock=analysis-fail')
   // Act
-  await page.getByRole('button', { name: 'Get feedback' }).click()
+  await mainColumn(page).getByRole('button', { name: 'Get feedback' }).click()
   // Assert
   const alert = page.getByRole('alert')
   await expect(alert).toContainText('took too long')
@@ -58,7 +59,7 @@ test('a failed analysis keeps the entry and can be retried', async ({ page }) =>
 test('revising an entry re-checks it and shows the new feedback', async ({ page }) => {
   // Arrange
   await writeEntry(page)
-  await page.getByRole('button', { name: 'Get feedback' }).click()
+  await mainColumn(page).getByRole('button', { name: 'Get feedback' }).click()
   await page.getByRole('button', { name: 'Revise & re-check' }).click()
   const editor = page.getByLabel('Revise your entry')
   await expect(editor).toHaveValue(ENTRY)
@@ -78,7 +79,7 @@ test('a draft survives a reload', async ({ page }) => {
   await page.reload()
   // Assert
   await expect(page.getByLabel('Your entry')).toHaveValue(ENTRY)
-  await expect(page.getByRole('status')).toHaveText('Draft kept on this device')
+  await expect(mainColumn(page).getByRole('status')).toHaveText('Draft kept on this device')
 })
 
 test('Ctrl/⌘+Enter submits from the text box and focus lands on the feedback', async ({ page }) => {
@@ -95,25 +96,25 @@ test('Ctrl/⌘+Enter submits from the text box and focus lands on the feedback',
 test('"New entry" starts a fresh, focused editor', async ({ page }) => {
   // Arrange
   await writeEntry(page)
-  await page.getByRole('button', { name: 'Get feedback' }).click()
+  await mainColumn(page).getByRole('button', { name: 'Get feedback' }).click()
   await expect(page.getByRole('heading', { name: 'Feedback' })).toBeVisible()
   // Act
-  await page.getByRole('button', { name: 'New entry' }).click()
+  await mainColumn(page).getByRole('button', { name: 'New entry' }).click()
   // Assert
   await expect(page.getByLabel('Your entry')).toHaveValue('')
   await expect(page.getByLabel('Your entry')).toBeFocused()
-  await expect(page.getByRole('button', { name: 'Get feedback' })).toBeDisabled()
+  await expect(mainColumn(page).getByRole('button', { name: 'Get feedback' })).toBeDisabled()
   await expectHealthy(page)
 })
 
 test('the language last used is remembered across a reload', async ({ page }) => {
   // Arrange
   await page.goto('/')
-  await page.getByLabel('Language').selectOption('de')
+  await composerLanguage(page).selectOption('de')
   // Act
   await page.reload()
   // Assert
-  await expect(page.getByLabel('Language')).toHaveValue('de')
+  await expect(composerLanguage(page)).toHaveValue('de')
   await expectHealthy(page)
 })
 
@@ -124,6 +125,6 @@ test('an entry over the limit explains itself and cannot be submitted', async ({
   await page.getByLabel('Your entry').fill('a'.repeat(5001))
   // Assert
   await expect(page.getByText('1 character too long', { exact: false })).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Get feedback' })).toBeDisabled()
+  await expect(mainColumn(page).getByRole('button', { name: 'Get feedback' })).toBeDisabled()
   await expectHealthy(page)
 })

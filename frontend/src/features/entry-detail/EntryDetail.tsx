@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { ErrorState } from '@/components/ui/ErrorState'
 import { LoadingState } from '@/components/ui/LoadingState'
 import { PageHeading } from '@/components/ui/PageHeading'
+import { useFocusOnMount } from '@/hooks/misc/useFocusOnMount'
 import { useAnalysesQuery } from '@/hooks/queries/useAnalysesQuery'
 import { useEntryQuery } from '@/hooks/queries/useEntryQuery'
 import type { AnalysisOut } from '@/types/analysis'
@@ -15,6 +16,8 @@ import { EntryHeader } from './EntryHeader'
 
 export interface EntryDetailProps {
   entryId: string
+  // True when the learner picked this entry (not a deep link): its heading takes focus.
+  focusHeading?: boolean
 }
 
 function EntryDetailReady({ entry, analyses }: { entry: EntryDetailOut; analyses: AnalysisOut[] }) {
@@ -47,16 +50,17 @@ function EntryDetailBody({ entry, analyses }: EntryDetailBodyProps) {
   return <EntryDetailReady entry={entry.data} analyses={analyses.data} />
 }
 
-export function EntryDetail({ entryId }: EntryDetailProps) {
+export function EntryDetail({ entryId, focusHeading = false }: EntryDetailProps) {
   const entry = useEntryQuery(entryId)
   const analyses = useAnalysesQuery(entryId)
+  const headingRef = useFocusOnMount<HTMLHeadingElement>()
   const missing = entry.isError && !entry.data && isMissing(entry.error)
   const title = missing ? 'Entry not found' : 'Entry'
-  // One heading element in every state: the route change focused it, and swapping it would drop that focus.
+  // One heading element in every state: focus moved to it on selection, and swapping it would drop that focus.
   return (
     <div className="flex flex-col gap-6">
       <title>{`${title} · Language Journal`}</title>
-      <PageHeading>{title}</PageHeading>
+      <PageHeading ref={focusHeading ? headingRef : undefined}>{title}</PageHeading>
       {missing ? <EntryNotFound /> : <EntryDetailBody entry={entry} analyses={analyses} />}
     </div>
   )

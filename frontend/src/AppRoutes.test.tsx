@@ -1,96 +1,84 @@
-import { screen, waitFor } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { SEEDED } from '@/mocks/seed'
+import { LocationProbe } from '@/test/LocationProbe'
 import { renderWithProviders } from '@/test/renderWithProviders'
 import { AppRoutes } from './AppRoutes'
 
+const renderAt = (route: string) =>
+  renderWithProviders(
+    <>
+      <AppRoutes />
+      <LocationProbe />
+    </>,
+    { route },
+  )
+const location = () => screen.getByLabelText('Location')
+
 describe('routes', () => {
-  it('opens Write at the root and marks it current in the navigation', () => {
-    // Arrange
-    const route = '/'
-    // Act
-    renderWithProviders(<AppRoutes />, { route })
+  it('opens the workspace at the root: brand, composer and entries', async () => {
+    // Arrange + Act
+    renderAt('/')
     // Assert
-    expect(screen.getByRole('heading', { level: 1, name: 'Write' })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Write' })).toHaveAttribute('aria-current', 'page')
+    expect(screen.getByRole('link', { name: 'Language Journal' })).toHaveAttribute('href', '/')
+    expect(within(screen.getByRole('main')).getByRole('heading', { level: 1, name: 'Write' })).toBeInTheDocument()
+    expect(await screen.findByRole('list', { name: 'Entries' })).toBeInTheDocument()
   })
 
-  it('opens History at /entries', () => {
-    // Arrange
-    const route = '/entries'
-    // Act
-    renderWithProviders(<AppRoutes />, { route })
+  it.each([
+    ['/entries', '/'],
+    ['/entries?language=fr', '/?language=fr'],
+    [`/entries/${SEEDED.emoji}`, `/?entry=${SEEDED.emoji}`],
+    [`/entries/${SEEDED.emoji}?language=es`, `/?language=es&entry=${SEEDED.emoji}`],
+  ])('redirects the old link %s into the workspace at %s', async (route, target) => {
+    // Arrange + Act
+    renderAt(route)
     // Assert
-    expect(screen.getByRole('heading', { level: 1, name: 'History' })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'History' })).toHaveAttribute('aria-current', 'page')
-    expect(screen.getByRole('link', { name: 'Write' })).not.toHaveAttribute('aria-current')
+    await waitFor(() => expect(location()).toHaveTextContent(target))
+    expect(location().textContent).toBe(target)
   })
 
-  it('opens an entry at /entries/:entryId', () => {
-    // Arrange
-    const route = `/entries/${SEEDED.emoji}`
-    // Act
-    renderWithProviders(<AppRoutes />, { route })
+  it('leaves focus alone on first load, even through a redirect', async () => {
+    // Arrange + Act
+    renderAt(`/entries/${SEEDED.emoji}`)
     // Assert
-    expect(screen.getByRole('heading', { level: 1, name: 'Entry' })).toBeInTheDocument()
-  })
-
-  it('opens Insights at /insights and marks it current in the navigation', () => {
-    // Arrange
-    const route = '/insights'
-    // Act
-    renderWithProviders(<AppRoutes />, { route })
-    // Assert
-    expect(screen.getByRole('heading', { level: 1, name: 'Insights' })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Insights' })).toHaveAttribute('aria-current', 'page')
+    expect(await screen.findByRole('heading', { level: 1, name: 'Entry' })).toBeInTheDocument()
+    expect(document.body).toHaveFocus()
   })
 
   it('shows a not-found page with a way back for unknown paths', () => {
-    // Arrange
-    const route = '/nowhere'
-    // Act
-    renderWithProviders(<AppRoutes />, { route })
+    // Arrange + Act
+    renderAt('/nowhere')
     // Assert
     expect(screen.getByRole('heading', { level: 1, name: 'Page not found' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Back to writing' })).toHaveAttribute('href', '/')
   })
 
-  it('offers a skip link to the main content', () => {
+  it('moves focus to the workspace heading when coming back from a missing page', async () => {
     // Arrange
-    const route = '/'
+    const user = userEvent.setup()
+    renderAt('/nowhere')
     // Act
-    renderWithProviders(<AppRoutes />, { route })
+    await user.click(screen.getByRole('link', { name: 'Back to writing' }))
+    // Assert
+    expect(await screen.findByRole('heading', { level: 1, name: 'Write' })).toHaveFocus()
+  })
+
+  it.each(['/', '/nowhere'])('offers a skip link to the main content on %s', (route) => {
+    // Arrange + Act
+    renderAt(route)
     // Assert
     expect(screen.getByRole('link', { name: 'Skip to content' })).toHaveAttribute('href', '#main')
     expect(screen.getByRole('main')).toHaveAttribute('id', 'main')
   })
 
-  it('leaves focus alone on first load', () => {
-    // Arrange
-    const route = '/entries'
-    // Act
-    renderWithProviders(<AppRoutes />, { route })
-    // Assert
-    expect(document.body).toHaveFocus()
-  })
-
-  it('moves focus to the new page heading when the route changes', async () => {
+  it('does not steal focus when only the filter changes', async () => {
     // Arrange
     const user = userEvent.setup()
-    renderWithProviders(<AppRoutes />, { route: '/' })
-    // Act
-    await user.click(screen.getByRole('link', { name: 'History' }))
-    // Assert
-    expect(await screen.findByRole('heading', { level: 1, name: 'History' })).toHaveFocus()
-  })
-
-  it('does not steal focus when only the query string changes', async () => {
-    // Arrange
-    const user = userEvent.setup()
-    renderWithProviders(<AppRoutes />, { route: '/entries' })
-    const filter = await screen.findByLabelText('Language')
-    await screen.findByRole('option', { name: 'Spanish' })
+    renderAt('/')
+    const filter = await screen.findByLabelText('Filter by language')
+    await within(filter).findByRole('option', { name: 'Spanish' })
     // Act
     await user.selectOptions(filter, 'es')
     // Assert
@@ -99,26 +87,13 @@ describe('routes', () => {
 
   it.each([
     ['/', 'Write · Language Journal'],
-    ['/entries', 'History · Language Journal'],
-    [`/entries/${SEEDED.emoji}`, 'Entry · Language Journal'],
+    [`/?entry=${SEEDED.emoji}`, 'Entry · Language Journal'],
     ['/insights', 'Insights · Language Journal'],
     ['/nowhere', 'Page not found · Language Journal'],
   ])('titles the document for %s', async (route, title) => {
-    // Arrange
-    renderWithProviders(<AppRoutes />, { route })
-    // Act
+    // Arrange + Act
+    renderAt(route)
+    // Assert
     await waitFor(() => expect(document.title).toBe(title))
-    // Assert
-    expect(document.title).toBe(title)
-  })
-
-  it('retitles the document when the route changes', async () => {
-    // Arrange
-    const user = userEvent.setup()
-    renderWithProviders(<AppRoutes />, { route: '/' })
-    // Act
-    await user.click(screen.getByRole('link', { name: 'History' }))
-    // Assert
-    await waitFor(() => expect(document.title).toBe('History · Language Journal'))
   })
 })

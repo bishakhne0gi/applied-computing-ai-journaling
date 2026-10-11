@@ -17,7 +17,7 @@ export function clearMockMode(): void {
 }
 
 export async function waitForLanguages(): Promise<void> {
-  await screen.findByRole('option', { name: 'Spanish' })
+  await screen.findAllByRole('option', { name: 'Spanish' })
 }
 
 // Returning nothing falls through to the in-memory handler, so this only adds latency to assert pending states.

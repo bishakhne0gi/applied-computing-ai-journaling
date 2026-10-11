@@ -1,7 +1,7 @@
+import { Button } from '@/components/ui/Button'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { ErrorState } from '@/components/ui/ErrorState'
 import { LoadingState } from '@/components/ui/LoadingState'
-import { TextLink } from '@/components/ui/TextLink'
 import type { useEntriesQuery } from '@/hooks/queries/useEntriesQuery'
 import { toErrorMessage } from '@/utils/errorMessage'
 import { pluralize } from '@/utils/formatter'
@@ -12,9 +12,10 @@ import { useFocusNewRows } from './useFocusNewRows'
 export interface HistoryResultsProps {
   entries: ReturnType<typeof useEntriesQuery>
   filtered: boolean
+  onStartWriting: () => void
 }
 
-export function HistoryResults({ entries, filtered }: HistoryResultsProps) {
+export function HistoryResults({ entries, filtered, onStartWriting }: HistoryResultsProps) {
   const { listRef, expectRowsAfter } = useFocusNewRows(entries.data?.length ?? 0)
   if (entries.isPending) return <LoadingState label="Loading entries…" />
   // With pages already loaded, a failed "Load more" is reported next to its button instead.
@@ -25,18 +26,18 @@ export function HistoryResults({ entries, filtered }: HistoryResultsProps) {
   if (items.length === 0) {
     return (
       <EmptyState title={filtered ? 'No entries in this language yet' : 'No entries yet'}>
-        <TextLink to="/">Write your first entry</TextLink>
+        <Button onClick={onStartWriting}>Write your first entry</Button>
       </EmptyState>
     )
   }
   return (
-    <div className="flex flex-col gap-4">
-      <ul ref={listRef} aria-label="Entries" className="flex flex-col gap-3">
+    <div className="flex flex-col gap-3">
+      <ul ref={listRef} aria-label="Entries" className="-mx-3 flex flex-col gap-1">
         {items.map((entry) => (
           <EntryRow key={entry.id} entry={entry} />
         ))}
       </ul>
-      <p role="status" className="text-sm text-muted">
+      <p role="status" className="text-xs text-muted">
         Showing {pluralize(items.length, 'entry', 'entries')}
       </p>
       <LoadMore

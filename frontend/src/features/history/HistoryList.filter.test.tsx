@@ -1,7 +1,7 @@
 import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { delay, http } from 'msw'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { useLocation, useNavigate } from 'react-router'
 import { Button } from '@/components/ui/Button'
 import { apiUrl, waitForLanguages } from '@/test/helpers'
@@ -25,7 +25,7 @@ function Probe() {
 const renderAt = (route: string) =>
   renderWithProviders(
     <>
-      <HistoryList />
+      <HistoryList onStartWriting={vi.fn()} />
       <Probe />
     </>,
     { route },
@@ -36,10 +36,10 @@ const search = () => screen.getByLabelText('Search').textContent
 describe('HistoryList language filter', () => {
   it('opens a deep link already filtered, with the select showing it', async () => {
     // Arrange + Act
-    renderAt('/entries?language=fr')
+    renderAt('/?language=fr')
     // Assert
     expect(await screen.findByText('Showing 4 entries')).toBeInTheDocument()
-    expect(screen.getByLabelText('Language')).toHaveValue('fr')
+    expect(screen.getByLabelText('Filter by language')).toHaveValue('fr')
   })
 
   it.each([
@@ -47,10 +47,10 @@ describe('HistoryList language filter', () => {
     ['an empty code', '?language='],
   ])('treats %s as unfiltered and drops it from the URL', async (_label, query) => {
     // Arrange + Act
-    renderAt(`/entries${query}`)
+    renderAt(`/${query}`)
     // Assert
     expect(await screen.findByText('Showing 10 entries')).toBeInTheDocument()
-    expect(screen.getByLabelText('Language')).toHaveValue('')
+    expect(screen.getByLabelText('Filter by language')).toHaveValue('')
     expect(search()).toBe('')
   })
 
@@ -63,7 +63,7 @@ describe('HistoryList language filter', () => {
       }),
     )
     // Act
-    renderAt('/entries?language=xx')
+    renderAt('/?language=xx')
     await screen.findByText('Showing 10 entries')
     // Assert
     expect(seen).toEqual([null])
@@ -72,28 +72,28 @@ describe('HistoryList language filter', () => {
   it('writes the chosen language to the URL and clears it for "All languages"', async () => {
     // Arrange
     const user = userEvent.setup()
-    renderAt('/entries')
+    renderAt('/')
     await waitForLanguages()
     // Act
-    await user.selectOptions(screen.getByLabelText('Language'), 'fr')
+    await user.selectOptions(screen.getByLabelText('Filter by language'), 'fr')
     // Assert
     expect(search()).toBe('?language=fr')
-    await user.selectOptions(screen.getByLabelText('Language'), '')
+    await user.selectOptions(screen.getByLabelText('Filter by language'), '')
     expect(search()).toBe('')
   })
 
   it('restores the previous filter on Back', async () => {
     // Arrange
     const user = userEvent.setup()
-    renderAt('/entries?language=fr')
+    renderAt('/?language=fr')
     await screen.findByText('Showing 4 entries')
-    await user.selectOptions(screen.getByLabelText('Language'), 'es')
+    await user.selectOptions(screen.getByLabelText('Filter by language'), 'es')
     await screen.findByText('Showing 10 entries')
     // Act
     await user.click(screen.getByRole('button', { name: 'Go back' }))
     // Assert
     expect(await screen.findByText('Showing 4 entries')).toBeInTheDocument()
-    expect(screen.getByLabelText('Language')).toHaveValue('fr')
+    expect(screen.getByLabelText('Filter by language')).toHaveValue('fr')
   })
 })
 
@@ -106,7 +106,7 @@ describe('HistoryList load more', () => {
       }),
     )
     const user = userEvent.setup()
-    renderAt('/entries')
+    renderAt('/')
     await screen.findByText('Showing 10 entries')
     // Act
     await user.click(screen.getByRole('button', { name: 'Load more' }))
@@ -119,7 +119,7 @@ describe('HistoryList load more', () => {
   it('moves focus to the first new row so it is not lost when the button goes away', async () => {
     // Arrange
     const user = userEvent.setup()
-    renderAt('/entries')
+    renderAt('/')
     await screen.findByText('Showing 10 entries')
     // Act
     await user.click(screen.getByRole('button', { name: 'Load more' }))

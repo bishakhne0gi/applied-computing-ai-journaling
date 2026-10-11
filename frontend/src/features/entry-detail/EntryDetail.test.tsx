@@ -90,11 +90,11 @@ describe('EntryDetail', () => {
   it.each([
     ['a missing entry', 'ffffffff-ffff-4fff-8fff-ffffffffffff'],
     ['an id that is not a UUID', 'not-an-id'],
-  ])('offers the way back to History, not a retry, for %s', async (_label, id) => {
+  ])('offers a new entry, not a retry, for %s', async (_label, id) => {
     // Arrange + Act
     renderDetail(id)
     // Assert
-    expect(await screen.findByRole('link', { name: 'Back to history' })).toHaveAttribute('href', '/entries')
+    expect(await screen.findByRole('link', { name: 'Write a new entry' })).toHaveAttribute('href', '/')
     expect(screen.queryByRole('button', { name: 'Try again' })).not.toBeInTheDocument()
   })
 

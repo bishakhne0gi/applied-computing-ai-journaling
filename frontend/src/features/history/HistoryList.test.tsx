@@ -1,14 +1,14 @@
 import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { apiUrl, clearMockMode, failWith, setMockMode, waitForLanguages } from '@/test/helpers'
 import { renderWithProviders } from '@/test/renderWithProviders'
 import { server } from '@/test/server'
 import { ENDPOINTS } from '@/utils/endpoints'
 import { HistoryList } from './HistoryList'
 
-const renderHistory = () => renderWithProviders(<HistoryList />, { route: '/entries' })
+const renderHistory = (onStartWriting = vi.fn()) => renderWithProviders(<HistoryList onStartWriting={onStartWriting} />, { route: '/' })
 const rows = () => within(screen.getByRole('list', { name: 'Entries' })).getAllByRole('listitem')
 
 describe('HistoryList', () => {
@@ -39,20 +39,23 @@ describe('HistoryList', () => {
     renderHistory()
     await waitForLanguages()
     // Act
-    await user.selectOptions(screen.getByLabelText('Language'), 'fr')
+    await user.selectOptions(screen.getByLabelText('Filter by language'), 'fr')
     // Assert
     expect(await screen.findByText('Showing 4 entries')).toBeInTheDocument()
     expect(rows().every((row) => row.textContent?.includes('French'))).toBe(true)
   })
 
-  it('shows an empty state with a way to start writing', async () => {
+  it('shows an empty state whose action starts a new entry', async () => {
     // Arrange
     setMockMode('empty')
+    const onStartWriting = vi.fn()
+    const user = userEvent.setup()
+    renderHistory(onStartWriting)
     // Act
-    renderHistory()
+    await user.click(await screen.findByRole('button', { name: 'Write your first entry' }))
     // Assert
-    expect(await screen.findByText('No entries yet')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Write your first entry' })).toHaveAttribute('href', '/')
+    expect(screen.getByText('No entries yet')).toBeInTheDocument()
+    expect(onStartWriting).toHaveBeenCalledTimes(1)
   })
 
   it('offers a retry when the list cannot load', async () => {

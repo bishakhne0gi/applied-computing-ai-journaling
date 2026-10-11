@@ -4,7 +4,7 @@ import { TextLink } from '@/components/ui/TextLink'
 export function EntryNotFound() {
   return (
     <EmptyState title="We couldn't find that entry. It may have been removed.">
-      <TextLink to="/entries">Back to history</TextLink>
+      <TextLink to="/">Write a new entry</TextLink>
     </EmptyState>
   )
 }

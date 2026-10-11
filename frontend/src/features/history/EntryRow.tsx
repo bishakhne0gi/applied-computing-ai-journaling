@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { Link } from 'react-router'
 import { Badge } from '@/components/ui/Badge'
+import { useWorkspaceParams } from '@/hooks/misc/useWorkspaceParams'
 import { useRunAnalysisMutation } from '@/hooks/mutations/useRunAnalysisMutation'
 import { useLanguageName } from '@/features/languages/useLanguageName'
 import type { EntrySummaryOut } from '@/types/entry'
@@ -22,8 +23,12 @@ function EntryStatus({ entry }: EntryRowProps) {
 
 const OUTCOME_MESSAGE = { succeeded: 'Feedback ready', failed: 'Analysis failed again', pending: '' } as const
 
+const linkClass =
+  'flex min-w-0 flex-col gap-1.5 rounded-md px-3 py-2.5 transition-colors hover:bg-surface aria-[current=true]:bg-primary-soft'
+
 export function EntryRow({ entry }: EntryRowProps) {
   const languageName = useLanguageName(entry.language)
+  const { entryId, entryHref } = useWorkspaceParams()
   const analyze = useRunAnalysisMutation()
   const linkRef = useRef<HTMLAnchorElement>(null)
   const retried = analyze.data?.status
@@ -32,16 +37,18 @@ export function EntryRow({ entry }: EntryRowProps) {
     if (retried === 'succeeded') linkRef.current?.focus()
   }, [retried])
   return (
-    <li className="flex flex-col gap-3 rounded-md border border-border p-4 md:flex-row md:items-center md:justify-between">
-      <Link ref={linkRef} to={`/entries/${entry.id}`} className="flex min-w-0 flex-col gap-1 hover:underline">
-        <span className="text-sm text-muted">
-          {formatDateTime(entry.created_at)} · {languageName}
+    <li className="flex flex-col gap-1">
+      <Link ref={linkRef} to={entryHref(entry.id)} aria-current={entry.id === entryId ? 'true' : undefined} className={linkClass}>
+        <span className="line-clamp-2 text-sm text-fg">{entry.preview}</span>
+        <span className="flex flex-wrap items-center justify-between gap-2 text-xs text-fg-secondary">
+          <span>
+            {formatDateTime(entry.created_at)} · {languageName}
+          </span>
+          <EntryStatus entry={entry} />
         </span>
-        <span>{entry.preview}</span>
       </Link>
-      <div className="flex shrink-0 flex-wrap items-center gap-2">
-        <EntryStatus entry={entry} />
-        {entry.latest_status !== 'succeeded' && (
+      {entry.latest_status !== 'succeeded' && (
+        <div className="flex flex-col items-start px-3 pb-1">
           <RetryAnalysisButton
             label={entry.latest_status === null ? 'Get feedback' : 'Retry analysis'}
             preview={entry.preview}
@@ -49,11 +56,11 @@ export function EntryRow({ entry }: EntryRowProps) {
             error={analyze.error}
             onRetry={() => analyze.mutate(entry.id)}
           />
-        )}
-        <p role="status" className="sr-only">
-          {analyze.isPending || !retried ? '' : OUTCOME_MESSAGE[retried]}
-        </p>
-      </div>
+        </div>
+      )}
+      <p role="status" className="sr-only">
+        {analyze.isPending || !retried ? '' : OUTCOME_MESSAGE[retried]}
+      </p>
     </li>
   )
 }
