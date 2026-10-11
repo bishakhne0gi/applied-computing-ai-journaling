@@ -1,0 +1,20 @@
+{
+  "rephrase": [
+    {"language": "es", "text": "Ayer fui al mercado. Hoy yo es feliz con mi familia.", "start": 21, "end": 52,
+     "expected": {
+       "sentence": "Hoy yo es feliz con mi familia.",
+       "versions": [
+         {"text": "Hoy yo soy feliz con mi familia.", "tone": "natural", "label": "More natural", "explanation": "Demo mode: a scripted rewrite. Set ANTHROPIC_API_KEY for real versions."},
+         {"text": "Sinceramente, hoy yo soy feliz con mi familia.", "tone": "formal", "label": "More formal", "explanation": "Demo mode: a scripted rewrite. Set ANTHROPIC_API_KEY for real versions."},
+         {"text": "Hoy yo soy feliz con mi familia sin duda.", "tone": "casual", "label": "More casual", "explanation": "Demo mode: a scripted rewrite. Set ANTHROPIC_API_KEY for real versions."}],
+       "vocabulary": [
+         {"original": "feliz", "start": 10, "end": 15, "alternatives": [
+           {"word": "contento", "nuance": "Demo mode: everyday and a little softer."},
+           {"word": "alegre", "nuance": "Demo mode: cheerful, outgoing."}]}]}}
+  ],
+  "complete": [
+    {"language": "es", "text": "Hoy fui al mercado con mi madre", "expected": " y fue un buen día."},
+    {"language": "es", "text": "Hoy fui al mercado ", "expected": "y fue un buen día."},
+    {"language": "fr", "text": "Ce matin je suis allé au marché", "expected": " et c'était une bonne journée."}
+  ]
+}

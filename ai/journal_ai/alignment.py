@@ -34,6 +34,18 @@ def align_mistakes(text: str, mistakes: Sequence[Mistake]) -> Alignment:
     return Alignment(tuple(aligned), duplicates)
 
 
+def find_word_span(text: str, snippet: str) -> Span | None:
+    """First whole-word occurrence; unlike the aligner, never falls back to a match inside a word."""
+    snippet = unicodedata.normalize("NFC", snippet)
+    if not snippet.split():
+        return None
+    for loose in (False, True):
+        found = _pattern(snippet, loose=loose, bounded=True).search(text)
+        if found:
+            return found.start(), found.end()
+    return None
+
+
 def _find_spans(text: str, snippet: str) -> list[Span]:
     snippet = unicodedata.normalize("NFC", snippet)
     if not snippet.split():

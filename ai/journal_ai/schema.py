@@ -110,3 +110,113 @@ RESPONSE_JSON_SCHEMA: dict[str, Any] = {
         },
     },
 }
+
+
+class Tone(StrEnum):
+    NATURAL = "natural"
+    FORMAL = "formal"
+    CASUAL = "casual"
+    SIMPLER = "simpler"
+
+
+class Version(BaseModel):
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    text: str = Field(min_length=1)
+    tone: Tone
+    label: str = Field(min_length=1)
+    explanation: str = Field(min_length=1)
+
+
+class Alternative(BaseModel):
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    word: str = Field(min_length=1)
+    nuance: str = Field(min_length=1)
+
+
+class VocabularyItem(BaseModel):
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    original: str = Field(min_length=1)
+    start: int
+    end: int
+    alternatives: tuple[Alternative, ...]
+
+
+class Rephrasing(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    sentence: str
+    versions: tuple[Version, ...]
+    vocabulary: tuple[VocabularyItem, ...]
+
+
+class RephraseOutcome(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    result: Rephrasing | None
+    failure: FailureCode | None
+    model: str
+    latency_ms: int
+    usage: Usage
+
+
+class CompletionOutcome(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    completion: str | None
+    failure: FailureCode | None
+    model: str
+    latency_ms: int
+    usage: Usage
+
+
+REPHRASE_JSON_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["versions", "vocabulary"],
+    "properties": {
+        "versions": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": False,
+                "required": ["text", "tone", "label", "explanation"],
+                "properties": {
+                    "text": {"type": "string"},
+                    "tone": {"type": "string", "enum": [t.value for t in Tone]},
+                    "label": {"type": "string"},
+                    "explanation": {"type": "string"},
+                },
+            },
+        },
+        "vocabulary": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": False,
+                "required": ["original", "alternatives"],
+                "properties": {
+                    "original": {"type": "string"},
+                    "alternatives": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "additionalProperties": False,
+                            "required": ["word", "nuance"],
+                            "properties": {"word": {"type": "string"}, "nuance": {"type": "string"}},
+                        },
+                    },
+                },
+            },
+        },
+    },
+}
+
+COMPLETION_JSON_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["completion"],
+    "properties": {"completion": {"type": "string"}},
+}

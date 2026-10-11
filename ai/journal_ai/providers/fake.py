@@ -4,9 +4,11 @@ from collections import deque
 from collections.abc import Callable, Mapping, Sequence
 from typing import Any
 
+from journal_ai.prompts.assist_v1 import extract_sentence, language_of
 from journal_ai.prompts.v1 import extract_entry
 from journal_ai.providers.base import Completion
-from journal_ai.schema import Category, Usage
+from journal_ai.providers.demo_assist import demo_completion, demo_rephrase
+from journal_ai.schema import COMPLETION_JSON_SCHEMA, REPHRASE_JSON_SCHEMA, Category, Usage
 
 # Deterministic demo rules so the app is explorable without an API key.
 _DEMO_RULES: tuple[tuple[str, str, Category, str], ...] = (
@@ -40,11 +42,27 @@ class FakeProvider:
         if self._script is not None:
             self.calls.append((system, user))
         if self._script is None:
-            return Completion(text=_demo_response(extract_entry(user)), usage=Usage(), model=self.model)
+            return Completion(text=_demo(system, user, schema), usage=Usage(), model=self.model)
         step = self._script.popleft()
         if isinstance(step, Exception):
             raise step
         return Completion(text=step, usage=Usage(), model=self.model)
+
+
+def _demo(system: str, user: str, schema: Mapping[str, Any]) -> str:
+    # Dispatch on the schema object so the analysis path stays exactly as it was.
+    if schema is REPHRASE_JSON_SCHEMA:
+        sentence = extract_sentence(user)
+        return demo_rephrase(language_of(system), sentence, _correct(sentence))
+    if schema is COMPLETION_JSON_SCHEMA:
+        return demo_completion(language_of(system))
+    return _demo_response(extract_entry(user))
+
+
+def _correct(text: str) -> str:
+    for wrong, right, _category, _explanation in _DEMO_RULES:
+        text = re.sub(rf"\b{re.escape(wrong)}\b", _case_preserving(right), text, flags=re.IGNORECASE)
+    return text
 
 
 def _demo_response(entry: str) -> str:

@@ -21,7 +21,7 @@ class ParsedAnalysis:
 
 
 def parse_analysis(raw: str) -> ParsedAnalysis:
-    payload = _load_json_object(raw)
+    payload = load_json_object(raw, _REQUIRED_KEYS)
     corrected = payload.get("corrected_text")
     summary = payload.get("feedback_summary")
     items = payload.get("mistakes")
@@ -35,7 +35,7 @@ def parse_analysis(raw: str) -> ParsedAnalysis:
 _REQUIRED_KEYS = frozenset({"corrected_text", "feedback_summary", "mistakes"})
 
 
-def _load_json_object(raw: str) -> dict[str, Any]:
+def load_json_object(raw: str, required: frozenset[str]) -> dict[str, Any]:
     # Try every "{" so prose with braces, or a second object, cannot hide the real payload.
     decoder = json.JSONDecoder()
     error = "no JSON object found"
@@ -48,9 +48,9 @@ def _load_json_object(raw: str) -> dict[str, Any]:
         except RecursionError:
             raise InvalidOutputError("JSON nested too deeply") from None
         else:
-            if isinstance(payload, dict) and payload.keys() >= _REQUIRED_KEYS:
+            if isinstance(payload, dict) and payload.keys() >= required:
                 return payload
-            error = "corrected_text, feedback_summary and mistakes are required"
+            error = f"{', '.join(sorted(required))} required"
         start = raw.find("{", start + 1)
     raise InvalidOutputError(error)
 

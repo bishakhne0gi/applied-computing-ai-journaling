@@ -1,6 +1,6 @@
 import unicodedata
 
-from journal_ai.alignment import _find_spans, align_mistakes
+from journal_ai.alignment import _find_spans, align_mistakes, find_word_span
 from journal_ai.schema import Category, Mistake, MistakeKind
 
 
@@ -113,3 +113,8 @@ def test_accented_word_boundary_is_respected() -> None:
 def test_whitespace_only_snippet_yields_no_span() -> None:
     # Mistake and AlignedMistake both reject whitespace-only originals, so guard the helper directly.
     assert _find_spans("Hola mundo", "   ") == []
+
+
+def test_find_word_span_takes_the_first_whole_word_and_never_matches_inside_a_word() -> None:
+    assert find_word_span("casada y casa", "casa") == (9, 13)
+    assert find_word_span("superbien", "bien") is None
