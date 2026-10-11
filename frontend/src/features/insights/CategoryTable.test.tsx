@@ -18,7 +18,7 @@ const articles: CategoryInsightOut = { ...verbs, category: 'article', occurrence
 describe('CategoryTable', () => {
   it('shows the rate change, a worded trend and the latest example for each category', () => {
     // Arrange + Act
-    render(<CategoryTable categories={[verbs, articles]} recurringWindow={5} />)
+    render(<CategoryTable categories={[verbs, articles]} recurringWindow={5} totalWords={60} entriesToTrends={0} />)
     // Assert
     const row = screen.getByRole('row', { name: /Verb conjugation/ })
     expect(row).toHaveTextContent(/0\.0 →\s?to 8\.6/)
@@ -29,18 +29,22 @@ describe('CategoryTable', () => {
 
   it('marks only recurring categories, with how often they appeared', () => {
     // Arrange + Act
-    render(<CategoryTable categories={[verbs, articles]} recurringWindow={5} />)
+    render(<CategoryTable categories={[verbs, articles]} recurringWindow={5} totalWords={60} entriesToTrends={0} />)
     // Assert
     expect(screen.getByText('Recurring · 3 of last 5')).toBeInTheDocument()
     expect(screen.getAllByText(/^Recurring/)).toHaveLength(1)
   })
 
-  it('says there is no trend yet instead of showing blank cells', () => {
+  it('before trends, shows each category’s rate across all entries and when its trend arrives, never a dash', () => {
     // Arrange
     const early = { ...verbs, earlier_rate: null, recent_rate: null, trend: null }
     // Act
-    render(<CategoryTable categories={[early]} recurringWindow={3} />)
+    render(<CategoryTable categories={[early]} recurringWindow={3} totalWords={60} entriesToTrends={1} />)
     // Assert
-    expect(screen.getAllByText('Not enough entries yet')).toHaveLength(2)
+    expect(screen.getByRole('columnheader', { name: 'Per 100 words' })).toBeInTheDocument()
+    const row = screen.getByRole('row', { name: /Verb conjugation/ })
+    expect(row).toHaveTextContent('5.0')
+    expect(row).toHaveTextContent('After 1 more entry')
+    expect(row).not.toHaveTextContent('—')
   })
 })

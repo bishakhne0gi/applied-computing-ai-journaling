@@ -1,6 +1,8 @@
 import type { RatePointOut } from '@/types/insights'
 
-export const CHART = { width: 640, height: 200, inset: 8 } as const
+// No inset: the plot spans the whole box so HTML axis labels beside and below it line up with the gridlines and
+// points; the SVG is overflow-visible, so dots on the edges are never clipped.
+export const CHART = { width: 640, height: 200 } as const
 
 export interface PlottedPoint {
   id: string
@@ -12,20 +14,37 @@ export function highestRate(points: RatePointOut[]): number {
   return Math.max(0, ...points.map((point) => point.rate ?? 0))
 }
 
+// The axis top rounds up to 1, 2, 2.5 or 5 times a power of ten, so the gridline labels read as round numbers.
+export function niceTop(highest: number): number {
+  if (highest <= 0) return 1
+  const magnitude = 10 ** Math.floor(Math.log10(highest))
+  const step = [1, 2, 2.5, 5, 10].find((candidate) => candidate * magnitude >= highest) ?? 10
+  return step * magnitude
+}
+
+export function xAt(index: number, count: number): number {
+  return count > 1 ? (index * CHART.width) / (count - 1) : CHART.width / 2
+}
+
 // Spaced by entry, not by date: the windows count entries, and a week off writing would squash the rest together.
 export function plotRates(points: RatePointOut[]): PlottedPoint[] {
-  const top = highestRate(points) || 1
-  const step = points.length > 1 ? (CHART.width - 2 * CHART.inset) / (points.length - 1) : 0
-  const plotHeight = CHART.height - 2 * CHART.inset
+  const top = niceTop(highestRate(points))
   return points.flatMap((point, index) => {
     if (point.rate === null) return []
-    const x = points.length > 1 ? CHART.inset + index * step : CHART.width / 2
-    return [{ id: point.entry_id, x, y: CHART.height - CHART.inset - (point.rate / top) * plotHeight }]
+    return [{ id: point.entry_id, x: xAt(index, points.length), y: CHART.height - (point.rate / top) * CHART.height }]
   })
 }
 
 export function polylinePoints(plotted: PlottedPoint[]): string {
   return plotted.map((point) => `${point.x},${point.y}`).join(' ')
+}
+
+// The run's line closed down to the baseline, for the soft fill under it.
+export function areaPoints(run: PlottedPoint[]): string {
+  const first = run[0]
+  const last = run.at(-1)
+  if (!first || !last) return ''
+  return `${first.x},${CHART.height} ${polylinePoints(run)} ${last.x},${CHART.height}`
 }
 
 // A null rate means "not measured", not zero: the line stops there rather than bridging two real readings.
@@ -43,4 +62,16 @@ export function plotRuns(points: RatePointOut[]): PlottedPoint[][] {
     }
   }
   return runs
+}
+
+// Which entries get a date under the axis: all of them when they fit, otherwise evenly spread including both ends.
+export function tickIndices(count: number, max = 4): number[] {
+  if (count <= max) return Array.from({ length: count }, (_, index) => index)
+  return Array.from({ length: max }, (_, slot) => Math.round((slot * (count - 1)) / (max - 1)))
+}
+
+// The entry nearest a horizontal position, as a share (0..1) of the plot's width.
+export function nearestIndex(share: number, count: number): number {
+  if (count <= 1) return 0
+  return Math.min(count - 1, Math.max(0, Math.round(share * (count - 1))))
 }

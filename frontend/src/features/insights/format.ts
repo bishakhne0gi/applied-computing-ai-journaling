@@ -1,11 +1,19 @@
 import type { RatePointOut, Trend } from '@/types/insights'
 import { pluralize } from '@/utils/formatter'
 
+// Trends need four analysed entries (main spec §8, MIN_ENTRIES_FOR_TRENDS in the backend); fewer come back as
+// `insufficient_data` or `totals_only`.
+const TRENDS_AT = 4
+
+export function entriesToTrends(entryCount: number): number {
+  return Math.max(TRENDS_AT - entryCount, 1)
+}
+
 export const TREND_TEXT: Record<Trend, string> = { improving: 'Improving', stable: 'Steady', worsening: 'Getting worse' }
 
 // The API already rounds to one decimal; toFixed only pads "2" to "2.0".
 export function formatRate(rate: number | null): string {
-  return rate === null ? '—' : rate.toFixed(1)
+  return rate === null ? 'Not measured' : rate.toFixed(1)
 }
 
 export function describeRates(points: RatePointOut[], trend: Trend | null): string {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatDate, formatDateTime, formatDay, formatShortDateTime, formatTime, pluralize } from './formatter'
+import { formatDate, formatDateTime, formatDay, formatMonthDay, formatShortDateTime, formatTime, pluralize } from './formatter'
 
 describe('pluralize', () => {
   it.each([
@@ -75,5 +75,12 @@ describe('formatShortDateTime', () => {
     // Act + Assert
     expect(formatShortDateTime(iso, new Date('2026-12-01T00:00:00Z'))).toMatch(/^Oct 8, \d{1,2}:\d{2}\s?[AP]M$/)
     expect(formatShortDateTime(iso, new Date('2027-01-15T00:00:00Z'))).toMatch(/^Oct 8, 2026, /)
+  })
+})
+
+describe('formatMonthDay', () => {
+  it('shows the short month and the day, for axis labels', () => {
+    // Arrange + Act + Assert
+    expect(formatMonthDay('2026-10-08T12:00:00Z')).toBe('Oct 8')
   })
 })

@@ -8,7 +8,7 @@ describe('insights formatting', () => {
   it.each([
     [2, '2.0'],
     [14.3, '14.3'],
-    [null, '—'],
+    [null, 'Not measured'],
   ])('shows the rate %s as "%s"', (rate, expected) => {
     // Arrange + Act
     const text = formatRate(rate)

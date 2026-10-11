@@ -37,3 +37,9 @@ export function formatShortDateTime(iso: string, now = new Date()): string {
   const date = new Date(iso)
   return sameYear(date, now) ? shortDateTime.format(date) : dateTime.format(date)
 }
+
+const monthDay = new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric' })
+
+export function formatMonthDay(iso: string): string {
+  return monthDay.format(new Date(iso))
+}

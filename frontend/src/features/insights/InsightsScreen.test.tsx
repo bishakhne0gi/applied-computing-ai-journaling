@@ -18,7 +18,7 @@ describe('InsightsScreen', () => {
     // Assert
     expect(screen.getByRole('status')).toHaveTextContent('Loading insights…')
     await waitFor(() => expect(screen.getByRole('status').querySelectorAll('[aria-hidden="true"]')).toHaveLength(2))
-    expect((await summary())[0]).toHaveTextContent('6 errors across 11 entries — 7.6 per 100 words.')
+    expect((await summary())[0]).toHaveTextContent('6 errors across 11 entries, 7.6 per 100 words.')
     expect(screen.getByRole('img', { name: /across 11 entries/ })).toBeInTheDocument()
     expect(screen.getByRole('table', { name: 'Errors by category' })).toBeInTheDocument()
   })
@@ -40,7 +40,7 @@ describe('InsightsScreen', () => {
     renderInsights('/insights?language=fr')
     // Assert
     expect(await screen.findByText('Trends start at 4 entries with feedback.')).toBeInTheDocument()
-    expect(screen.getByText('No errors in these entries — nothing to work on yet.')).toBeInTheDocument()
+    expect(screen.getByText('No errors in these entries, so nothing to work on yet.')).toBeInTheDocument()
   })
 
   it.each([
@@ -53,7 +53,7 @@ describe('InsightsScreen', () => {
     renderInsights(route)
     // Assert
     expect(await screen.findByText('Not enough entries yet')).toBeInTheDocument()
-    expect(screen.getByText('Insights start after 3 entries with feedback — 3 to go.')).toBeInTheDocument()
+    expect(screen.getByText('Insights start after 3 entries with feedback (3 to go).')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Write an entry' })).toHaveAttribute('href', '/')
   })
 

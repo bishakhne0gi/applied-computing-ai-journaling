@@ -1,15 +1,13 @@
 import { ErrorState } from '@/components/ui/ErrorState'
 import { LoadingState } from '@/components/ui/LoadingState'
 import { Skeleton } from '@/components/ui/Skeleton'
-import { formatRate } from '@/features/insights/format'
+import { entriesToTrends, formatRate } from '@/features/insights/format'
 import { TrendBadge } from '@/features/insights/TrendCells'
 import { useInsightsQuery } from '@/hooks/queries/useInsightsQuery'
 import { toErrorMessage } from '@/utils/errorMessage'
 import { pluralize } from '@/utils/formatter'
 import { Sparkline } from './Sparkline'
 
-// Trends need four analysed entries (main spec §8); the API reports fewer as `insufficient_data` or `totals_only`.
-const TRENDS_AT = 4
 const RECENT_POINTS = 10
 
 export function ProgressLoading() {
@@ -29,7 +27,7 @@ export function ProgressSummary({ language }: { language: string | null }) {
     return <ProgressLoading />
   }
   if (data.status !== 'trends') {
-    const missing = Math.max(TRENDS_AT - data.entry_count, 1)
+    const missing = entriesToTrends(data.entry_count)
     return <p className="text-sm text-muted">{`${pluralize(missing, 'more entry', 'more entries')} to see trends`}</p>
   }
   return (

@@ -4,17 +4,35 @@ import { categoryLabel } from '@/features/feedback/labels'
 import type { CategoryInsightOut } from '@/types/insights'
 import { pluralize } from '@/utils/formatter'
 import { cn } from '@/utils/utils'
-import { RateChange, TrendBadge } from './TrendCells'
+import { formatRate } from './format'
+import { RateChange, TrendBadge, TrendPending } from './TrendCells'
 
 export interface CategoryTableProps {
   categories: CategoryInsightOut[]
   recurringWindow: number
+  // Words across the filtered entries, for each category's overall rate before trends exist.
+  totalWords: number
+  // 0 once trends exist; otherwise how many more analysed entries they need.
+  entriesToTrends: number
 }
 
 const headClass = 'px-1.5 pb-2 text-left font-medium text-muted md:px-2'
 const cellClass = 'border-t border-border px-1.5 py-3 align-top md:px-2'
 
-function CategoryRow({ item, recurringWindow }: { item: CategoryInsightOut; recurringWindow: number }) {
+// Before trends there are no windows to compare, but the category's rate across every entry is still real data.
+function overallRate(item: CategoryInsightOut, totalWords: number): number | null {
+  return totalWords > 0 ? Math.round((item.occurrences * 1000) / totalWords) / 10 : null
+}
+
+interface CategoryRowProps {
+  item: CategoryInsightOut
+  recurringWindow: number
+  totalWords: number
+  entriesToTrends: number
+}
+
+function CategoryRow({ item, recurringWindow, totalWords, entriesToTrends }: CategoryRowProps) {
+  const trends = entriesToTrends === 0
   return (
     <tr>
       <th scope="row" className={cn(cellClass, 'text-left font-medium')}>
@@ -28,12 +46,10 @@ function CategoryRow({ item, recurringWindow }: { item: CategoryInsightOut; recu
           )}
         </span>
       </th>
-      <td className={cellClass}>
-        <RateChange earlier={item.earlier_rate} recent={item.recent_rate} />
+      <td className={cn(cellClass, 'tabular-nums')}>
+        {trends ? <RateChange earlier={item.earlier_rate} recent={item.recent_rate} /> : formatRate(overallRate(item, totalWords))}
       </td>
-      <td className={cellClass}>
-        <TrendBadge trend={item.trend} />
-      </td>
+      <td className={cellClass}>{trends ? <TrendBadge trend={item.trend} /> : <TrendPending entriesLeft={entriesToTrends} />}</td>
       <td className={cn(cellClass, 'wrap-anywhere')}>
         <Correction original={item.latest_example.original} correction={item.latest_example.correction} />
       </td>
@@ -41,7 +57,7 @@ function CategoryRow({ item, recurringWindow }: { item: CategoryInsightOut; recu
   )
 }
 
-export function CategoryTable({ categories, recurringWindow }: CategoryTableProps) {
+export function CategoryTable({ categories, recurringWindow, totalWords, entriesToTrends }: CategoryTableProps) {
   return (
     <table className="w-full text-xs md:text-sm">
       <caption className="pb-2 text-left text-base font-medium">Errors by category</caption>
@@ -49,8 +65,14 @@ export function CategoryTable({ categories, recurringWindow }: CategoryTableProp
         <tr>
           <th scope="col" className={headClass}>Category</th>
           <th scope="col" className={headClass}>
-            Earlier <span aria-hidden="true">→</span>
-            <span className="sr-only">to</span> recent, per 100 words
+            {entriesToTrends === 0 ? (
+              <>
+                Earlier <span aria-hidden="true">→</span>
+                <span className="sr-only">to</span> recent, per 100 words
+              </>
+            ) : (
+              'Per 100 words'
+            )}
           </th>
           <th scope="col" className={headClass}>Trend</th>
           <th scope="col" className={headClass}>Latest example</th>
@@ -58,7 +80,7 @@ export function CategoryTable({ categories, recurringWindow }: CategoryTableProp
       </thead>
       <tbody>
         {categories.map((item) => (
-          <CategoryRow key={item.category} item={item} recurringWindow={recurringWindow} />
+          <CategoryRow key={item.category} item={item} recurringWindow={recurringWindow} totalWords={totalWords} entriesToTrends={entriesToTrends} />
         ))}
       </tbody>
     </table>
