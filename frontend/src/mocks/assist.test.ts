@@ -14,6 +14,7 @@ describe('mock /rephrase', () => {
     ['a span under three words', { ...REQUEST, start: 21, end: 28 }],
     ['a span outside the text', { ...REQUEST, end: 500 }],
     ['an empty span', { ...REQUEST, start: 30, end: 30 }],
+    ['a span over 500 code points', { ...REQUEST, text: 'palabra '.repeat(70) + 'fin.', start: 0, end: 501 }],
   ])('rejects %s with 422', (_name, body) => {
     expect(rephrase(body, '').status).toBe(422)
   })

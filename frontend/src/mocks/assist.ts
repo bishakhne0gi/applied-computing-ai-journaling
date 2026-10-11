@@ -34,7 +34,7 @@ const SYNONYMS: Record<string, Record<string, [string, string][]>> = {
 }
 
 // `\b` is ASCII-only in JS, so word edges are letter lookarounds that also respect «é».
-const phrase = (words: string) => new RegExp(`(?<![\\p{L}\\p{N}\\p{M}_])${words}(?![\\p{L}\\p{N}\\p{M}_])`, 'giu')
+const phrase = (words: string, flags = 'giu') => new RegExp(`(?<![\\p{L}\\p{N}\\p{M}_])${words}(?![\\p{L}\\p{N}\\p{M}_])`, flags)
 const CORRECTIONS: [RegExp, string][] = [
   [phrase('la problema'), 'el problema'],
   [phrase('yo es'), 'yo soy'],
@@ -54,7 +54,9 @@ function beforeFinalPunctuation(text: string, tag: string): string {
   return stripped + tag + text.slice(stripped.length)
 }
 
-function versionsOf(language: string, corrected: string): VersionOut[] {
+const key = (text: string) => text.normalize('NFC').trim().toLowerCase()
+
+function versionsOf(language: string, sentence: string, corrected: string): VersionOut[] {
   const { opener, tag } = TONES[language] ?? SPANISH_TONE
   const first = Array.from(corrected)[0] ?? ''
   const candidates: [VersionOut['tone'], string, string][] = [
@@ -62,12 +64,19 @@ function versionsOf(language: string, corrected: string): VersionOut[] {
     ['formal', 'More formal', opener + first.toLowerCase() + corrected.slice(first.length)],
     ['casual', 'More casual', beforeFinalPunctuation(corrected, tag)],
   ]
-  return candidates.map(([tone, label, text]) => ({ text, tone, label, explanation: EXPLANATION }))
+  // The backend drops a version that repeats the sentence or an earlier version (case-insensitively).
+  const seen = new Set([key(sentence)])
+  return candidates.flatMap(([tone, label, text]) => {
+    if (seen.has(key(text))) return []
+    seen.add(key(text))
+    return [{ text, tone, label, explanation: EXPLANATION }]
+  })
 }
 
 function vocabularyOf(language: string, sentence: string): VocabularyOut[] {
   return Object.entries(SYNONYMS[language] ?? {}).flatMap(([word, alternatives]) => {
-    const found = phrase(word).exec(sentence)
+    // An exact-case match outranks a case-insensitive one, like the backend's find_word_span.
+    const found = phrase(word, 'u').exec(sentence) ?? phrase(word).exec(sentence)
     if (!found) return []
     const start = codePointLength(sentence.slice(0, found.index))
     return [{ original: found[0], start, end: start + codePointLength(found[0]), alternatives: alternatives.map(([alt, nuance]) => ({ word: alt, nuance })) }]
@@ -76,7 +85,7 @@ function vocabularyOf(language: string, sentence: string): VocabularyOut[] {
 
 export function rephraseText({ language, text, start, end }: RephraseRequest): RephraseOut {
   const sentence = Array.from(text).slice(start, end).join('')
-  return { sentence, versions: versionsOf(language, correct(sentence)), vocabulary: vocabularyOf(language, sentence) }
+  return { sentence, versions: versionsOf(language, sentence, correct(sentence)), vocabulary: vocabularyOf(language, sentence) }
 }
 
 export function completeText({ language, text }: CompleteRequest): CompleteOut {
