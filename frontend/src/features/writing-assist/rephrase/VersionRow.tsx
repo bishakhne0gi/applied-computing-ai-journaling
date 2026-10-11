@@ -22,7 +22,7 @@ export function VersionRow({ sentence, version, mode, onUse, onCopy }: VersionRo
   const compareId = useId()
   const text = <DiffText parts={wordDiff(sentence, version.text).after} variant="inline" />
   return (
-    <li className="flex flex-col px-1 py-1 hover:bg-primary-soft focus-within:bg-primary-soft">
+    <li className="flex flex-col px-1 py-1 focus-within:bg-primary-soft hover:bg-primary-soft">
       <div className="flex flex-wrap items-center gap-2">
         {mode === 'edit' ? (
           <Button variant="option" className="min-h-9 flex-1 hover:bg-transparent" aria-describedby={toneId} onClick={() => onUse?.(version)}>
@@ -43,7 +43,7 @@ export function VersionRow({ sentence, version, mode, onUse, onCopy }: VersionRo
           <span className="sr-only">Why this version</span>
           <Icon name="info" className="size-4" />
         </Tooltip>
-        <Button variant="ghost" className="ml-auto min-h-8 px-3" aria-expanded={comparing} aria-controls={comparing ? compareId : undefined} onClick={() => setComparing((was) => !was)}>
+        <Button variant="ghost" className="ml-auto min-h-8 px-3 pointer-coarse:min-h-11" aria-expanded={comparing} aria-controls={comparing ? compareId : undefined} onClick={() => setComparing((was) => !was)}>
           Compare
         </Button>
       </div>

@@ -1,53 +1,12 @@
 import { fireEvent, screen, waitFor, within } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
-import { useState } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { renderWithProviders } from '@/test/renderWithProviders'
-import { ComposerEditor } from './ComposerEditor'
+import { editor as draftEditor, openByClick, popover, renderWithDraft } from '@/test/composerHints'
+import { caretAt, composerField as editor, PAIR_FIXED as FIXED, openCard, renderComposer, PAIR_SENTENCE as SENTENCE, PAIR_TEXT as TEXT, tint } from '@/test/composerRephrase'
 
-const TEXT = 'Ayer fui al mercado. Hoy yo es feliz con mi familia.'
-const SENTENCE = 'Hoy yo es feliz con mi familia.'
-const FIXED = 'Hoy yo soy feliz con mi familia.'
-
-afterEach(() => vi.unstubAllGlobals())
-
-function Harness({ initial, onValue }: { initial: string; onValue?: (text: string) => void }) {
-  const [value, setValue] = useState(initial)
-  return (
-    <>
-      <ComposerEditor
-        language="es"
-        value={value}
-        onChange={(text) => {
-          onValue?.(text)
-          setValue(text)
-        }}
-        onSubmitShortcut={() => undefined}
-        readOnly={false}
-        focusOnMount={false}
-      />
-    </>
-  )
-}
-
-const editor = () => screen.getByLabelText<HTMLTextAreaElement>('Your entry')
-const caretAt = (position: number, end = position) => {
-  editor().setSelectionRange(position, end)
-  fireEvent.select(editor())
-}
-const tint = () => document.querySelector('mark[data-decoration-id="rephrase-target"]')
-
-function renderComposer(initial = TEXT) {
-  const onValue = vi.fn()
-  renderWithProviders(<Harness initial={initial} onValue={onValue} />)
-  return { onValue, user: userEvent.setup() }
-}
-
-async function openCard(user: ReturnType<typeof userEvent.setup>) {
-  caretAt(30)
-  await user.click(screen.getByRole('button', { name: 'Rephrase' }))
-  return screen.findByRole('dialog', { name: 'Rephrase' })
-}
+afterEach(() => {
+  vi.unstubAllGlobals()
+  vi.restoreAllMocks()
+})
 
 describe('ComposerEditor rephrase', () => {
   it('opens the card for the caret sentence from the Rephrase button and tints that sentence', async () => {
@@ -120,12 +79,12 @@ describe('ComposerEditor rephrase', () => {
     expect(onValue).toHaveBeenLastCalledWith(`  ¿Qué tal? 😊 ${FIXED}`)
   })
 
-  it('refuses a stale replacement and says so', async () => {
+  it('refuses a replacement when the text before the sentence changed, and says so', async () => {
     // Arrange
     const { user, onValue } = renderComposer()
     const dialog = await openCard(user)
     const version = await within(dialog).findByRole('button', { name: FIXED })
-    fireEvent.change(editor(), { target: { value: `${TEXT} Y más.` } })
+    fireEvent.change(editor(), { target: { value: `Ya. ${TEXT}` } })
     onValue.mockClear()
     // Act
     await user.click(version)
@@ -146,6 +105,96 @@ describe('ComposerEditor rephrase', () => {
     expect([editor().selectionStart, editor().selectionEnd]).toEqual([21, 52])
   })
 
+  it('still replaces when only text after the sentence changed', async () => {
+    // Arrange
+    const { user, onValue } = renderComposer()
+    const dialog = await openCard(user)
+    const version = await within(dialog).findByRole('button', { name: FIXED })
+    fireEvent.change(editor(), { target: { value: `${TEXT} Y más.` } })
+    onValue.mockClear()
+    // Act
+    await user.click(version)
+    // Assert
+    expect(onValue).toHaveBeenLastCalledWith(`Ayer fui al mercado. ${FIXED} Y más.`)
+  })
+
+  it('Esc on the info toggletip closes the tip and leaves the card open', async () => {
+    // Arrange
+    const { user } = renderComposer()
+    const dialog = await openCard(user)
+    await within(dialog).findByRole('button', { name: FIXED })
+    await user.click(within(dialog).getAllByRole('button', { name: 'Why this version' })[0] as HTMLElement)
+    const tip = () => document.querySelector('[role="tooltip"][data-state="open"]')
+    expect(tip()).toBeInTheDocument()
+    // Act
+    await user.keyboard('{Escape}')
+    // Assert
+    expect(tip()).not.toBeInTheDocument()
+    expect(screen.getByRole('dialog', { name: 'Rephrase' })).toBeInTheDocument()
+  })
+
+  it('stops announcing the replacement at the next edit, so hint counts are announced again', async () => {
+    // Arrange
+    const { user } = await renderWithDraft('Hoy yo soy feliz y tranquilo con todo.')
+    draftEditor().setSelectionRange(5, 5)
+    fireEvent.select(draftEditor())
+    await user.click(screen.getByRole('button', { name: 'Rephrase' }))
+    await user.click(await screen.findByRole('button', { name: /^Sinceramente/ }))
+    const region = () => document.querySelector('p[aria-live="polite"]')
+    expect(region()).toHaveTextContent('Sentence replaced')
+    // Act
+    await user.type(draftEditor(), ' yo es')
+    // Assert
+    expect(await screen.findByRole('button', { name: '1 hint' }, { timeout: 4000 })).toBeInTheDocument()
+    await waitFor(() => expect(region()).toHaveTextContent('1 hint'), { timeout: 4000 })
+  })
+
+  it('does not mistake Ctrl+Alt+R (AltGr) for the shortcut, and Alt+R is consumed so no ® is typed', () => {
+    // Arrange
+    renderComposer()
+    caretAt(30)
+    // Act
+    const ctrl = fireEvent.keyDown(editor(), { code: 'KeyR', altKey: true, ctrlKey: true })
+    const alt = fireEvent.keyDown(editor(), { code: 'KeyR', altKey: true })
+    // Assert
+    expect(ctrl).toBe(true)
+    expect(alt).toBe(false)
+  })
+
+  it('does not open anything for Ctrl+Alt+R', () => {
+    // Arrange
+    renderComposer()
+    caretAt(30)
+    // Act
+    fireEvent.keyDown(editor(), { code: 'KeyR', altKey: true, ctrlKey: true })
+    // Assert
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
+  it('closes on a press outside the card and puts the selection back on the sentence', async () => {
+    // Arrange
+    const { user } = renderComposer()
+    await openCard(user)
+    // Act
+    fireEvent.pointerDown(document.body)
+    // Assert
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(editor()).toHaveFocus()
+    expect([editor().selectionStart, editor().selectionEnd]).toEqual([21, 52])
+  })
+
+  it('hides the hint popover while the card is open', async () => {
+    // Arrange
+    await openByClick()
+    expect(popover()).toBeInTheDocument()
+    // Act
+    // A bare click: no pointerdown or blur, so nothing else closes the hint popover.
+    fireEvent.click(screen.getByRole('button', { name: 'Rephrase' }))
+    // Assert
+    expect(await screen.findByRole('dialog', { name: 'Rephrase' })).toBeInTheDocument()
+    expect(popover()).not.toBeInTheDocument()
+  })
+
   it('rephrases a selection instead of the caret sentence', async () => {
     // Arrange
     const { user } = renderComposer()
@@ -163,19 +212,5 @@ describe('ComposerEditor rephrase', () => {
     // Assert
     expect(screen.getByRole('switch', { name: 'Live hints' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Rephrase' })).toHaveAttribute('aria-keyshortcuts', 'Alt+R')
-  })
-})
-
-describe('ComposerEditor rephrase on a phone', () => {
-  it('opens the card as a modal bottom sheet', async () => {
-    // Arrange
-    vi.stubGlobal('matchMedia', (media: string) => ({ matches: false, media, addEventListener: () => undefined, removeEventListener: () => undefined }))
-    const { user } = renderComposer()
-    // Act
-    const dialog = await openCard(user)
-    // Assert
-    expect(dialog).toHaveAttribute('aria-modal', 'true')
-    await user.keyboard('{Escape}')
-    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
   })
 })

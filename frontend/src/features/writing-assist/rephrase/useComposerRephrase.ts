@@ -20,6 +20,8 @@ interface Input {
   textarea: RefObject<HTMLTextAreaElement | null>
 }
 
+const spanText = (text: string, { start, end }: RephraseRequest) => Array.from(text).slice(start, end).join('')
+
 const STALE = 'The sentence changed. Close this and rephrase again.'
 const REPLACED = 'Sentence replaced. Press Command or Control Z to undo.'
 
@@ -38,8 +40,9 @@ export function useComposerRephrase({ value, language, readOnly, selection, text
     setAnnouncement('')
     setOpen({ request: { language, text: server.text, start: server.start, end: server.end }, span: target })
   }
-  // On a phone the sheet hands focus back to the Rephrase button (closeToOpener); focusing the text there would raise the keyboard.
-  const closeToOpener = useCallback(() => setOpen(null), [])
+  // Closes without touching focus or selection: the phone sheet hands focus back to the Rephrase button (focusing the text
+  // would raise the keyboard), and a sentence that scrolled away must not snap the textarea back.
+  const closeQuietly = useCallback(() => setOpen(null), [])
   const close = useCallback(() => {
     setOpen(null)
     const el = textarea.current
@@ -48,20 +51,23 @@ export function useComposerRephrase({ value, language, readOnly, selection, text
       el.setSelectionRange(open.span.start, open.span.end)
     }
   }, [open, textarea])
-  // The card's offsets index the text as it was sent; if it changed since, nothing is replaced.
+  // The card's offsets index the text as it was sent; if the text at the target changed since, nothing is replaced.
+  // An edit after the sentence leaves the offsets valid, so it does not block.
   const replace = (startCp: number, endCp: number, replacement: string) => {
     const el = textarea.current
     if (!el || !open) return
-    if (serverView(el.value).text !== open.request.text) {
+    if (spanText(serverView(el.value).text, open.request) !== spanText(open.request.text, open.request)) {
       setNotice(STALE)
       return
     }
     setOpen(null)
-    setAnnouncement(REPLACED)
     applyHint(el, { ...fromServerSpan(el.value, startCp, endCp), correction: replacement })
+    // After the edit: the edit's own change event clears the announcement, so this must come last.
+    setAnnouncement(REPLACED)
   }
   const applyVersion = (version: VersionOut) => open && replace(open.request.start, open.request.end, version.text)
   const applyWord = (item: VocabularyOut, word: string) => open && replace(open.request.start + item.start, open.request.start + item.end, word)
+  const clearAnnouncement = useCallback(() => setAnnouncement(''), [])
   const events: TextareaEvents = {
     onKeyDown: (event) => {
       if (event.nativeEvent.isComposing || !event.altKey || event.ctrlKey || event.metaKey || event.code !== 'KeyR') return
@@ -69,7 +75,7 @@ export function useComposerRephrase({ value, language, readOnly, selection, text
       openCard()
     },
   }
-  return { target, open, openCard, close, closeToOpener, applyVersion, applyWord, notice, announcement, events }
+  return { target, open, openCard, close, closeQuietly, clearAnnouncement, applyVersion, applyWord, notice, announcement, events }
 }
 
 export type ComposerRephraseState = ReturnType<typeof useComposerRephrase>

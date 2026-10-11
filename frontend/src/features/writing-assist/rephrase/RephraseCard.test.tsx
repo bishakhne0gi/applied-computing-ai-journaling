@@ -96,6 +96,14 @@ describe('RephraseCard', () => {
     expect(within(list).getAllByRole('listitem')).toHaveLength(3)
   })
 
+  it('gives Compare a 44px hit area on coarse pointers while staying compact otherwise', async () => {
+    // Arrange + Act
+    renderCard()
+    const compare = first(await screen.findAllByRole('button', { name: 'Compare' }))
+    // Assert
+    expect(compare).toHaveClass('min-h-8', 'pointer-coarse:min-h-11')
+  })
+
   it('hides its own heading when the caller already shows a title', async () => {
     // Arrange + Act
     renderCard({ hideHeading: true })

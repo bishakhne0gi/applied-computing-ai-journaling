@@ -40,6 +40,7 @@ export function ComposerEditor({ language, value, onChange, onSubmitShortcut, re
       value={value}
       onChange={(text) => {
         hints.close()
+        rephrase.clearAnnouncement()
         onChange(text)
       }}
       onTextareaChange={selection.sync}
