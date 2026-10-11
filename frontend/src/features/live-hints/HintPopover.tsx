@@ -3,8 +3,8 @@ import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Correction } from '@/features/feedback/Correction'
 import type { LiveHint } from './reanchor'
-import { useAnchorBelow } from './useAnchorBelow'
-import { usePassiveDialog } from './usePassiveDialog'
+import { useAnchorToWord } from './useAnchorToWord'
+import { usePassivePopover } from './usePassivePopover'
 
 export interface HintPopoverProps {
   hint: LiveHint
@@ -21,8 +21,8 @@ export interface HintPopoverProps {
 export function HintPopover({ hint, onAccept, onDismiss, onClose, onEscape }: HintPopoverProps) {
   const ref = useRef<HTMLDivElement>(null)
   const explanationId = useId()
-  useAnchorBelow(ref, hint.id, onClose)
-  usePassiveDialog(ref, onClose, onEscape)
+  useAnchorToWord(ref, hint.id, onClose)
+  usePassivePopover(ref, onClose, onEscape)
   return (
     <div
       ref={ref}

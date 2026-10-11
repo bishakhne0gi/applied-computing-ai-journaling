@@ -5,7 +5,8 @@ export interface ServerView {
   toValue: (index: number) => number
 }
 
-// A base character with its combining marks composes on its own, so NFC per chunk equals NFC of the whole text.
+// NFC is applied per base character with its combining marks: equal to NFC of the whole text for ordinary text, but a
+// sequence that composes across chunks (Hangul jamo, say) can differ, and the offsets then drift for that text.
 const CHUNK = /\r\n?|\P{M}\p{M}*|\p{M}+/gu
 const WORD = /[\p{L}\p{N}\p{M}]/u
 

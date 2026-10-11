@@ -1,7 +1,7 @@
 import { useEffect, type RefObject } from 'react'
 
-export function usePassiveDialog(ref: RefObject<HTMLElement | null>, onClose: () => void, onEscape: () => void): void {
-  // Native listeners: the dialog is not itself interactive, and these concern focus and pointer behaviour around it.
+export function usePassivePopover(ref: RefObject<HTMLElement | null>, onClose: () => void, onEscape: () => void): void {
+  // Native listeners: the popover is not itself interactive, and these concern focus and pointer behaviour around it.
   useEffect(() => {
     const root = ref.current
     const frame = root?.parentElement
@@ -27,7 +27,7 @@ export function usePassiveDialog(ref: RefObject<HTMLElement | null>, onClose: ()
     document.addEventListener('pointerdown', outside)
     return () => {
       root.removeEventListener('pointerdown', keepFocus)
-    root.removeEventListener('mousedown', keepFocus)
+      root.removeEventListener('mousedown', keepFocus)
       root.removeEventListener('keydown', escape)
       root.removeEventListener('focusout', leave)
       document.removeEventListener('pointerdown', outside)

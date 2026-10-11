@@ -3,7 +3,7 @@ import { placePopover } from './placePopover'
 
 // Pixel geometry from the rendered underline cannot be a token, so it is written on the element after layout. It is
 // re-run on scroll (the textarea scrolls its own text) and resize, so the popover stays on its underline.
-export function useAnchorBelow(ref: RefObject<HTMLElement | null>, decorationId: string, onClose: () => void): void {
+export function useAnchorToWord(ref: RefObject<HTMLElement | null>, decorationId: string, onClose: () => void): void {
   useLayoutEffect(() => {
     const popover = ref.current
     const frame = popover?.parentElement

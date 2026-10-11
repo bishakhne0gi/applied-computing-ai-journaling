@@ -76,9 +76,10 @@ test('the Live hints switch turns hints off and stays off after a reload', async
 
 test('when live hints are unavailable, writing and feedback carry on without them', async ({ page }) => {
   // Arrange
+  const unavailable = page.waitForResponse((response) => response.url().includes('/check') && response.status() === 503)
   await write(page, '/?mock=check-unavailable')
-  // Act: wait past the debounce and the request.
-  await page.waitForTimeout(2000)
+  // Act: the check fires after the debounce and is refused.
+  await unavailable
   // Assert
   await expect(underline(page)).toHaveCount(0)
   await expect(mainColumn(page).getByRole('alert')).toHaveCount(0)
