@@ -33,6 +33,7 @@ const KEY_STEPS: Record<string, (index: number, count: number) => number> = {
 export function AnimatedTabs({ label, idPrefix, tabs, value, onChange }: AnimatedTabsProps) {
   const reduce = useReducedMotion() ?? false
   const activeIndex = Math.max(0, tabs.findIndex((tab) => tab.id === value))
+  const activeId = tabs[activeIndex]?.id
   const onKeyDown = (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
     const step = KEY_STEPS[event.key]
     const next = step && tabs[step(index, tabs.length)]
@@ -52,7 +53,7 @@ export function AnimatedTabs({ label, idPrefix, tabs, value, onChange }: Animate
         />
       </span>
       {tabs.map((tab, index) => {
-        const selected = tab.id === value
+        const selected = tab.id === activeId
         return (
           <Button
             key={tab.id}

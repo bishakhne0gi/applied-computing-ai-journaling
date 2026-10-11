@@ -4,7 +4,7 @@ import { DESKTOP_QUERY } from '@/utils/constants'
 const supported = () => typeof window.matchMedia === 'function'
 
 // `fallback` answers where matchMedia does not exist (jsdom), so component tests get the layout they exercise most.
-export function useMediaQuery(query: string = DESKTOP_QUERY, fallback = false): boolean {
+export function useMediaQuery(query = DESKTOP_QUERY, fallback = false): boolean {
   const subscribe = useCallback(
     (onChange: () => void) => {
       if (!supported()) return () => undefined

@@ -1,10 +1,10 @@
 // Adapted from SmoothUI (MIT), https://smoothui.dev
 import { m, useReducedMotion } from 'motion/react'
-import { useEffect } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Icon, type IconName } from '@/components/ui/Icon'
 import { cn } from '@/utils/utils'
 import type { ToastTone } from './ToastContext'
+import { useAutoDismiss } from './useAutoDismiss'
 
 export interface QueuedToast {
   id: number
@@ -25,14 +25,14 @@ const icons: Record<ToastTone, IconName> = { success: 'check', danger: 'alert', 
 
 export function ToastItem({ toast, duration, onDismiss }: ToastItemProps) {
   const reduce = useReducedMotion() ?? false
-  useEffect(() => {
-    const timer = setTimeout(() => onDismiss(toast.id), duration)
-    return () => clearTimeout(timer)
-  }, [toast.id, duration, onDismiss])
+  const { hold, release } = useAutoDismiss(duration, () => onDismiss(toast.id))
   const hidden = reduce ? { opacity: 0 } : { opacity: 0, y: 16, scale: 0.96 }
   return (
     <m.div
-      role="status"
+      onMouseEnter={() => hold('hover')}
+      onMouseLeave={() => release('hover')}
+      onFocus={() => hold('focus')}
+      onBlur={() => release('focus')}
       className={cn('pointer-events-auto flex items-start gap-3 rounded-lg border border-l-4 border-border bg-bg py-3 pl-4 text-sm text-fg shadow-lg', stripeClasses[toast.tone])}
       initial={hidden}
       animate={{ opacity: 1, y: 0, scale: 1 }}

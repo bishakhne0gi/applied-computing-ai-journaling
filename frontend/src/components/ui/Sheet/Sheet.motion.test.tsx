@@ -21,4 +21,18 @@ describe('Sheet with reduced motion', () => {
     // Assert
     expect(screen.getByRole('dialog').getAttribute('style') ?? '').not.toContain('translate')
   })
+
+  it('leaves in place too, with no slide on exit', () => {
+    // Arrange
+    const panel = (open: boolean) => (
+      <Sheet open={open} onClose={vi.fn()} side="bottom" title="Entries">
+        <p>List</p>
+      </Sheet>
+    )
+    const { rerender } = render(panel(true))
+    // Act
+    rerender(panel(false))
+    // Assert
+    expect(screen.queryByRole('dialog')?.getAttribute('style') ?? '').not.toContain('translate')
+  })
 })

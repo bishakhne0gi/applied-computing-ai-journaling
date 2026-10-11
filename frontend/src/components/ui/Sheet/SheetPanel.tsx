@@ -46,9 +46,11 @@ export function SheetPanel({ onClose, side, title, description, children }: Shee
         ref={panelRef}
         role="dialog"
         aria-modal="true"
+        tabIndex={-1}
         aria-labelledby={titleId}
         aria-describedby={description ? descriptionId : undefined}
-        className={cn('fixed z-overlay flex flex-col overflow-y-auto border-border bg-bg shadow-lg', sideClasses[side])}
+        className={cn('fixed z-overlay flex flex-col overflow-y-auto border-border bg-bg shadow-lg outline-none', sideClasses[side])}
+        // A click on plain content focuses the panel (tabIndex -1) instead of dropping focus to <body>, so Esc and Tab keep working.
         onKeyDown={onKeyDown}
         initial={reduce ? false : OFFSCREEN[side]}
         animate={{ x: 0, y: 0 }}

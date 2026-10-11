@@ -1,6 +1,6 @@
 // Adapted from SmoothUI (MIT), https://smoothui.dev
 import { AnimatePresence, m, useReducedMotion } from 'motion/react'
-import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useId, useRef, useState, type KeyboardEvent, type ReactNode } from 'react'
 import { Button } from '@/components/ui/Button'
 import { cn } from '@/utils/utils'
 
@@ -40,17 +40,22 @@ export function Tooltip({ content, align = 'center', children }: TooltipProps) {
   useEffect(() => {
     if (!open) return
     const onKeyDown = (event: globalThis.KeyboardEvent) => {
-      if (event.key !== 'Escape') return
-      event.stopPropagation()
-      hide()
+      if (event.key === 'Escape') hide()
     }
     document.addEventListener('keydown', onKeyDown)
     return () => document.removeEventListener('keydown', onKeyDown)
   }, [open])
+  // Focus is on the trigger, so Escape is handled here and stopped before an enclosing Sheet sees it; the document
+  // listener above only covers a hover-opened tip, and never stops propagation.
+  const onKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
+    if (event.key !== 'Escape' || !open) return
+    event.stopPropagation()
+    hide()
+  }
   const hidden = reduce ? { opacity: 0 } : { opacity: 0, y: 4, scale: 0.96 }
   return (
     <span className="relative inline-flex" onMouseEnter={reveal} onMouseLeave={hide}>
-      <Button variant="plain" aria-describedby={open ? id : undefined} onFocus={reveal} onBlur={hide} onClick={toggle}>
+      <Button variant="plain" aria-describedby={open ? id : undefined} onFocus={reveal} onBlur={hide} onKeyDown={onKeyDown} onClick={toggle}>
         {children}
       </Button>
       <AnimatePresence>

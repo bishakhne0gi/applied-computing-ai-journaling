@@ -1,6 +1,8 @@
 import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { MemoryRouter } from 'react-router'
 import { describe, expect, it } from 'vitest'
+import { render } from '@testing-library/react'
 import { Button } from '@/components/ui/Button'
 import { LocationProbe } from '@/test/LocationProbe'
 import { renderWithProviders } from '@/test/renderWithProviders'
@@ -71,8 +73,23 @@ describe('useWorkspaceParams', () => {
     await user.click(button('close'))
     // Assert
     expect(location()).toHaveTextContent(/^\/\?language=fr$/)
+  })
+
+  it('goes Back rather than replacing: one more Back leaves for the page before the workspace', async () => {
+    // Arrange
+    const user = userEvent.setup()
+    render(
+      <MemoryRouter initialEntries={['/x', '/?language=fr']} initialIndex={1}>
+        <Probe />
+      </MemoryRouter>,
+    )
+    await user.click(button('open'))
+    // Act
+    await user.click(button('close'))
+    // Assert
+    expect(location()).toHaveTextContent(/^\/\?language=fr$/)
     await user.click(button('Go back'))
-    expect(location()).not.toHaveTextContent('insights')
+    expect(location()).toHaveTextContent(/^\/x$/)
   })
 
   it('closes deep-linked insights by replacing the URL, so closing never leaves the app', async () => {

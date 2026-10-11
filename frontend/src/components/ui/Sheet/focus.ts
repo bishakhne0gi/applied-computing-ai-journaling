@@ -39,10 +39,16 @@ export function useDialogFocus<T extends HTMLElement>(): RefObject<T | null> {
   return headingRef
 }
 
-// A class, not an inline style: the page behind a modal sheet must not scroll under the user's finger.
+// A class, not an inline style: the page behind a modal sheet must not scroll under the user's finger. Counted so
+// the phone's entries sheet and the insights sheet can overlap without the first to close unlocking the page.
+let locks = 0
 export function useScrollLock(): void {
   useEffect(() => {
+    locks += 1
     document.body.classList.add('overflow-hidden')
-    return () => document.body.classList.remove('overflow-hidden')
+    return () => {
+      locks -= 1
+      if (locks === 0) document.body.classList.remove('overflow-hidden')
+    }
   }, [])
 }

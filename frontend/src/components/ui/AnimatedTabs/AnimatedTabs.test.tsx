@@ -71,4 +71,14 @@ describe('AnimatedTabs', () => {
     expect(tab('Your text')).toHaveAttribute('aria-controls', 'tv-panel-original')
     expect(tab('Corrected')).not.toHaveAttribute('aria-controls')
   })
+
+  it('treats the first tab as selected when the value matches none', () => {
+    // Arrange + Act
+    render(<AnimatedTabs label="Text version" idPrefix="tv" tabs={TABS} value="gone" onChange={() => undefined} />)
+    // Assert
+    expect(tab('Your text')).toHaveAttribute('aria-selected', 'true')
+    expect(tab('Your text')).toHaveAttribute('tabindex', '0')
+    expect(tab('Your text')).toHaveAttribute('aria-controls', 'tv-panel-original')
+    expect(tab('Corrected')).toHaveAttribute('aria-selected', 'false')
+  })
 })

@@ -13,6 +13,7 @@ function Harness({ onDocumentEscape }: { onDocumentEscape?: () => void }) {
       <Button onClick={() => setOpen(true)}>Open insights</Button>
       <Button ref={outside} onClick={onDocumentEscape}>Outside</Button>
       <Sheet open={open} onClose={() => setOpen(false)} side="right" title="Insights" description="How you are doing.">
+        <p>Some context</p>
         <Button>First</Button>
         <Button
           onClick={() => {
@@ -134,5 +135,44 @@ describe('Sheet', () => {
     await openSheet()
     // Assert
     expect(screen.getByRole('dialog').getAttribute('style')).toContain('translateX(100%)')
+  })
+
+  it('keeps Escape and the Tab trap working after a click on non-focusable content', async () => {
+    // Arrange
+    const user = await openSheet()
+    await user.click(screen.getByText('Some context'))
+    // Act + Assert
+    await user.tab()
+    expect(screen.getByRole('dialog')).toContainElement(document.activeElement as HTMLElement)
+    await user.click(screen.getByText('Some context'))
+    await user.keyboard('{Escape}')
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
+  it('keeps the page locked until the last of two overlapping sheets closes', async () => {
+    // Arrange
+    function Two() {
+      const [a, setA] = useState(true)
+      const [b, setB] = useState(true)
+      return (
+        <>
+          <Sheet open={a} onClose={() => setA(false)} side="left" title="Entries">
+            <p>A</p>
+          </Sheet>
+          <Sheet open={b} onClose={() => setB(false)} side="right" title="Insights">
+            <p>B</p>
+          </Sheet>
+        </>
+      )
+    }
+    const user = userEvent.setup()
+    render(<Two />)
+    // Act
+    await user.keyboard('{Escape}')
+    // Assert
+    expect(screen.getAllByRole('dialog')).toHaveLength(1)
+    expect(document.body).toHaveClass('overflow-hidden')
+    await user.keyboard('{Escape}')
+    expect(document.body).not.toHaveClass('overflow-hidden')
   })
 })

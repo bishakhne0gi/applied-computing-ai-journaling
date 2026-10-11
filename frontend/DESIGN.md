@@ -38,7 +38,7 @@ element's props, `ref` as a plain prop (React 19), Tailwind token utilities merg
 | `AnimatedTabs` | 2–4 tabs | controlled segmented tabs (SmoothUI, MIT); arrows/Home/End; only the selected tab is tabbable and has `aria-controls`; pair with `role="tabpanel"` using `tabId`/`panelId` |
 | `Skeleton` | — | `aria-hidden` pulsing block; put skeletons inside `LoadingState` so the label stays for screen readers |
 | `Toast` | `tone`: `success`, `danger`, `neutral` | `useToast().show({ message, tone })`; `role="status"`, dismiss button, 5s, max 3 (SmoothUI, MIT) |
-| `Tooltip` | `align`: `start`, `center` (default), `end` | toggletip: children sit in a real `Button` (`plain` variant); hint shows on hover, focus and click (click toggles), `aria-describedby`, Esc/blur/mouse leave hide (SmoothUI, MIT); for supplementary text only |
+| `Tooltip` | `align`: `start`, `center` (default), `end` | toggletip: children sit in a real `Button` (`plain` variant); hint shows on hover, focus and click (click toggles), `aria-describedby`, Esc/blur/mouse leave hide (SmoothUI, MIT); for supplementary text only; the trigger is a button, so children must be phrasing content (no block elements or nested interactives) |
 | `EmptyState` | — | dashed box: title + the next useful action as `children` |
 | `Card` | `as`: `div` (default), `section` | hairline card, `shadow-sm`; override padding/background with `className` |
 | `PageHeading` | — | `h1`, light 300, `tabIndex -1`, takes `ref` so the workspace can focus it |

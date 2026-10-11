@@ -26,6 +26,6 @@ describe('Toast with reduced motion', () => {
     // Act
     await user.click(screen.getByRole('button', { name: 'Notify' }))
     // Assert
-    expect(screen.getByRole('status').getAttribute('style') ?? '').not.toContain('translate')
+    expect((screen.getByText('Saved').parentElement as HTMLElement).getAttribute('style') ?? '').not.toContain('translate')
   })
 })

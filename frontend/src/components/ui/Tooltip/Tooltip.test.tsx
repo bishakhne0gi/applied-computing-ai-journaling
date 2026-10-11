@@ -1,6 +1,8 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { useState } from 'react'
 import { describe, expect, it } from 'vitest'
+import { Sheet } from '@/components/ui/Sheet'
 import { Tooltip } from '.'
 
 const HINT = 'Counts towards your error rate.'
@@ -59,5 +61,32 @@ describe('Tooltip', () => {
     expect(trigger).toHaveAccessibleDescription(HINT)
     await user.click(trigger)
     expect(screen.queryByRole('tooltip')).not.toBeInTheDocument()
+  })
+
+  it('hides on Escape without closing an enclosing sheet; a second Escape closes the sheet', async () => {
+    // Arrange
+    const user = userEvent.setup()
+    function InSheet() {
+      const [open, setOpen] = useState(true)
+      return (
+        <Sheet open={open} onClose={() => setOpen(false)} side="right" title="Insights">
+          <Tooltip content={HINT}>
+            <span>Error</span>
+          </Tooltip>
+        </Sheet>
+      )
+    }
+    render(<InSheet />)
+    const trigger = screen.getByText('Error').parentElement as HTMLElement
+    await user.click(trigger)
+    trigger.focus()
+    expect(screen.getByRole('tooltip')).toBeInTheDocument()
+    // Act
+    await user.keyboard('{Escape}')
+    // Assert
+    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument()
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    await user.keyboard('{Escape}')
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 })
