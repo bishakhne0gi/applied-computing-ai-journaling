@@ -1,8 +1,8 @@
-import { screen, within } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { describe, expect, it, vi } from 'vitest'
-import { apiUrl, clearMockMode, failWith, setMockMode, waitForLanguages, pickOption } from '@/test/helpers'
+import { apiUrl, clearMockMode, failWith, setMockMode, waitForLanguages, pickOption, slowDown } from '@/test/helpers'
 import { renderWithProviders } from '@/test/renderWithProviders'
 import { server } from '@/test/server'
 import { ENDPOINTS } from '@/utils/endpoints'
@@ -14,9 +14,11 @@ const rows = () => within(screen.getByRole('list', { name: 'Entries' })).getAllB
 describe('HistoryList', () => {
   it('shows a loading state, then the newest ten entries', async () => {
     // Arrange + Act
+    slowDown('get', ENDPOINTS.entries)
     renderHistory()
     // Assert
     expect(screen.getByRole('status')).toHaveTextContent('Loading entries…')
+    await waitFor(() => expect(screen.getByRole('status').querySelectorAll('[aria-hidden="true"]')).toHaveLength(4))
     expect(await screen.findByText('Showing 10 entries')).toBeInTheDocument()
     expect(rows()).toHaveLength(10)
   })

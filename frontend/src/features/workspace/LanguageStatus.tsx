@@ -3,7 +3,9 @@ import { useLanguageFilter } from '@/features/languages/useLanguageFilter'
 import { useLanguageName } from '@/features/languages/useLanguageName'
 
 export function LanguageStatus() {
-  const { language } = useLanguageFilter()
+  const { language, state } = useLanguageFilter()
   const name = useLanguageName(language ?? '')
-  return <Badge className="hidden min-w-0 whitespace-nowrap truncate sm:block">{language ? name : 'All languages'}</Badge>
+  // Waiting for the list, a shared ?language= link would flash "All languages" before its real name.
+  if (state === 'pending') return null
+  return <Badge className="hidden min-w-0 truncate whitespace-nowrap sm:block">{language ? name : 'All languages'}</Badge>
 }

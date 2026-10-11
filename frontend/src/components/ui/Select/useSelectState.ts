@@ -8,10 +8,12 @@ export interface SelectOption {
 const TYPE_AHEAD_MS = 500
 const PAGE = 10
 
-// Type-ahead: a repeated single letter cycles through matches; a longer run matches the whole prefix.
+// Type-ahead: the same letter typed again cycles through its matches; a longer run matches the whole prefix.
 function matchIndex(options: readonly SelectOption[], query: string, from: number): number {
-  const needle = query.toLocaleLowerCase()
-  const start = needle.length === 1 ? from + 1 : from
+  const typed = query.toLocaleLowerCase()
+  const repeated = [...typed].every((char) => char === typed[0])
+  const needle = repeated ? (typed[0] ?? '') : typed
+  const start = repeated ? from + 1 : from
   for (let step = 0; step < options.length; step += 1) {
     const index = (start + step) % options.length
     if (options[index]?.label.toLocaleLowerCase().startsWith(needle)) return index

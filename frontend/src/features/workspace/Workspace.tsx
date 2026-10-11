@@ -24,7 +24,7 @@ export function Workspace() {
   // False on first load, so a deep link never steals focus; true once the learner moves within the workspace.
   const place = `${entryId ?? ''}|${composerKey}`
   const moved = useChangedSinceMount(place)
-  const entriesSheet = useEntriesSheet(`${place}|${insightsOpen}`)
+  const entriesSheet = useEntriesSheet(`${place}|${insightsOpen}|${desktop}`)
   const startNewEntry = () => {
     selectEntry(null)
     setComposerKey((key) => key + 1)

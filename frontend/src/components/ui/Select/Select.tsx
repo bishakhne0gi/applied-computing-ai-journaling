@@ -56,6 +56,10 @@ export function Select({ id, value, options, onChange, disabled = false, classNa
           if (!state.open) measure()
           state.onKeyDown(event)
         }}
+        // Firefox clicks on Space's keyup even after keydown was handled, which would toggle the list back.
+        onKeyUp={(event) => {
+          if (event.key === ' ') event.preventDefault()
+        }}
         onBlur={state.close}
       >
         <span className="truncate">{selected?.label ?? ''}</span>

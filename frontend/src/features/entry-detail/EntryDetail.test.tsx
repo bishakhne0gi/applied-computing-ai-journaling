@@ -23,6 +23,7 @@ describe('EntryDetail', () => {
     renderDetail(SEEDED.revisedFrench)
     // Assert
     expect(screen.getByRole('status')).toHaveTextContent('Loading entry…')
+    await waitFor(() => expect(screen.getByRole('status').querySelectorAll('[aria-hidden="true"]')).toHaveLength(2))
     expect(await screen.findByText('Great job — no mistakes found!')).toBeInTheDocument()
     expect(await screen.findByText(/French · .* · 8 words/)).toBeInTheDocument()
   })
@@ -31,10 +32,13 @@ describe('EntryDetail', () => {
     // Arrange
     const user = renderDetail(SEEDED.revisedFrench)
     await user.click(await screen.findByLabelText('Analysis'))
-    const [latest, older] = screen.getAllByRole('option')
+    const options = screen.getAllByRole('option')
+    const [latest] = options
+    const older = options[1]
+    expect(older).toBeDefined()
     expect(latest?.textContent).toMatch(/0 errors \(latest\)$/)
     // Act
-    if (older) await user.click(older)
+    await user.click(older as HTMLElement)
     // Assert
     expect(await screen.findByRole('button', { name: /à le/ })).toBeInTheDocument()
     expect(screen.getByRole('region', { name: 'Feedback' })).toHaveTextContent('Je suis allé à le marché avec ma sœur.')

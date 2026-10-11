@@ -1,4 +1,4 @@
-import { screen, within } from '@testing-library/react'
+import { act, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { LocationProbe } from '@/test/LocationProbe'
@@ -27,6 +27,41 @@ const sheet = () => screen.getByRole('dialog', { name: 'Entries' })
 const main = () => screen.getByRole('main')
 
 describe('Workspace on a phone', () => {
+  it('marks the Entries button as a dialog trigger and reflects the open sheet', async () => {
+    // Arrange
+    const user = await openEntriesSheet()
+    // Assert
+    const button = screen.getByRole('button', { name: 'Entries', expanded: true })
+    expect(button).toHaveAttribute('aria-haspopup', 'dialog')
+    await user.keyboard('{Escape}')
+    expect(screen.getByRole('button', { name: 'Entries' })).toHaveAttribute('aria-expanded', 'false')
+  })
+
+  it('closes the sheet when the window crosses the breakpoint, and does not reopen it coming back', async () => {
+    // Arrange
+    let desktop = false
+    const listeners = new Set<() => void>()
+    vi.stubGlobal('matchMedia', (media: string) => ({
+      get matches() {
+        return desktop
+      },
+      media,
+      addEventListener: (_: string, listener: () => void) => listeners.add(listener),
+      removeEventListener: (_: string, listener: () => void) => listeners.delete(listener),
+    }))
+    await openEntriesSheet()
+    const resize = (next: boolean) => act(() => {
+      desktop = next
+      listeners.forEach((listener) => listener())
+    })
+    // Act
+    await resize(true)
+    // Assert
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    await resize(false)
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
   it('keeps the entries in a sheet opened from the header', async () => {
     // Arrange + Act
     await openEntriesSheet()

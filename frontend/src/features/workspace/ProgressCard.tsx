@@ -14,7 +14,7 @@ export function ProgressCard({ onOpenInsights }: ProgressCardProps) {
   const headingId = useId()
   const filter = useLanguageFilter()
   return (
-    <Card as="section" aria-labelledby={headingId} className="flex flex-col gap-3 bg-bg p-4 shadow-none md:p-4">
+    <Card as="section" aria-labelledby={headingId} className="flex flex-col gap-3 bg-bg p-4 shadow-none">
       <h2 id={headingId} className="text-sm font-medium text-fg-secondary">
         Progress
       </h2>

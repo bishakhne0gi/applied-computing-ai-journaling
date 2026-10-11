@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
@@ -39,6 +39,8 @@ function setup(props?: Parameters<typeof Harness>[0]) {
   render(<Harness {...props} />)
   return { user, combobox: screen.getByRole('combobox', { name: 'Language' }) }
 }
+
+const MANY: SelectOption[] = Array.from({ length: 25 }, (_, n) => ({ value: `v${n}`, label: `Option ${n}` }))
 
 const activeOption = (combobox: HTMLElement) => document.getElementById(combobox.getAttribute('aria-activedescendant') ?? '')
 
@@ -122,6 +124,88 @@ describe('Select', () => {
     await user.click(combobox)
     // Assert
     expect(screen.getByRole('option', { name: 'French' })).toHaveClass('min-h-11', 'md:min-h-9')
+  })
+
+  it('cycles through the matches when the same letter is typed again', async () => {
+    // Arrange
+    const { user, combobox } = setup()
+    combobox.focus()
+    // Act + Assert
+    await user.keyboard('f')
+    expect(activeOption(combobox)).toHaveTextContent('French')
+    await user.keyboard('f')
+    expect(activeOption(combobox)).toHaveTextContent('Finnish')
+    await user.keyboard('f')
+    expect(activeOption(combobox)).toHaveTextContent('French')
+  })
+
+  it('moves by ten with PageDown and PageUp and stops at the ends', async () => {
+    // Arrange
+    const user = userEvent.setup()
+    render(<Select id="m" aria-label="Many" value="v0" options={MANY} onChange={vi.fn()} />)
+    const combobox = screen.getByRole('combobox', { name: 'Many' })
+    combobox.focus()
+    // Act + Assert
+    await user.keyboard('{ArrowDown}{PageDown}')
+    expect(activeOption(combobox)).toHaveTextContent('Option 10')
+    await user.keyboard('{PageDown}{PageDown}')
+    expect(activeOption(combobox)).toHaveTextContent('Option 24')
+    await user.keyboard('{PageUp}')
+    expect(activeOption(combobox)).toHaveTextContent('Option 14')
+    await user.keyboard('{PageUp}{PageUp}')
+    expect(activeOption(combobox)).toHaveTextContent('Option 0')
+  })
+
+  it('keeps aria-selected on the chosen option while arrowing, so it mirrors a native select', async () => {
+    // Arrange
+    const { user, combobox } = setup()
+    combobox.focus()
+    // Act
+    await user.keyboard('{ArrowDown}{ArrowDown}')
+    // Assert
+    expect(activeOption(combobox)).toHaveTextContent('French')
+    expect(activeOption(combobox)).toHaveAttribute('aria-selected', 'false')
+    expect(screen.getByRole('option', { name: 'Spanish' })).toHaveAttribute('aria-selected', 'true')
+  })
+
+  it('opens upward when there is no room below and downward otherwise', async () => {
+    // Arrange
+    const user = userEvent.setup()
+    const rect = vi.spyOn(Element.prototype, 'getBoundingClientRect')
+    render(<Select id="s" aria-label="Language" value="es" options={OPTIONS} onChange={vi.fn()} />)
+    const combobox = screen.getByRole('combobox', { name: 'Language' })
+    // Act + Assert
+    rect.mockReturnValue({ top: 700, bottom: 740 } as DOMRect)
+    await user.click(combobox)
+    expect(screen.getByRole('listbox')).toHaveClass('bottom-full')
+    await user.keyboard('{Escape}')
+    rect.mockReturnValue({ top: 40, bottom: 80 } as DOMRect)
+    await user.click(combobox)
+    expect(screen.getByRole('listbox')).toHaveClass('top-full')
+  })
+
+  it('opens with Space and stays open, and a Space on an option picks it once', async () => {
+    // Arrange
+    const onChange = vi.fn()
+    const { user, combobox } = setup({ onChange })
+    combobox.focus()
+    // Act
+    await user.keyboard(' ')
+    // Assert
+    expect(combobox).toHaveAttribute('aria-expanded', 'true')
+    await user.keyboard('{ArrowDown} ')
+    expect(onChange).toHaveBeenCalledTimes(1)
+    expect(onChange).toHaveBeenCalledWith('fr')
+    expect(combobox).toHaveAttribute('aria-expanded', 'false')
+  })
+
+  it('cancels the click Firefox fires when Space is released', () => {
+    // Arrange
+    const { combobox } = setup()
+    // Act
+    const notCancelled = fireEvent.keyUp(combobox, { key: ' ' })
+    // Assert
+    expect(notCancelled).toBe(false)
   })
 
   it('closes on Escape without changing the value or letting the key reach an enclosing dialog', async () => {

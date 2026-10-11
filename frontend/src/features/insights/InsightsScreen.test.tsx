@@ -1,7 +1,7 @@
-import { screen, within } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
-import { clearMockMode, failWith, setMockMode, waitForLanguages, pickOption } from '@/test/helpers'
+import { clearMockMode, failWith, setMockMode, waitForLanguages, pickOption, slowDown } from '@/test/helpers'
 import { renderWithProviders } from '@/test/renderWithProviders'
 import { server } from '@/test/server'
 import { ENDPOINTS } from '@/utils/endpoints'
@@ -13,9 +13,11 @@ const summary = async () => within(await screen.findByRole('region', { name: 'Su
 describe('InsightsScreen', () => {
   it('shows a loading state, then the summary, chart and categories for every language', async () => {
     // Arrange + Act
+    slowDown('get', ENDPOINTS.insights)
     renderInsights()
     // Assert
     expect(screen.getByRole('status')).toHaveTextContent('Loading insights…')
+    await waitFor(() => expect(screen.getByRole('status').querySelectorAll('[aria-hidden="true"]')).toHaveLength(2))
     expect((await summary())[0]).toHaveTextContent('6 errors across 11 entries — 7.6 per 100 words.')
     expect(screen.getByRole('img', { name: /across 11 entries/ })).toBeInTheDocument()
     expect(screen.getByRole('table', { name: 'Errors by category' })).toBeInTheDocument()

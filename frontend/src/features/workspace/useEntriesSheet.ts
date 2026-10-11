@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-// The sheet belongs to the moment it was opened in (entry | composer key | insights): any navigation closes it,
+// The sheet belongs to the moment it was opened in (entry | composer key | insights | layout): any navigation closes it,
 // and the stored moment is reset so Back to that moment does not reopen it.
 export function useEntriesSheet(moment: string) {
   const [sheet, setSheet] = useState({ moment, open: false })
