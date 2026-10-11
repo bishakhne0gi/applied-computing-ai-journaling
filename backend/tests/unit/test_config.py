@@ -62,3 +62,24 @@ def test_workspace_id_defaults_to_unset_and_reads_from_env(monkeypatch: pytest.M
     monkeypatch.setenv("ANTHROPIC_WORKSPACE_ID", "wrkspc_1")
 
     assert Settings(_env_file=None).anthropic_workspace_id == "wrkspc_1"
+
+
+def test_langfuse_settings_come_from_the_environment(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("LANGFUSE_PUBLIC_KEY", "pk")
+    monkeypatch.setenv("LANGFUSE_SECRET_KEY", "sk")
+    monkeypatch.setenv("LANGFUSE_HOST", "https://lf.test")
+
+    settings = Settings(_env_file=None)
+
+    assert settings.langfuse_public_key == "pk"
+    assert settings.langfuse_secret_key is not None
+    assert settings.langfuse_secret_key.get_secret_value() == "sk"
+    assert settings.langfuse_host == "https://lf.test"
+
+
+def test_langfuse_is_unset_by_default() -> None:
+    settings = Settings(_env_file=None)
+
+    assert settings.langfuse_public_key is None
+    assert settings.langfuse_secret_key is None
+    assert settings.langfuse_host is None

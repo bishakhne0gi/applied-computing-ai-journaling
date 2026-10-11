@@ -3,7 +3,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-pattern='sk-ant-[A-Za-z0-9_-]{10,}'
+pattern='sk-ant-[A-Za-z0-9_-]{10,}|sk-lf-[A-Za-z0-9-]{10,}'
 # Private wording lives outside the public repo: one term per line in the git-ignored .hygiene-terms,
 # or pipe/newline-separated in HYGIENE_TERMS (CI secret).
 terms="${HYGIENE_TERMS:-}"

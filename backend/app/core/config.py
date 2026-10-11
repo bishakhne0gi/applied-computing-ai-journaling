@@ -36,6 +36,10 @@ class Settings(BaseSettings):
     ai_timeout_seconds: float = 30.0
     anthropic_api_key: SecretStr | None = None
     anthropic_workspace_id: str | None = None
+    # Tracing is off unless all three are set (journal_ai.build_tracer decides).
+    langfuse_public_key: str | None = None
+    langfuse_secret_key: SecretStr | None = None
+    langfuse_host: str | None = None
 
     @property
     def resolved_ai_provider(self) -> ProviderName:
