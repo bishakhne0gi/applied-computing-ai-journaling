@@ -25,6 +25,12 @@ class LiveApiFactory(Protocol):
     ) -> AbstractAsyncContextManager[AsyncClient]: ...
 
 
+class AssistApiFactory(Protocol):
+    def __call__(
+        self, script: Sequence[str | Exception] | None = None, *, assist: object | None = None
+    ) -> AbstractAsyncContextManager[AsyncClient]: ...
+
+
 def entry_at(created_at: datetime, language: str = "es", text: str = "Hola mundo") -> Entry:
     return Entry(
         language=language,
@@ -87,3 +93,17 @@ def model_reply(
     *mistakes: dict[str, str], corrected: str = "Ayer yo soy feliz.", summary: str = "Nice work!"
 ) -> str:
     return json.dumps({"corrected_text": corrected, "feedback_summary": summary, "mistakes": list(mistakes)})
+
+
+def rephrase_reply(*versions: str) -> str:
+    return json.dumps(
+        {
+            "versions": [
+                {"text": v, "tone": "natural", "label": "More natural", "explanation": "Why."}
+                for v in versions
+            ],
+            "vocabulary": [
+                {"original": "feliz", "alternatives": [{"word": "contento", "nuance": "Softer."}]}
+            ],
+        }
+    )

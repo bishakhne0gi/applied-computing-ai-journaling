@@ -9,13 +9,13 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.pool import NullPool
 
 import app.db.models  # noqa: F401  registers models on Base.metadata
-from app.api.deps import get_analyzer, get_live_analyzer, get_session
+from app.api.deps import get_analyzer, get_live_analyzer, get_session, get_writing_assist
 from app.core.config import Settings
 from app.db.base import Base
 from app.main import create_app
-from journal_ai import Analyzer
+from journal_ai import Analyzer, WritingAssist
 from journal_ai.providers.fake import FakeProvider
-from tests.support import ApiFactory, ClientFactory, LiveApiFactory
+from tests.support import ApiFactory, AssistApiFactory, ClientFactory, LiveApiFactory
 
 TEST_DATABASE_URL = os.environ.get(
     "TEST_DATABASE_URL", "postgresql+asyncpg://journal:journal@localhost:5432/journal_test"
@@ -84,6 +84,24 @@ def make_live_api(settings: Settings, db_session: AsyncSession, make_client: Cli
         app.dependency_overrides[get_session] = lambda: db_session
         live = analyzer or Analyzer(FakeProvider(script), max_attempts=1)
         app.dependency_overrides[get_live_analyzer] = lambda: live
+        async with make_client(app) as http:
+            yield http
+
+    return factory
+
+
+@pytest.fixture
+def make_assist_api(
+    settings: Settings, db_session: AsyncSession, make_client: ClientFactory
+) -> AssistApiFactory:
+    @asynccontextmanager
+    async def factory(
+        script: Sequence[str | Exception] | None = None, *, assist: object | None = None
+    ) -> AsyncIterator[AsyncClient]:
+        app = create_app(settings)
+        app.dependency_overrides[get_session] = lambda: db_session
+        writing = assist or WritingAssist(FakeProvider(script))
+        app.dependency_overrides[get_writing_assist] = lambda: writing
         async with make_client(app) as http:
             yield http
 

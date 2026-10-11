@@ -1,5 +1,5 @@
 import asyncio
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -14,7 +14,9 @@ from app.core.request_context import REQUEST_ID_HEADER, RequestContextMiddleware
 from app.core.sentry import init_sentry
 from app.db.session import create_engine, create_sessionmaker
 from app.services.live_check import MAX_CONCURRENT_CHECKS
-from journal_ai import Analyzer, build_provider, build_tracer
+from app.services.writing_assist import MAX_CONCURRENT_CALLS
+from journal_ai import Analyzer, WritingAssist, build_provider, build_tracer
+from journal_ai.providers.base import CompletionProvider
 
 
 def _api_key(settings: Settings) -> str | None:
@@ -42,19 +44,39 @@ def _build_analyzer(settings: Settings) -> Analyzer:
     return Analyzer(provider, tracer)
 
 
-def _build_live_analyzer(settings: Settings) -> Analyzer:
-    provider = build_provider(
+def _live_provider(settings: Settings) -> CompletionProvider:
+    return build_provider(
         settings.resolved_ai_provider,
         api_key=_api_key(settings),
         model=settings.ai_live_model,
         effort="low",
         timeout_seconds=settings.ai_live_timeout_seconds,
         workspace_id=settings.anthropic_workspace_id,
-        # A check is one attempt: an SDK retry would silently double the worst case past the live timeout.
+        # A live call is one attempt: an SDK retry would silently double the worst case past the live timeout.
         max_retries=0,
     )
+
+
+def _build_live_analyzer(settings: Settings) -> Analyzer:
     # Untraced: checks fire on every pause, and tracing calls nobody stores would multiply Langfuse volume.
-    return Analyzer(provider, max_attempts=1)
+    return Analyzer(_live_provider(settings), max_attempts=1)
+
+
+def _build_writing_assist(settings: Settings) -> WritingAssist:
+    # Its own provider instance: each owner closes its own client.
+    return WritingAssist(_live_provider(settings))
+
+
+async def _close_in_order(*closers: Callable[[], Awaitable[None]]) -> None:
+    # Every closer runs even when an earlier one fails; the first failure is raised once all have run.
+    failure: Exception | None = None
+    for close in closers:
+        try:
+            await close()
+        except Exception as exc:
+            failure = failure or exc
+    if failure is not None:
+        raise failure
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -69,14 +91,13 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         try:
             yield
         finally:
-            # Closes both providers' pooled HTTP clients and flushes queued traces before the process exits.
-            try:
-                await app.state.analyzer.aclose()
-            finally:
-                try:
-                    await app.state.live_analyzer.aclose()
-                finally:
-                    await engine.dispose()
+            # Closes every provider's pooled HTTP client and flushes queued traces before the process exits.
+            await _close_in_order(
+                app.state.analyzer.aclose,
+                app.state.live_analyzer.aclose,
+                app.state.writing_assist.aclose,
+                engine.dispose,
+            )
 
     app = FastAPI(title="Language Journal API", version=settings.release, lifespan=lifespan)
     app.add_middleware(
@@ -91,6 +112,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.analyzer = _build_analyzer(settings)
     app.state.live_analyzer = _build_live_analyzer(settings)
     app.state.live_slots = asyncio.Semaphore(MAX_CONCURRENT_CHECKS)
+    app.state.writing_assist = _build_writing_assist(settings)
+    app.state.rephrase_slots = asyncio.Semaphore(MAX_CONCURRENT_CALLS)
+    app.state.complete_slots = asyncio.Semaphore(MAX_CONCURRENT_CALLS)
     app.include_router(health.router)
     app.include_router(api_router)
     return app

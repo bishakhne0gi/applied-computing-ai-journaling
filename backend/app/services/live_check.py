@@ -6,6 +6,7 @@ import structlog
 from app.core.errors import ServiceUnavailableError
 from app.services.analyses import AnalyzerPort
 from app.services.entries import count_words
+from app.services.slots import claim_slot
 from journal_ai import AlignedMistake, normalize_text
 
 logger = structlog.get_logger()
@@ -32,11 +33,7 @@ class LiveCheckService:
         normalised = normalize_text(text)
         if count_words(normalised) < MIN_WORDS:
             return LiveCheck(analyzed_text=normalised, mistakes=())
-        # A cancelled client does not cancel this handler, so every superseded check is still billed; the
-        # slots cap concurrent paid calls per process. Refusing beats queueing: a queued hint would be stale.
-        if self._slots.locked():
-            raise ServiceUnavailableError(UNAVAILABLE)
-        async with self._slots:
+        async with claim_slot(self._slots, UNAVAILABLE):
             return await self._run(normalised, language)
 
     async def _run(self, text: str, language: str) -> LiveCheck:

@@ -9,6 +9,8 @@ from app.services.analyses import AnalysisService, AnalyzerPort
 from app.services.entries import EntryService
 from app.services.insights.service import InsightsService
 from app.services.live_check import LiveCheckService
+from app.services.writing_assist import CompletionService, RephraseService
+from journal_ai import WritingAssist
 
 
 async def get_session(request: Request) -> AsyncIterator[AsyncSession]:
@@ -29,6 +31,18 @@ def get_live_analyzer(request: Request) -> AnalyzerPort:
 
 def get_live_slots(request: Request) -> asyncio.Semaphore:
     return cast(asyncio.Semaphore, request.app.state.live_slots)
+
+
+def get_writing_assist(request: Request) -> WritingAssist:
+    return cast(WritingAssist, request.app.state.writing_assist)
+
+
+def get_rephrase_slots(request: Request) -> asyncio.Semaphore:
+    return cast(asyncio.Semaphore, request.app.state.rephrase_slots)
+
+
+def get_complete_slots(request: Request) -> asyncio.Semaphore:
+    return cast(asyncio.Semaphore, request.app.state.complete_slots)
 
 
 def get_entry_service(session: SessionDep) -> EntryService:
@@ -52,7 +66,23 @@ def get_live_check_service(
     return LiveCheckService(analyzer, slots)
 
 
+def get_rephrase_service(
+    assist: Annotated[WritingAssist, Depends(get_writing_assist)],
+    slots: Annotated[asyncio.Semaphore, Depends(get_rephrase_slots)],
+) -> RephraseService:
+    return RephraseService(assist, slots)
+
+
+def get_completion_service(
+    assist: Annotated[WritingAssist, Depends(get_writing_assist)],
+    slots: Annotated[asyncio.Semaphore, Depends(get_complete_slots)],
+) -> CompletionService:
+    return CompletionService(assist, slots)
+
+
 EntryServiceDep = Annotated[EntryService, Depends(get_entry_service)]
 AnalysisServiceDep = Annotated[AnalysisService, Depends(get_analysis_service)]
 InsightsServiceDep = Annotated[InsightsService, Depends(get_insights_service)]
 LiveCheckServiceDep = Annotated[LiveCheckService, Depends(get_live_check_service)]
+RephraseServiceDep = Annotated[RephraseService, Depends(get_rephrase_service)]
+CompletionServiceDep = Annotated[CompletionService, Depends(get_completion_service)]

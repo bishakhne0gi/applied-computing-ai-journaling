@@ -162,11 +162,12 @@ def test_the_live_analyzer_uses_the_live_model_at_low_effort_with_its_own_timeou
     main.create_app(Settings(_env_file=None, ai_live_model="m-live", ai_live_timeout_seconds=5))
 
     live = [c for c in calls if c["model"] == "m-live"]
-    assert live == [{**live[0], "effort": "low", "timeout_seconds": 5, "max_retries": 0}]
+    # The live analyzer and the writing assist each own a provider on the live model.
+    assert live == [{**live[0], "effort": "low", "timeout_seconds": 5, "max_retries": 0}] * 2
     assert all("max_retries" not in c for c in calls if c["model"] != "m-live")
 
 
-async def test_shutdown_closes_both_analyzers_before_the_engine(
+async def test_shutdown_closes_every_provider_before_the_engine(
     settings: Settings, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     calls: list[str] = []
@@ -174,8 +175,26 @@ async def test_shutdown_closes_both_analyzers_before_the_engine(
     app = main.create_app(settings)
     app.state.analyzer = _OrderedAnalyzer(calls)
     app.state.live_analyzer = _NamedAnalyzer(calls, "live.aclose")
+    app.state.writing_assist = _NamedAnalyzer(calls, "assist.aclose")
 
     async with app.router.lifespan_context(app):
         pass
 
-    assert calls == ["analyzer.aclose", "live.aclose", "engine.dispose"]
+    assert calls == ["analyzer.aclose", "live.aclose", "assist.aclose", "engine.dispose"]
+
+
+async def test_a_failing_close_still_closes_the_rest_and_re_raises(
+    settings: Settings, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    calls: list[str] = []
+    _record_engine(monkeypatch, calls)
+    app = main.create_app(settings)
+    app.state.analyzer = _OrderedAnalyzer(calls, fail=True)
+    app.state.live_analyzer = _NamedAnalyzer(calls, "live.aclose")
+    app.state.writing_assist = _NamedAnalyzer(calls, "assist.aclose")
+
+    with pytest.raises(RuntimeError, match="provider close failed"):
+        async with app.router.lifespan_context(app):
+            pass
+
+    assert calls == ["analyzer.aclose", "live.aclose", "assist.aclose", "engine.dispose"]
