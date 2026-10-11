@@ -45,7 +45,7 @@ export function EntryRow({ entry }: EntryRowProps) {
     if (retried === 'succeeded') linkRef.current?.focus()
   }, [retried])
   return (
-    <li className={cn('relative flex flex-col gap-1.5 rounded-md px-3 py-2.5 transition-colors hover:bg-surface', current && 'bg-primary-soft hover:bg-primary-soft')}>
+    <li className={cn('relative flex flex-col gap-1.5 rounded-md px-3 py-2.5 transition-colors hover:bg-bg', current && 'bg-primary-soft hover:bg-primary-soft')}>
       <Link ref={linkRef} to={entryHref(entry.id)} aria-current={current ? 'true' : undefined} aria-describedby={`${metaId} ${statusId}`} className={linkClass}>
         <span className="line-clamp-2">{entry.preview}</span>
       </Link>

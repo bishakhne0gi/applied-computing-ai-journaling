@@ -11,18 +11,21 @@ design intent; `frontend/DESIGN.md` maps it to tokens and primitives. Raw values
 - Motion explains where something came from (a sheet slides from its edge) and is skipped when the OS asks.
 
 ## Colour roles
-| Role | Light | Dark | Use |
-|---|---|---|---|
-| `bg` / `surface` | `#ffffff` / `#f6f9fc` | `#0b1a2b` / `#10233a` | canvas / soft panels, read-only fields |
-| `border` / `border-input` | `#e3e8ee` / `#7a90a8` | `#22384f` / `#5f7894` | hairlines / control boundaries (≥3:1) |
-| `fg` / `fg-secondary` / `muted` | `#0d253d` / `#273951` / `#61718a` | `#e8eef5` / `#c3cfdc` / `#9aabbf` | ink / labels, meta / hints |
-| `primary` / `primary-pressed` / `primary-soft` | `#533afd` / `#2e2b8c` / `#eeebff` | `#9d90ff` / `#c2baff` / `#1d2350` | actions, links, focus / hover / selected rows, chips |
-| `danger` / `success` / `warning` | `#c0123c` / `#0b7a3b` / `#9a5700` | `#ff8095` / `#5fd38d` / `#f2b54a` | status text and badges |
-| `mark-error` / `-suggestion` / `-vocab` (+ `-bg`) | `#c0123c` / `#9a5700` / `#7a35c9` | `#ff8095` / `#f2b54a` / `#c9a7ff` | feedback marks; kind also shown by underline style |
-| `band` | `#f1efff` | `#121c3f` | the gradient band behind the header only |
+Light only, like Stripe; dark mode is out of scope (`color-scheme: light`, so native controls stay light too).
 
-Every text pair is ≥4.5:1 and every control boundary ≥3:1 in both modes; the full table is in the P6 plan and
-`tokens.contrast.test.ts` fails the build if a value drifts.
+| Role | Value | Use |
+|---|---|---|
+| `bg` / `surface` | `#ffffff` / `#f6f9fc` | main canvas / sidebar and soft panels, read-only fields |
+| `border` / `border-input` | `#e3e8ee` / `#7a90a8` | hairlines / control boundaries (≥3:1) |
+| `fg` / `fg-secondary` / `muted` | `#0d253d` / `#273951` / `#61718a` | ink / labels, meta / hints |
+| `primary` / `primary-pressed` / `primary-soft` / `primary-disabled` | `#533afd` / `#2e2b8c` / `#eeebff` / `#b3a9ff` | actions, links, focus / hover / selected rows, chips / disabled primary (light indigo, never grey) |
+| `danger` / `success` / `warning` (+ `-soft`) | `#c0123c` / `#0b7a3b` / `#9a5700` (tints `#fdeef1` / `#e6f5ec` / `#fff4e0`) | status text; badges are soft tinted pills |
+| `neutral-soft` | `#ebeef1` | neutral badge tint |
+| `mark-error` / `-suggestion` / `-vocab` (+ `-bg`) | `#c0123c` / `#9a5700` / `#7a35c9` | feedback marks; kind also shown by underline style |
+| `band` / `band-violet` / `band-pink` | `#f1efff` / `#f6efff` / `#fff0f6` | the decorative indigo → violet → pink band behind the header only |
+
+Every text pair is ≥4.5:1 and every control boundary ≥3:1; `tokens.contrast.test.ts` fails the build if a value
+drifts (or if a dark palette comes back).
 
 ## Type
 System stack (`-apple-system, Segoe UI, Roboto…`) with `font-feature-settings: "ss01"`. Display headings light (300)
@@ -31,16 +34,16 @@ with tight tracking (`text-3xl font-light tracking-tight`); section headings ste
 `tabular-nums`.
 
 ## Space, layout, shape
-8px grid (Tailwind's 0.25rem scale, even steps). Header, then sidebar `20rem` + main column `≤44rem` aligned to the sidebar edge (not centred, so it never floats);
+8px grid (Tailwind's 0.25rem scale, even steps). Full-width header (white with the band, hairline below), then sidebar `20rem` on `surface` with a hairline right edge + white main column `≤44rem` aligned to the sidebar edge (not centred, so it never floats);
 insights sheet `36rem` from the right (bottom sheet on phones). Radii 6 / 8 / 12px (`rounded-sm|md|lg`); actions are
 pills (`rounded-full`). Shadows: `sm` resting cards and inputs, `md` popovers, `lg` sheets and toasts.
 
 ## Components
 - **Buttons:** primary = filled indigo pill; secondary = white pill with input-border outline, indigo on hover;
-  ghost = text pill; icon = 44px round target. Disabled = 60% opacity + not-allowed cursor.
+  ghost = text pill; icon = 44px round target. Disabled = 60% opacity + not-allowed cursor; the primary instead turns `primary-disabled` (lighter indigo).
 - **Inputs:** white, `border-input`, `rounded-md` (selects) / `rounded-lg` (editor), visible indigo focus ring.
 - **Cards:** white, hairline border, `shadow-sm`, `rounded-lg`; soft cards (`surface`) for secondary panels.
-- **Badges:** pill chips on `surface`, tone colour on text and border.
+- **Badges:** soft tinted pills (`danger-soft` etc.), tone colour on the text, no border.
 - **Sheets:** white panel, hairline edge, `shadow-lg`, scrim `fg` at 40%; slide with a short spring.
 - **Tabs:** segmented pill; a white indicator slides under the selected tab.
 - **Toasts:** bottom right (bottom centre on phones), white card with a tone stripe and icon.

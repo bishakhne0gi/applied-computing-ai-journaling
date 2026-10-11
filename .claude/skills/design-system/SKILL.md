@@ -14,7 +14,7 @@ Order of reuse: existing primitive → new variant (prop value) → new primitiv
 ## Tokens
 - Read `frontend/DESIGN.md` for the catalogue. Values only via token utilities (`bg-surface`, `rounded-md`);
   spacing/type from Tailwind's rem scale (`p-4`, `text-sm`).
-- New value needed → add a token inside `@theme` in `frontend/src/styles/tokens.css` (+ dark value for colors), add a row in `frontend/DESIGN.md`.
+- New value needed → add a token inside `@theme` in `frontend/src/styles/tokens.css` (light only — no dark value), add a row in `frontend/DESIGN.md`.
 - Color by role (`bg-danger`), never by hue. Text roles must keep ≥4.5:1 contrast.
 
 ## Creating a primitive (`frontend/src/components/ui/<Name>/`)

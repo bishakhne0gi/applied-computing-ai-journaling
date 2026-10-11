@@ -13,6 +13,12 @@
     outline: 0.125rem solid var(--color-primary);
     outline-offset: 0.125rem;
   }
+
+  /* Headings, main and dialog panels take focus only programmatically (a navigation landed there); a ring on
+     non-interactive text reads as a bug, and Chrome shows one when no pointer was used yet. */
+  [tabindex='-1']:focus-visible {
+    outline: none;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

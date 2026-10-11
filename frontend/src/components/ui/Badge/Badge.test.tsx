@@ -18,6 +18,6 @@ describe('Badge', () => {
     // Act
     render(<Badge>{label}</Badge>)
     // Assert
-    expect(screen.getByText(label)).toHaveClass('text-muted')
+    expect(screen.getByText(label)).toHaveClass('bg-neutral-soft', 'text-fg-secondary')
   })
 })

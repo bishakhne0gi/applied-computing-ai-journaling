@@ -53,8 +53,8 @@ indigo primary `#533afd` (pressed `#2e2b8c`), ink `#0d253d`, secondary ink `#273
 (`rgb(0 55 112 / 8%)`); radii 6 / 8 / 12px, pill buttons; system font stack with `font-feature-settings: "ss01"`
 and tabular numerals on numbers; light (300) display headings with negative tracking, 400 for controls;
 8px grid; one filled primary action per region; a subtle gradient band behind the header only.
-Mistake colours stay semantic (error / suggestion / vocab) and must keep WCAG AA contrast. Dark mode keeps the same
-roles with new values. All raw values live in `src/styles/tokens.css` `@theme`; components use roles only.
+Mistake colours stay semantic (error / suggestion / vocab) and must keep WCAG AA contrast. Light only, like Stripe;
+dark mode is out of scope. All raw values live in `src/styles/tokens.css` `@theme`; components use roles only.
 
 ## 4. Components (SmoothUI, MIT)
 
@@ -79,7 +79,7 @@ summary/chart/table, empty, error) and the full-stack smoke keeps its 6 journeys
 
 ## 6. Out of scope
 
-Command palette, drag-resizable sidebar, entry delete, offline mode, theme toggle (dark follows the OS).
+Command palette, drag-resizable sidebar, entry delete, offline mode, theme toggle and dark mode (light only, like Stripe).
 
 ## 7. Writing assist (user request, same day)
 

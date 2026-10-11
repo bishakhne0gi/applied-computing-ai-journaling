@@ -29,8 +29,8 @@ function ratio(a = '', b = ''): number {
   return ((high ?? 0) + 0.05) / ((low ?? 0) + 0.05)
 }
 
-const light = colours('@theme')
-const dark = { ...light, ...colours('@media (prefers-color-scheme: dark)') }
+// Light only, like Stripe (ruling R5): there is no second palette to check.
+const palette = colours('@theme')
 
 const TEXT: [string, string][] = [
   ['fg', 'bg'], ['fg', 'surface'], ['fg-secondary', 'bg'], ['fg-secondary', 'surface'], ['muted', 'bg'], ['muted', 'surface'],
@@ -39,13 +39,12 @@ const TEXT: [string, string][] = [
   ['fg', 'primary-soft'], ['fg-secondary', 'primary-soft'], ['primary', 'primary-soft'], ['fg', 'band'], ['bg', 'fg'],
   ['fg', 'mark-error-bg'], ['fg', 'mark-suggestion-bg'], ['fg', 'mark-vocab-bg'],
   ['mark-error', 'mark-error-bg'], ['mark-suggestion', 'mark-suggestion-bg'], ['mark-vocab', 'mark-vocab-bg'],
+  ['danger', 'danger-soft'], ['success', 'success-soft'], ['warning', 'warning-soft'], ['fg-secondary', 'neutral-soft'],
+  ['fg', 'band-violet'], ['fg', 'band-pink'],
 ]
 const NON_TEXT: [string, string][] = [['border-input', 'bg'], ['border-input', 'surface']]
 
-describe.each([
-  ['light', light],
-  ['dark', dark],
-])('%s tokens', (_mode, palette) => {
+describe('tokens', () => {
   it.each(TEXT)('%s on %s reaches 4.5:1 for text', (foreground, background) => {
     // Arrange
     const pair = [palette[foreground], palette[background]]
@@ -64,5 +63,15 @@ describe.each([
     // Assert
     expect(pair.every(Boolean)).toBe(true)
     expect(value).toBeGreaterThanOrEqual(3)
+  })
+})
+
+describe('colour scheme', () => {
+  it('is light only: no dark palette, and native controls are told to stay light', () => {
+    // Arrange + Act
+    const hasDarkPalette = css.includes('prefers-color-scheme')
+    // Assert
+    expect(hasDarkPalette).toBe(false)
+    expect(css).toMatch(/color-scheme:\s*light/u)
   })
 })

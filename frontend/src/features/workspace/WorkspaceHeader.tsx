@@ -10,8 +10,8 @@ export interface WorkspaceHeaderProps {
 // The gradient band lives here only (DESIGN.md): it marks the frame, never the writing.
 export function WorkspaceHeader({ insights }: WorkspaceHeaderProps) {
   return (
-    <header className="border-b border-border bg-linear-to-b from-band to-bg">
-      <div className="mx-auto flex min-h-15 max-w-content items-center gap-3 px-4 py-2 lg:px-6">
+    <header className="border-b border-border bg-linear-to-r from-band via-band-violet to-band-pink">
+      <div className="flex min-h-15 items-center gap-3 px-4 py-2 lg:px-6">
         <Link to="/" className="text-lg font-light tracking-tight text-fg">
           Language Journal
         </Link>

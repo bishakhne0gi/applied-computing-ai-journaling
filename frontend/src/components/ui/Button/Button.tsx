@@ -3,7 +3,7 @@ import { cn } from '@/utils/utils'
 
 // Pills for actions, a round icon target, and the inline variant that sits inside running text (highlights).
 const variants = {
-  primary: 'min-h-11 rounded-full bg-primary px-5 text-sm font-medium text-primary-contrast shadow-sm hover:bg-primary-pressed',
+  primary: 'min-h-11 rounded-full bg-primary px-5 text-sm font-medium text-primary-contrast shadow-sm enabled:hover:bg-primary-pressed disabled:bg-primary-disabled disabled:opacity-100 disabled:shadow-none',
   secondary: 'min-h-11 rounded-full border border-border-input bg-bg px-5 text-sm font-medium text-fg hover:border-primary hover:text-primary',
   ghost: 'min-h-11 rounded-full px-4 text-sm font-medium text-fg-secondary hover:bg-surface hover:text-fg',
   icon: 'size-11 shrink-0 rounded-full text-fg-secondary hover:bg-surface hover:text-fg',

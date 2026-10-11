@@ -5,18 +5,18 @@ Three layers. Always use the lowest layer that already solves the problem.
 ## 1. Tokens (`@theme` in `src/styles/tokens.css`) → Tailwind utilities
 | Group | Token | Utility |
 |---|---|---|
-| Color roles | `--color-bg, surface, border, border-input, fg, fg-secondary, muted, primary, primary-pressed, primary-soft, primary-contrast, danger, success, warning, scrim, band` | `bg-surface`, `text-fg-secondary`, `border-border-input`, `bg-primary hover:bg-primary-pressed`, `bg-linear-to-b from-band to-bg` |
+| Color roles | `--color-bg, surface, border, border-input, fg, fg-secondary, muted, primary, primary-pressed, primary-soft, primary-disabled, primary-contrast, danger, success, warning (+ -soft), neutral-soft, scrim, band, band-violet, band-pink` | `bg-surface`, `text-fg-secondary`, `border-border-input`, `bg-primary hover:bg-primary-pressed`, `bg-linear-to-r from-band via-band-violet to-band-pink`, `bg-danger-soft text-danger` |
 | Feedback marks | `--color-mark-error`, `mark-suggestion`, `mark-vocab` (+ `-bg` tints) | `bg-mark-error-bg decoration-mark-error` — kind is shown by colour **and** underline style (error wavy, suggestion dashed, word help dotted) |
 | Space / type | Tailwind default rem scale | `p-4`, `gap-3`, `text-sm`, `font-bold` |
 | Shape | `--radius-sm, md, lg, full`, `--shadow-sm, md, lg, chip` | `rounded-lg`, `shadow-lg`, `shadow-chip` |
 | Layers | `--z-index-dropdown, sticky, overlay, toast` | `z-overlay` — never `z-10` |
 | Layout | `--container-content` (80rem), `sidebar` (20rem), `main` (44rem), `sheet` (36rem), `--font-sans` | `max-w-content`, `w-sidebar`, `max-w-main`, `max-w-sheet` |
 
-Mark contrast (computed, pinned by src/styles/tokens.contrast.test.ts): text fg on each tint ≥12.7:1; mark colour on its tint ≥5.1:1 light / ≥6.6:1 dark. Visual intent and the full table: /DESIGN.md.
+Mark contrast (computed, pinned by src/styles/tokens.contrast.test.ts): text fg on each tint ≥12.7:1; mark colour on its tint ≥5.1:1. Visual intent and the full table: /DESIGN.md.
 
 Tailwind's default palette, radius and shadow scales are wiped — only these roles exist.
-Dark mode is handled by tokens (`prefers-color-scheme`) — no `dark:` classes.
-Adding a token: add inside `@theme` in `tokens.css` (+ dark value if a color), add a row here, then use its utility.
+Light only, like Stripe: no dark palette, `color-scheme: light` on `:root`, and no `dark:` classes.
+Adding a token: add inside `@theme` in `tokens.css`, add a row here (and a contrast pair in `tokens.contrast.test.ts` if it is a colour), then use its utility.
 
 ## 2. Primitives (`src/components/ui/`)
 Built on demand, the first time a feature needs one. Each primitive: typed props extending the native
@@ -26,7 +26,7 @@ element's props, `ref` as a plain prop (React 19), Tailwind token utilities merg
 |---|---|---|
 | `TextLink` | — | React Router `Link` in the primary role, underlined; `className` merges last |
 | `Button` | `primary`, `secondary` (default), `ghost`, `icon` (44px round, needs `aria-label`), `inline` (highlights inside text) | pills (`rounded-full`) except `icon`/`inline`; the only raw `<button>`; `type="button"` by default; `min-h-11` touch target except `inline`; pointer / not-allowed cursor |
-| `Badge` | `tone`: `neutral` (default), `danger`, `success`, `warning` | status and count chips on `bg-surface` (all tones ≥4.7:1) |
+| `Badge` | `tone`: `neutral` (default), `danger`, `success`, `warning` | soft tinted status and count pills (`*-soft` background, tone text, ≥4.5:1 pinned) |
 | `ErrorState` | — | `role="alert"` message + retry `Button`; `retryLabel`, `retrying` |
 | `InlineAlert` | — | `role="alert"` one-line danger text for a failed action next to its control; use `ErrorState` when the user must retry from the message |
 | `Select` | — | native `<select>`, `min-h-11`, pointer cursor |

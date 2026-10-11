@@ -22,15 +22,15 @@ export function Workspace() {
   return (
     <div className="flex min-h-screen flex-col">
       <WorkspaceHeader insights={{ open: insightsOpen, onOpen: openInsights }} />
-      <div className="mx-auto flex w-full max-w-content flex-1 flex-col px-4 lg:flex-row lg:gap-8 lg:px-6">
+      <div className="flex flex-1 flex-col lg:flex-row">
         {/* Below lg the composer comes first: the list loading in above it would push it down (layout shift). Task 8 moves the list into a sheet. */}
         <aside
           aria-label="Your entries"
-          className="order-last border-t border-border py-8 lg:order-none lg:w-sidebar lg:shrink-0 lg:border-t-0 lg:border-r lg:pr-6"
+          className="order-last border-t border-border bg-surface px-4 py-8 lg:order-none lg:w-sidebar lg:shrink-0 lg:border-t-0 lg:border-r lg:px-6"
         >
           <Sidebar onNewEntry={startNewEntry} />
         </aside>
-        <main id="main" tabIndex={-1} className="min-w-0 flex-1 py-8">
+        <main id="main" tabIndex={-1} className="min-w-0 flex-1 px-4 py-8 lg:px-10">
           <div className="flex max-w-main flex-col gap-6">
             <MainColumn entryId={entryId} composerKey={composerKey} moved={moved} />
           </div>

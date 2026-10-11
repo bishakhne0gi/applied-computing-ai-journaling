@@ -25,7 +25,18 @@
   --color-success: #0b7a3b;
   --color-warning: #9a5700;
   --color-scrim: rgb(13 37 61 / 40%);
+
+  /* Header band: indigo → violet → pink tints, decorative only (ink on each is pinned ≥4.5:1). */
   --color-band: #f1efff;
+  --color-band-violet: #f6efff;
+  --color-band-pink: #fff0f6;
+  --color-neutral-soft: #ebeef1;
+  --color-danger-soft: #fdeef1;
+  --color-success-soft: #e6f5ec;
+  --color-warning-soft: #fff4e0;
+
+  /* Disabled primary: a lighter indigo, not a greyed-out one (disabled controls are exempt from contrast). */
+  --color-primary-disabled: #b3a9ff;
   --color-mark-error: #c0123c;
   --color-mark-error-bg: #fdeef1;
   --color-mark-suggestion: #9a5700;
@@ -38,7 +49,7 @@
   --radius-lg: 0.75rem;
   --radius-full: 999rem;
 
-  /* Blue-tinted shadows read as depth on white without greying it; Tailwind inlines these, so dark mode keeps them. */
+  /* Blue-tinted shadows read as depth on white without greying it; Tailwind inlines these. */
   --shadow-sm: 0 0.0625rem 0.125rem rgb(0 55 112 / 8%);
   --shadow-md: 0 0.25rem 0.75rem rgb(0 55 112 / 8%);
   --shadow-lg: 0 1rem 2.5rem -0.5rem rgb(0 55 112 / 16%);
@@ -57,30 +68,7 @@
   --container-sheet: 36rem;
 }
 
-/* Dark mode = same roles, new values. Components never use `dark:`. */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-bg: #0b1a2b;
-    --color-surface: #10233a;
-    --color-border: #22384f;
-    --color-border-input: #5f7894;
-    --color-fg: #e8eef5;
-    --color-fg-secondary: #c3cfdc;
-    --color-muted: #9aabbf;
-    --color-primary: #9d90ff;
-    --color-primary-pressed: #c2baff;
-    --color-primary-soft: #1d2350;
-    --color-primary-contrast: #0b1a2b;
-    --color-danger: #ff8095;
-    --color-success: #5fd38d;
-    --color-warning: #f2b54a;
-    --color-scrim: rgb(0 0 0 / 60%);
-    --color-band: #121c3f;
-    --color-mark-error: #ff8095;
-    --color-mark-error-bg: #3a1622;
-    --color-mark-suggestion: #f2b54a;
-    --color-mark-suggestion-bg: #33250b;
-    --color-mark-vocab: #c9a7ff;
-    --color-mark-vocab-bg: #2a1d4a;
-  }
+/* Light only, like Stripe (dark mode is out of scope); tells native controls and scrollbars to stay light too. */
+:root {
+  color-scheme: light;
 }
