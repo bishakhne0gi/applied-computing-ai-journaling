@@ -129,3 +129,23 @@ test('an entry over the limit explains itself and cannot be submitted', async ({
   await expect(mainColumn(page).getByRole('button', { name: 'Get feedback' })).toBeDisabled()
   await expectHealthy(page)
 })
+
+test('a bracketed English word becomes a chip as soon as the bracket closes', async ({ page }) => {
+  // Arrange
+  await page.goto('/')
+  const editor = page.getByLabel('Your entry')
+  // Act
+  await editor.fill('Quiero ir al [park')
+  await expect(mainColumn(page).locator('mark')).toHaveCount(0)
+  await editor.press(']')
+  // Assert — the backdrop is aria-hidden, so the chip is reached by its element.
+  await expect(mainColumn(page).locator('mark')).toHaveText('[park]')
+  const sameBox = await page.evaluate(() => {
+    const textarea = document.querySelector('main textarea')
+    const layer = textarea?.previousElementSibling
+    if (!textarea || !layer) return false
+    return textarea.clientWidth === layer.clientWidth && textarea.clientHeight === layer.clientHeight && textarea.scrollHeight === layer.scrollHeight
+  })
+  expect(sameBox).toBe(true)
+  await expectHealthy(page)
+})

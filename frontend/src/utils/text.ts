@@ -24,3 +24,9 @@ export function isSubmittableEntry(text: string): boolean {
   const length = entryLength(text)
   return length > 0 && length <= MAX_ENTRY_CHARS
 }
+
+// Closed `[English]` fallbacks only (spec §7.1): the chip appears once the closing bracket is typed. UTF-16 indices,
+// because they decorate the textarea value directly.
+export function bracketRanges(text: string): { start: number; end: number }[] {
+  return Array.from(text.matchAll(/\[[^[\]\n]+\]/gu), (match) => ({ start: match.index, end: match.index + match[0].length }))
+}

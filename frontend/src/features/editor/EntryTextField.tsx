@@ -1,9 +1,9 @@
 import type { KeyboardEvent, Ref } from 'react'
 import { Field } from '@/components/ui/Field'
-import { Textarea } from '@/components/ui/Textarea'
+import { CHIP_CLASS, HighlightedTextarea } from '@/components/ui/HighlightedTextarea'
 import { MAX_ENTRY_CHARS } from '@/utils/constants'
 import { pluralize } from '@/utils/formatter'
-import { countWords, entryLength } from '@/utils/text'
+import { bracketRanges, countWords, entryLength } from '@/utils/text'
 import { cn } from '@/utils/utils'
 
 export interface EntryTextFieldProps {
@@ -22,6 +22,7 @@ export function EntryTextField({ id, label, value, onChange, onSubmitShortcut, r
   const overId = `${id}-over`
   const length = entryLength(value)
   const over = length - MAX_ENTRY_CHARS
+  const chips = bracketRanges(value).map((range) => ({ ...range, className: CHIP_CLASS }))
   const onKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
     // Enter confirms an IME candidate while composing; treating it as submit would send half-typed text.
     if (event.nativeEvent.isComposing || event.key !== 'Enter' || !(event.metaKey || event.ctrlKey)) return
@@ -30,10 +31,11 @@ export function EntryTextField({ id, label, value, onChange, onSubmitShortcut, r
   }
   return (
     <Field label={label} htmlFor={id}>
-      <Textarea
+      <HighlightedTextarea
         id={id}
         ref={textareaRef}
         value={value}
+        decorations={chips}
         readOnly={readOnly}
         aria-describedby={over > 0 ? `${hintId} ${countId} ${overId}` : `${hintId} ${countId}`}
         aria-invalid={over > 0}

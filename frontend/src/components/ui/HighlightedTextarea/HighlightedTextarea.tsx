@@ -1,0 +1,62 @@
+import { useCallback, useLayoutEffect, useRef, type ComponentProps, type Ref } from 'react'
+import { Textarea } from '@/components/ui/Textarea'
+import { cn } from '@/utils/utils'
+import { decorate, type Decoration } from './decorate'
+
+export interface HighlightedTextareaProps extends ComponentProps<'textarea'> {
+  value: string
+  decorations: readonly Decoration[]
+}
+
+// Tint plus a spread-only shadow: no padding, border or font change, so the chip never moves a glyph.
+export const CHIP_CLASS = 'rounded-sm bg-primary-soft shadow-chip'
+
+// Both layers share box, border width, font (inherited, ss01 included), wrapping and an always-reserved scrollbar
+// gutter, so every line breaks at the same glyph and the caret sits on the text it edits.
+const layerClass = 'min-h-48 w-full overflow-y-scroll rounded-lg border p-4 text-base leading-relaxed wrap-break-word whitespace-pre-wrap'
+
+function assignRef<T>(ref: Ref<T> | undefined, node: T | null): void {
+  if (typeof ref === 'function') ref(node)
+  else if (ref) ref.current = node
+}
+
+export function HighlightedTextarea({ value, decorations, className, onScroll, readOnly, ref, ...rest }: HighlightedTextareaProps) {
+  const backdropRef = useRef<HTMLDivElement>(null)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const setTextarea = useCallback((node: HTMLTextAreaElement | null) => {
+    textareaRef.current = node
+    assignRef(ref, node)
+  }, [ref])
+  const syncScroll = useCallback(() => {
+    if (backdropRef.current && textareaRef.current) backdropRef.current.scrollTop = textareaRef.current.scrollTop
+  }, [])
+  // A new last line can scroll the textarea before the backdrop has that line to scroll to; re-sync after each render.
+  useLayoutEffect(syncScroll, [value, syncScroll])
+  return (
+    <div className={cn('relative rounded-lg bg-bg', readOnly && 'bg-surface')}>
+      <div ref={backdropRef} aria-hidden="true" className={cn(layerClass, 'pointer-events-none absolute inset-0 border-transparent text-fg')}>
+        {decorate(value, decorations).map((segment, index) =>
+          segment.className ? (
+            <mark key={index} className={cn('text-fg', segment.className)}>
+              {segment.text}
+            </mark>
+          ) : (
+            <span key={index}>{segment.text}</span>
+          ),
+        )}
+        {/* A trailing newline collapses in a div but not in a textarea; the space gives that last line its height. */}{' '}
+      </div>
+      <Textarea
+        ref={setTextarea}
+        value={value}
+        readOnly={readOnly}
+        onScroll={(event) => {
+          syncScroll()
+          onScroll?.(event)
+        }}
+        className={cn(layerClass, 'relative block resize-y bg-transparent text-transparent caret-fg selection:bg-primary/25 read-only:bg-transparent', className)}
+        {...rest}
+      />
+    </div>
+  )
+}

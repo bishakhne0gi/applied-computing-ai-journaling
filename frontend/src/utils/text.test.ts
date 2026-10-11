@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { MAX_ENTRY_CHARS } from './constants'
-import { codePointLength, countWords, entryLength, isSubmittableEntry } from './text'
+import { bracketRanges, codePointLength, countWords, entryLength, isSubmittableEntry } from './text'
 
 describe('countWords', () => {
   it.each([
@@ -55,5 +55,21 @@ describe('entry length', () => {
     const result = isSubmittableEntry(text)
     // Assert
     expect(result).toBe(expected)
+  })
+})
+
+describe('bracketRanges', () => {
+  it.each([
+    ['one closed bracket', 'en el [park].', [{ start: 6, end: 12 }]],
+    ['two', '[a] y [b c]', [{ start: 0, end: 3 }, { start: 6, end: 11 }]],
+    ['an unclosed bracket', 'en el [par', []],
+    ['empty brackets', 'x [] y', []],
+    ['a bracket across lines', '[par\nk]', []],
+    ['nested brackets: only the inner pair', '[a [b] c]', [{ start: 3, end: 6 }]],
+  ])('finds %s', (_label, text, expected) => {
+    // Arrange + Act
+    const ranges = bracketRanges(text)
+    // Assert
+    expect(ranges).toEqual(expected)
   })
 })

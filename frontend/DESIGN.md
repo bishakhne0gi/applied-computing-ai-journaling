@@ -31,6 +31,7 @@ element's props, `ref` as a plain prop (React 19), Tailwind token utilities merg
 | `InlineAlert` | — | `role="alert"` one-line danger text for a failed action next to its control; use `ErrorState` when the user must retry from the message |
 | `Select` | — | custom select-only combobox (WAI-APG; SmoothUI, MIT): `options`, `value`, `onChange(value)`; trigger is a `Button` `field` with a rotating chevron; list fades/scales in (150ms, instant under reduced motion), width clamped to the trigger, flips up when there is no room below; arrows/Home/End/PageUp/PageDown, type-ahead, Enter/Space pick, Esc closes (only consumed while open), Tab and outside clicks close; focus stays on the trigger; `aria-selected` marks the chosen option, not the arrow-active one (mirrors a native select); Tab closes without picking (intentional, differs from APG); clicking the visible label opens the list; label via `Field` (`${id}-label` names the list) or `aria-label` |
 | `Textarea` | — | native `<textarea>`, `min-h-48`, `read-only:` surface tint |
+| `HighlightedTextarea` | — | native `textarea` over an `aria-hidden` mirrored backdrop; `decorations` (UTF-16 ranges + token classes) draw chips/underlines without moving glyphs; `CHIP_CLASS` for `[word]` chips |
 | `Field` | — | label + control; owns the spacing between them |
 | `LoadingState` | — | `role="status"` + `aria-busy`; muted label, or skeleton `children` with the label `sr-only` |
 | `Button` `field` | — | input-styled trigger (white, `border-input`, `rounded-md`, `min-h-11`) used by `Select` |
