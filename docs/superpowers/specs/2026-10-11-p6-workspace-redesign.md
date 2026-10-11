@@ -100,6 +100,9 @@ feedback on submit.**
   `{text, language}`. The server runs the same analyzer with a fast model (`AI_LIVE_MODEL`, default
   `claude-haiku-5-5`, effort low) and returns the mistakes with offsets. **Nothing is stored**; live hints never count
   toward insights (only submitted analyses do). Stale requests are aborted; a newer response always wins.
+  Offsets are Unicode code points (end exclusive) into the response's `analyzed_text` (NFC, trimmed), not into the
+  request text; the client maps them to its own string units and re-anchors by `original`. The server also returns
+  no hints, without calling the model, for fewer than 3 words, and answers 503 at once when 2 checks are already running.
 - Hints appear only as underlines in the backdrop layer (error / suggestion / vocab colours, same as feedback). No
   pop-ups, no interruptions. Clicking an underline (or choosing it from the hint list) opens a small popover:
   correction, one-line explanation, **Accept** (Enter) and **Dismiss** (Esc). Accept replaces the span through the

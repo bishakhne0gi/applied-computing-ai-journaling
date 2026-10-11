@@ -1,3 +1,4 @@
+import asyncio
 from collections.abc import AsyncIterator
 from typing import Annotated, cast
 
@@ -26,6 +27,10 @@ def get_live_analyzer(request: Request) -> AnalyzerPort:
     return cast(AnalyzerPort, request.app.state.live_analyzer)
 
 
+def get_live_slots(request: Request) -> asyncio.Semaphore:
+    return cast(asyncio.Semaphore, request.app.state.live_slots)
+
+
 def get_entry_service(session: SessionDep) -> EntryService:
     return EntryService(session)
 
@@ -42,8 +47,9 @@ def get_insights_service(session: SessionDep) -> InsightsService:
 
 def get_live_check_service(
     analyzer: Annotated[AnalyzerPort, Depends(get_live_analyzer)],
+    slots: Annotated[asyncio.Semaphore, Depends(get_live_slots)],
 ) -> LiveCheckService:
-    return LiveCheckService(analyzer)
+    return LiveCheckService(analyzer, slots)
 
 
 EntryServiceDep = Annotated[EntryService, Depends(get_entry_service)]

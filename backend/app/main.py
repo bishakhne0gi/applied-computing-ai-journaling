@@ -1,3 +1,4 @@
+import asyncio
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
@@ -12,6 +13,7 @@ from app.core.logging import configure_logging
 from app.core.request_context import REQUEST_ID_HEADER, RequestContextMiddleware
 from app.core.sentry import init_sentry
 from app.db.session import create_engine, create_sessionmaker
+from app.services.live_check import MAX_CONCURRENT_CHECKS
 from journal_ai import Analyzer, build_provider, build_tracer
 
 
@@ -86,6 +88,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     register_exception_handlers(app)
     app.state.analyzer = _build_analyzer(settings)
     app.state.live_analyzer = _build_live_analyzer(settings)
+    app.state.live_slots = asyncio.Semaphore(MAX_CONCURRENT_CHECKS)
     app.include_router(health.router)
     app.include_router(api_router)
     return app
