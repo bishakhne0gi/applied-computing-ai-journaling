@@ -19,7 +19,7 @@ export function HintList({ id, hints, onAccept, onDismiss }: HintListProps) {
         <li key={hint.id} data-hint-id={hint.id} className="flex flex-col gap-1.5 rounded-md border border-border bg-bg p-3 text-sm">
           <p className="flex flex-wrap items-center gap-2">
             <span className="font-medium">
-              <Correction original={hint.original} correction={hint.correction} />
+              <Correction original={hint.original} correction={hint.correction} kind={hint.kind} />
             </span>
             <Badge>{KIND_LABELS[hint.kind]}</Badge>
           </p>

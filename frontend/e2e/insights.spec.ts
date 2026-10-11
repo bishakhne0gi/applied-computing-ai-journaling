@@ -147,6 +147,19 @@ test('a long unbroken example wraps instead of scrolling the page sideways on a 
   await expectNoHorizontalScroll(page)
 })
 
+test('on a phone the table scrolls inside its own region and the page does not', async ({ page }) => {
+  // Arrange
+  await page.setViewportSize({ width: 375, height: 800 })
+  // Act
+  await page.goto('/?insights=1')
+  // Assert
+  const region = insights(page).getByRole('region', { name: 'Errors by category' })
+  await expect(region).toBeVisible()
+  await expectNoHorizontalScroll(page)
+  expect(await region.evaluate((node) => node.scrollWidth > node.clientWidth)).toBe(true)
+  await expectHealthy(page)
+})
+
 test('the progress card in the sidebar opens insights for the same language', async ({ page }) => {
   // Arrange
   await page.goto('/?language=es')

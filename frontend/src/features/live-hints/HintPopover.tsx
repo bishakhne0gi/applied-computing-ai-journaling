@@ -34,7 +34,7 @@ export function HintPopover({ hint, onAccept, onDismiss, onClose, onEscape }: Hi
     >
       <Card className="flex flex-col gap-2 p-3 text-sm shadow-lg md:p-3">
         <p className="font-semibold">
-          <Correction original={hint.original} correction={hint.correction} />
+          <Correction original={hint.original} correction={hint.correction} kind={hint.kind} />
         </p>
         <p id={explanationId} className="text-muted">
           {hint.explanation}

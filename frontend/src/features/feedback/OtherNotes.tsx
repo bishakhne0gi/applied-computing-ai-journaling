@@ -20,7 +20,7 @@ export function OtherNotes({ mistakes }: OtherNotesProps) {
         {mistakes.map((mistake) => (
           <li key={mistake.id} className="flex flex-col gap-1 rounded-md border border-border p-3 text-sm">
             <p>
-              <Correction original={mistake.original} correction={mistake.correction} />
+              <Correction original={mistake.original} correction={mistake.correction} kind={mistake.kind} />
             </p>
             <p className="text-muted">
               {KIND_LABELS[mistake.kind]} · {categoryLabel(mistake.category)} · {mistake.explanation}

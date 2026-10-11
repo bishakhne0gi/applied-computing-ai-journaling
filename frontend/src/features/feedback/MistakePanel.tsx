@@ -24,7 +24,7 @@ export function MistakePanel({ id, mistake, onClose }: MistakePanelProps) {
   return (
     <Card as="section" id={id} aria-labelledby={titleId} className="flex max-w-prose flex-col items-start gap-3 bg-surface p-4 md:p-4">
       <SectionHeading level={3} id={titleId} ref={headingRef} tabIndex={-1}>
-        <Correction original={mistake.original} correction={mistake.correction} />
+        <Correction original={mistake.original} correction={mistake.correction} kind={mistake.kind} />
       </SectionHeading>
       <div className="flex flex-wrap gap-2">
         <Badge>{categoryLabel(mistake.category)}</Badge>

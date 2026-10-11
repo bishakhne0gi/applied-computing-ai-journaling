@@ -4,6 +4,7 @@ import { categoryLabel } from '@/features/feedback/labels'
 import type { CategoryInsightOut } from '@/types/insights'
 import { pluralize } from '@/utils/formatter'
 import { cn } from '@/utils/utils'
+import { CategoryIcon } from './CategoryIcon'
 import { formatRate } from './format'
 import { RateChange, TrendBadge, TrendPending } from './TrendCells'
 
@@ -36,53 +37,62 @@ function CategoryRow({ item, recurringWindow, totalWords, entriesToTrends }: Cat
   return (
     <tr>
       <th scope="row" className={cn(cellClass, 'text-left font-medium')}>
-        <span className="flex flex-col items-start gap-1">
-          {categoryLabel(item.category)}
-          <span className="font-normal text-muted">{pluralize(item.occurrences, 'error')}</span>
-          {item.recurring && (
-            <Badge tone="warning">
-              Recurring · {item.recent_entries} of last {recurringWindow}
-            </Badge>
-          )}
+        <span className="flex items-start gap-3">
+          <CategoryIcon category={item.category} />
+          <span className="flex flex-col items-start gap-1">
+            {categoryLabel(item.category)}
+            <span className="font-normal text-muted">{pluralize(item.occurrences, 'error')}</span>
+            {item.recurring && (
+              <Badge tone="warning" className="whitespace-nowrap">
+                Recurring · {item.recent_entries} of last {recurringWindow}
+              </Badge>
+            )}
+          </span>
         </span>
       </th>
       <td className={cn(cellClass, 'tabular-nums')}>
         {trends ? <RateChange earlier={item.earlier_rate} recent={item.recent_rate} /> : formatRate(overallRate(item, totalWords))}
       </td>
       <td className={cellClass}>{trends ? <TrendBadge trend={item.trend} /> : <TrendPending entriesLeft={entriesToTrends} />}</td>
-      <td className={cn(cellClass, 'wrap-anywhere')}>
+      <td className={cn(cellClass, 'whitespace-nowrap')}>
         <Correction original={item.latest_example.original} correction={item.latest_example.correction} />
       </td>
     </tr>
   )
 }
 
+// A scroller must be keyboard-reachable (axe scrollable-region-focusable); jsx-a11y's no-noninteractive-tabindex only
+// reads literal values, and this region is the case the axe rule exists for, so the stop is named instead.
+const SCROLL_STOP = 0
+
 export function CategoryTable({ categories, recurringWindow, totalWords, entriesToTrends }: CategoryTableProps) {
   return (
-    <table className="w-full text-xs md:text-sm">
-      <caption className="pb-2 text-left text-base font-medium">Errors by category</caption>
-      <thead>
-        <tr>
-          <th scope="col" className={headClass}>Category</th>
-          <th scope="col" className={headClass}>
-            {entriesToTrends === 0 ? (
-              <>
-                Earlier <span aria-hidden="true">→</span>
-                <span className="sr-only">to</span> recent, per 100 words
-              </>
-            ) : (
-              'Per 100 words'
-            )}
-          </th>
-          <th scope="col" className={headClass}>Trend</th>
-          <th scope="col" className={headClass}>Latest example</th>
-        </tr>
-      </thead>
-      <tbody>
-        {categories.map((item) => (
-          <CategoryRow key={item.category} item={item} recurringWindow={recurringWindow} totalWords={totalWords} entriesToTrends={entriesToTrends} />
-        ))}
-      </tbody>
-    </table>
+    <div role="region" aria-label="Errors by category" tabIndex={SCROLL_STOP} className="overflow-x-auto">
+      <table className="w-full text-xs md:text-sm">
+        <caption className="pb-2 text-left text-base font-medium">Errors by category</caption>
+        <thead>
+          <tr>
+            <th scope="col" className={headClass}>Category</th>
+            <th scope="col" className={headClass}>
+              {entriesToTrends === 0 ? (
+                <>
+                  Earlier <span aria-hidden="true">→</span>
+                  <span className="sr-only">to</span> recent, per 100 words
+                </>
+              ) : (
+                'Per 100 words'
+              )}
+            </th>
+            <th scope="col" className={headClass}>Trend</th>
+            <th scope="col" className={headClass}>Latest example</th>
+          </tr>
+        </thead>
+        <tbody>
+          {categories.map((item) => (
+            <CategoryRow key={item.category} item={item} recurringWindow={recurringWindow} totalWords={totalWords} entriesToTrends={entriesToTrends} />
+          ))}
+        </tbody>
+      </table>
+    </div>
   )
 }

@@ -27,6 +27,7 @@ element's props, `ref` as a plain prop (React 19), Tailwind token utilities merg
 | `TextLink` | — | React Router `Link` in the primary role, underlined; `className` merges last |
 | `Button` | `primary`, `secondary` (default), `ghost`, `icon` (44px round, needs `aria-label`), `inline` (highlights inside text) | pills (`rounded-full`) except `icon`/`inline`; the only raw `<button>`; `type="button"` by default; `min-h-11` touch target except `inline`; pointer / not-allowed cursor |
 | `Badge` | `tone`: `neutral` (default), `danger`, `success`, `warning` | soft tinted status and count pills (`*-soft` background, tone text, ≥4.5:1 pinned) |
+| `Correction` (feature) | `kind`: `error` (default), `suggestion`, `vocab_help` | original in a tinted pill (danger / warning / vocab) → arrow → correction in a success pill; `whitespace-nowrap`, truncates past `max-w-28` with the full text in `title`; screen readers hear "original should be correction" |
 | `ErrorState` | — | `role="alert"` message + retry `Button`; `retryLabel`, `retrying` |
 | `InlineAlert` | — | `role="alert"` one-line danger text for a failed action next to its control; use `ErrorState` when the user must retry from the message |
 | `Switch` | — | `role="switch"` ghost `Button` with `aria-checked`; label is the visible text; a small track with a knob that slides (no transition under reduced motion) |
@@ -47,7 +48,7 @@ element's props, `ref` as a plain prop (React 19), Tailwind token utilities merg
 | `Card` | `as`: `div` (default), `section` | hairline card, `shadow-sm`; override padding/background with `className` |
 | `PageHeading` | — | `h1`, light 300, `tabIndex -1`, takes `ref` so the workspace can focus it |
 | `SectionHeading` | `level`: `2` (default), `3` | section titles one step below `PageHeading`: h2 `text-lg` medium in `fg-secondary`, h3 `text-base` medium; never heavier than the light page title |
-| `Icon` | `name`: `close`, `check`, `alert`, `menu`, `chart`, `plus`, `chevron`, `info`, `refresh`, `sparkle` | inline 24px stroke SVG, `aria-hidden`; the control around it carries the name |
+| `Icon` | `name`: `close`, `check`, `alert`, `menu`, `chart`, `plus`, `chevron`, `info`, `refresh`, `sparkle`, `arrowUp`, `arrowDown`, `arrowRight`, `minus`, `copy`; `weight`: `regular`, `bold` | Phosphor (`@phosphor-icons/react`), one `dist/csr/<Name>` import per glyph (never the barrel), `aria-hidden`; the control around it carries the name |
 | `Chart` | `label` | recharts inside a `role="img"` box (`ChartContainer`), `ChartTooltipCard` for the hover card, `chartAnimation(reduce)` for the 300 ms draw-in; only imported from the lazy insights chunk |
 | `Sheet` | `side`: `left`, `right`, `bottom` | modal dialog in a portal (SmoothUI drawer motion, MIT): heading focused on open, Esc/scrim/Close dismiss, Tab trapped, focus restored unless the user moved on, page scroll locked |
 | `ErrorBoundary` | — | catches a render error (e.g. a failed lazy chunk) and shows `fallback(retry)`; `onRetry` runs first so the caller can start a fresh import |

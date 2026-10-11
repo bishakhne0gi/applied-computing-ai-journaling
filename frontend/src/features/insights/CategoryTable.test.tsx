@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import type { CategoryInsightOut } from '@/types/insights'
 import { CategoryTable } from './CategoryTable'
@@ -23,7 +23,7 @@ describe('CategoryTable', () => {
     const row = screen.getByRole('row', { name: /Verb conjugation/ })
     expect(row).toHaveTextContent(/0\.0 →\s?to 8\.6/)
     expect(row).toHaveTextContent('Getting worse')
-    expect(row).toHaveTextContent(/yo es →\s?should be yo soy/)
+    expect(row).toHaveTextContent(/yo es\s+should be yo soy/)
     expect(screen.getByRole('row', { name: /Article/ })).toHaveTextContent('Improving')
   })
 
@@ -46,5 +46,26 @@ describe('CategoryTable', () => {
     expect(row).toHaveTextContent('5.0')
     expect(row).toHaveTextContent('After 1 more entry')
     expect(row).not.toHaveTextContent('—')
+  })
+
+  it('shows trends as arrows whose words are only for screen readers', () => {
+    // Arrange
+    const worsening = { ...verbs, category: 'preposition' as const }
+    // Act
+    render(<CategoryTable categories={[articles, worsening]} recurringWindow={5} totalWords={60} entriesToTrends={0} />)
+    // Assert
+    const article = screen.getByRole('row', { name: /Article/ })
+    expect(within(article).getByText('Improving')).toHaveClass('sr-only')
+    expect(within(article).queryByText('↓')).not.toBeInTheDocument()
+    expect(within(screen.getByRole('row', { name: /Preposition/ })).getByText('Getting worse')).toHaveClass('sr-only')
+  })
+
+  it('puts the table in a focusable region that scrolls sideways instead of wrapping', () => {
+    // Arrange / Act
+    render(<CategoryTable categories={[verbs]} recurringWindow={5} totalWords={60} entriesToTrends={0} />)
+    // Assert
+    const region = screen.getByRole('region', { name: 'Errors by category' })
+    expect(region).toHaveAttribute('tabindex', '0')
+    expect(region).toHaveClass('overflow-x-auto')
   })
 })

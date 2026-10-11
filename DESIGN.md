@@ -45,6 +45,8 @@ pills (`rounded-full`). Shadows: `sm` resting cards and inputs, `md` popovers, `
 - **Focus:** keyboard only (`:focus-visible`): a ring with a 2px white gap, a 2px indigo ring and a soft glow (visible on solid indigo buttons too); never on headings or panels that receive focus programmatically.
 - **Cards:** white, hairline border, `shadow-sm`, `rounded-lg`; soft cards (`surface`) for secondary panels.
 - **Badges:** soft tinted pills (`danger-soft` etc.), tone colour on the text, no border.
+- **Correction pill:** the original in a tinted pill (red for an error, amber for a suggestion, purple for word help), an arrow, the correction in a green pill; no strikethrough, never wraps (long text truncates, `title` keeps it).
+- **Trend:** an arrow in a tinted pill (down green = improving, up red = getting worse, minus grey = steady); the word is screen-reader only.
 - **Sheets:** white panel, hairline edge, `shadow-lg`, scrim `fg` at 40%; slide with a short spring.
 - **Tabs:** segmented pill; a white indicator slides under the selected tab.
 - **Toasts:** bottom right (bottom centre on phones), white card with a tone stripe and icon.
