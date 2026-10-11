@@ -75,3 +75,25 @@ describe('colour scheme', () => {
     expect(css).toMatch(/color-scheme:\s*light/u)
   })
 })
+
+describe('focus ring', () => {
+  const ring = /--shadow-focus:\s*([^;]+);/u.exec(css)?.[1] ?? ''
+  const layers = ring.split(/,(?![^(]*\))/u).map((layer) => layer.trim())
+
+  it('is a gap in the page colour, then a solid primary ring, so it shows on a primary button too', () => {
+    // Arrange + Act
+    const [gap = '', solid = ''] = layers
+    // Assert
+    expect(gap).toContain('var(--color-bg)')
+    expect(solid).toContain('var(--color-primary)')
+    expect(solid).not.toContain('%')
+  })
+
+  it('follows the colour tokens: no hard-coded colour', () => {
+    expect(ring).not.toMatch(/#[0-9a-f]{3,6}|rgb\(/iu)
+  })
+
+  it('reaches 3:1 against the page', () => {
+    expect(ratio(palette['primary'], palette['bg'])).toBeGreaterThanOrEqual(3)
+  })
+})

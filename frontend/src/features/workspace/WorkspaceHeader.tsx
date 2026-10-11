@@ -17,7 +17,7 @@ export function WorkspaceHeader({ insights, children }: WorkspaceHeaderProps) {
     <header className="border-b border-border bg-linear-to-r from-band via-band-violet to-band-pink">
       <div className="flex min-h-15 items-center gap-3 px-4 py-2 lg:px-6">
         {children}
-        <Link to="/" className="text-lg font-light tracking-tight text-fg">
+        <Link to="/" className="shrink-0 whitespace-nowrap text-base font-light tracking-tight text-fg sm:text-lg">
           Language Journal
         </Link>
         <LanguageStatus />

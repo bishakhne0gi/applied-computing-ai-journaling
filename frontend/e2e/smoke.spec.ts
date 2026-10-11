@@ -36,3 +36,16 @@ test('unknown paths show a not-found page with a way back', async ({ page }) => 
   await expect(page).toHaveURL('/')
   await expect(mainColumn(page).getByRole('heading', { level: 1 })).toHaveText('Write')
 })
+
+test('the header stays on one line on a phone', async ({ page }) => {
+  // Arrange
+  await page.setViewportSize({ width: 375, height: 812 })
+  // Act
+  await page.goto('/')
+  // Assert
+  const header = page.getByRole('banner')
+  await expect(page.getByRole('link', { name: 'Language Journal' })).toBeVisible()
+  const height = await header.evaluate((element) => element.firstElementChild?.getBoundingClientRect().height ?? 0)
+  const minimum = await header.evaluate((element) => Number.parseFloat(getComputedStyle(element.firstElementChild as Element).minHeight))
+  expect(height).toBeLessThanOrEqual(minimum)
+})

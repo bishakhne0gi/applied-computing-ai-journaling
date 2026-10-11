@@ -115,6 +115,15 @@ describe('Select', () => {
     expect(activeOption(combobox)).toHaveTextContent('Finnish')
   })
 
+  it('gives every option a touch-sized row on phones, compact from md', async () => {
+    // Arrange
+    const { user, combobox } = setup()
+    // Act
+    await user.click(combobox)
+    // Assert
+    expect(screen.getByRole('option', { name: 'French' })).toHaveClass('min-h-11', 'md:min-h-9')
+  })
+
   it('closes on Escape without changing the value or letting the key reach an enclosing dialog', async () => {
     // Arrange
     // A native listener above React's root stands in for an enclosing sheet's Escape handling.

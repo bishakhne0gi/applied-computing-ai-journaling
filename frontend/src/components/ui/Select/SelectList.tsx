@@ -65,7 +65,7 @@ export function SelectList({ selectId, label, options, value, active, up, onActi
           data-index={index}
           onMouseMove={() => onActive(index)}
           className={cn(
-            'flex min-h-9 cursor-pointer items-center justify-between gap-3 rounded-sm px-2.5 text-sm text-fg',
+            'flex min-h-11 cursor-pointer items-center justify-between gap-3 rounded-sm px-2.5 md:min-h-9 text-sm text-fg',
             index === active && 'bg-primary-soft text-primary',
           )}
         >
