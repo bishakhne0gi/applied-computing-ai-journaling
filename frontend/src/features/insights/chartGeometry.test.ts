@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { RatePointOut } from '@/types/insights'
-import { areaPoints, CHART, highestRate, nearestIndex, niceTop, plotRates, plotRuns, polylinePoints, tickIndices } from './chartGeometry'
+import { CHART, highestRate, niceTop, plotRates, plotRuns, polylinePoints } from './chartGeometry'
 
 const points = (...rates: (number | null)[]): RatePointOut[] =>
   rates.map((rate, index) => ({ entry_id: `e${index}`, created_at: '2026-10-09T18:00:00Z', word_count: 10, error_count: 1, rate }))
@@ -74,27 +74,5 @@ describe('chart geometry', () => {
   it('rounds the axis top up to 1, 2, 2.5 or 5 times a power of ten', () => {
     // Arrange + Act + Assert
     expect([0, 0.4, 3, 7.6, 9.1, 20, 21, 240].map(niceTop)).toEqual([1, 0.5, 5, 10, 10, 20, 25, 250])
-  })
-
-  it('closes a run down to the baseline for the area under it', () => {
-    // Arrange
-    const run = plotRates(points(5, 10))
-    // Act + Assert
-    expect(areaPoints(run)).toBe('0,200 0,100 640,0 640,200')
-    expect(areaPoints([])).toBe('')
-  })
-
-  it('labels every entry when they fit, otherwise spreads labels evenly including both ends', () => {
-    // Arrange + Act + Assert
-    expect(tickIndices(3)).toEqual([0, 1, 2])
-    expect(tickIndices(11)).toEqual([0, 3, 7, 10])
-  })
-
-  it('finds the entry nearest a pointer position and clamps outside the plot', () => {
-    // Arrange + Act + Assert
-    expect(nearestIndex(0.49, 3)).toBe(1)
-    expect(nearestIndex(-0.2, 3)).toBe(0)
-    expect(nearestIndex(1.4, 3)).toBe(2)
-    expect(nearestIndex(0.7, 1)).toBe(0)
   })
 })

@@ -37,7 +37,7 @@ describe('Workspace insights', () => {
     expect(within(sheet).getByRole('heading', { level: 2, name: 'Insights' })).toHaveFocus()
     expect(insightsButton()).toHaveAttribute('aria-expanded', 'true')
     expect(location()).toHaveTextContent('/?insights=1')
-    expect(await within(sheet).findByRole('region', { name: 'Summary' })).toBeInTheDocument()
+    expect(await within(sheet).findByRole('img', { name: /Errors per 100 words across/ })).toBeInTheDocument()
   })
 
   it('closes on Escape by going Back, and returns focus to the header button', async () => {

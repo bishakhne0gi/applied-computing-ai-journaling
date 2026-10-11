@@ -48,6 +48,7 @@ element's props, `ref` as a plain prop (React 19), Tailwind token utilities merg
 | `PageHeading` | — | `h1`, light 300, `tabIndex -1`, takes `ref` so the workspace can focus it |
 | `SectionHeading` | `level`: `2` (default), `3` | section titles one step below `PageHeading`: h2 `text-lg` medium in `fg-secondary`, h3 `text-base` medium; never heavier than the light page title |
 | `Icon` | `name`: `close`, `check`, `alert`, `menu`, `chart`, `plus`, `chevron`, `info`, `refresh`, `sparkle` | inline 24px stroke SVG, `aria-hidden`; the control around it carries the name |
+| `Chart` | `label` | recharts inside a `role="img"` box (`ChartContainer`), `ChartTooltipCard` for the hover card, `chartAnimation(reduce)` for the 300 ms draw-in; only imported from the lazy insights chunk |
 | `Sheet` | `side`: `left`, `right`, `bottom` | modal dialog in a portal (SmoothUI drawer motion, MIT): heading focused on open, Esc/scrim/Close dismiss, Tab trapped, focus restored unless the user moved on, page scroll locked |
 | `ErrorBoundary` | — | catches a render error (e.g. a failed lazy chunk) and shows `fallback(retry)`; `onRetry` runs first so the caller can start a fresh import |
 
@@ -57,6 +58,4 @@ Features compose primitives. Prefer compound components (`<Tabs><Tabs.List/><Tab
 
 Motion: only `m.*` from `motion/react` (LazyMotion is strict); every animated element skips offsets and uses `{ duration: 0 }` when `useReducedMotion()` is true. Springs: `{ type: 'spring', bounce: 0–0.1, duration: 0.25–0.3 }`.
 
-Charts are plain SVG (no chart library): colour-role utilities `stroke-primary`, `fill-primary`, `stroke-border`,
-`fill-none`, widths `stroke-1`/`stroke-2`, `vectorEffect="non-scaling-stroke"` on lines. The `<svg>` is
-`role="img"` with an `aria-label` that states the numbers in words, and an `sr-only` table carries every value.
+Insights charts use recharts through `components/ui/Chart` (shadcn-style `ChartContainer`, MIT), lazy-loaded with the insights sheet: colours as `var(--color-*)` props or arbitrary-variant token utilities, `role="img"` + `aria-label` on the container, recharts' SVG `aria-hidden`, an `sr-only` table with every value, draw-in 300 ms ease-out, none under reduced motion. The sidebar sparkline stays hand-drawn SVG (eager bundle).

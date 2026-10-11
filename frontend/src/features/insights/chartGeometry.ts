@@ -22,7 +22,7 @@ export function niceTop(highest: number): number {
   return step * magnitude
 }
 
-export function xAt(index: number, count: number): number {
+function xAt(index: number, count: number): number {
   return count > 1 ? (index * CHART.width) / (count - 1) : CHART.width / 2
 }
 
@@ -37,14 +37,6 @@ export function plotRates(points: RatePointOut[]): PlottedPoint[] {
 
 export function polylinePoints(plotted: PlottedPoint[]): string {
   return plotted.map((point) => `${point.x},${point.y}`).join(' ')
-}
-
-// The run's line closed down to the baseline, for the soft fill under it.
-export function areaPoints(run: PlottedPoint[]): string {
-  const first = run[0]
-  const last = run.at(-1)
-  if (!first || !last) return ''
-  return `${first.x},${CHART.height} ${polylinePoints(run)} ${last.x},${CHART.height}`
 }
 
 // A null rate means "not measured", not zero: the line stops there rather than bridging two real readings.
@@ -62,16 +54,4 @@ export function plotRuns(points: RatePointOut[]): PlottedPoint[][] {
     }
   }
   return runs
-}
-
-// Which entries get a date under the axis: all of them when they fit, otherwise evenly spread including both ends.
-export function tickIndices(count: number, max = 4): number[] {
-  if (count <= max) return Array.from({ length: count }, (_, index) => index)
-  return Array.from({ length: max }, (_, slot) => Math.round((slot * (count - 1)) / (max - 1)))
-}
-
-// The entry nearest a horizontal position, as a share (0..1) of the plot's width.
-export function nearestIndex(share: number, count: number): number {
-  if (count <= 1) return 0
-  return Math.min(count - 1, Math.max(0, Math.round(share * (count - 1))))
 }

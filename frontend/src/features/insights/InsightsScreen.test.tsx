@@ -1,4 +1,4 @@
-import { screen, waitFor, within } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { clearMockMode, failWith, setMockMode, waitForLanguages, pickOption, slowDown } from '@/test/helpers'
@@ -8,19 +8,29 @@ import { ENDPOINTS } from '@/utils/endpoints'
 import { InsightsScreen } from './InsightsScreen'
 
 const renderInsights = (route = '/insights') => renderWithProviders(<InsightsScreen />, { route })
-const summary = async () => within(await screen.findByRole('region', { name: 'Summary' })).getAllByRole('listitem')
+const chart = () => screen.findByRole('img', { name: /Errors per 100 words across/ })
 
 describe('InsightsScreen', () => {
-  it('shows a loading state, then the summary, chart and categories for every language', async () => {
+  it('shows a loading state, then the chart and categories for every language', async () => {
     // Arrange + Act
     slowDown('get', ENDPOINTS.insights)
     renderInsights()
     // Assert
     expect(screen.getByRole('status')).toHaveTextContent('Loading insights…')
     await waitFor(() => expect(screen.getByRole('status').querySelectorAll('[aria-hidden="true"]')).toHaveLength(2))
-    expect((await summary())[0]).toHaveTextContent('6 errors across 11 entries, 7.6 per 100 words.')
-    expect(screen.getByRole('img', { name: /across 11 entries/ })).toBeInTheDocument()
+    expect(await screen.findByRole('img', { name: /across 11 entries/ })).toBeInTheDocument()
     expect(screen.getByRole('table', { name: 'Errors by category' })).toBeInTheDocument()
+  })
+
+  it('opens on the chart: there is no summary section', async () => {
+    // Arrange
+    renderInsights()
+    // Act
+    const image = await chart()
+    // Assert
+    expect(screen.queryByRole('heading', { name: 'Summary' })).not.toBeInTheDocument()
+    const figure = image.closest('figure')
+    expect(figure?.parentElement?.firstElementChild).toBe(figure)
   })
 
   it('narrows to one language from the filter', async () => {
@@ -31,8 +41,7 @@ describe('InsightsScreen', () => {
     // Act
     await pickOption(user, screen.getByLabelText('Filter by language'), 'Spanish')
     // Assert
-    expect(await screen.findByText('Verb conjugation keeps recurring: 3 of your last 5 entries.')).toBeInTheDocument()
-    expect(screen.getByRole('row', { name: /Verb conjugation/ })).toHaveTextContent('Recurring · 3 of last 5')
+    expect(await screen.findByRole('row', { name: /Verb conjugation/ })).toHaveTextContent('Recurring · 3 of last 5')
   })
 
   it('explains that trends need a fourth entry and that there is nothing to break down', async () => {
@@ -67,7 +76,7 @@ describe('InsightsScreen', () => {
     // Act
     await user.click(screen.getByRole('button', { name: 'Try again' }))
     // Assert
-    expect(await summary()).not.toHaveLength(0)
+    expect(await chart()).toBeInTheDocument()
   })
 
   it('shows one alert and no results for a deep-linked language when the languages cannot load', async () => {
@@ -78,7 +87,7 @@ describe('InsightsScreen', () => {
     // Assert
     expect(await screen.findByRole('alert')).toHaveTextContent(/on our side/)
     expect(screen.getAllByRole('alert')).toHaveLength(1)
-    expect(screen.queryByRole('region', { name: 'Summary' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('img')).not.toBeInTheDocument()
     expect(screen.queryByRole('status')).not.toBeInTheDocument()
   })
 
@@ -103,13 +112,13 @@ describe('InsightsScreen', () => {
     // Act
     await user.click(screen.getByRole('button', { name: 'Try again' }))
     // Assert
-    expect(await summary()).not.toHaveLength(0)
+    expect(await chart()).toBeInTheDocument()
   })
 
   it('ignores a language code the server does not offer', async () => {
     // Arrange + Act
     renderInsights('/insights?language=xx')
     // Assert
-    expect((await summary())[0]).toHaveTextContent('6 errors across 11 entries')
+    expect(await screen.findByRole('img', { name: /across 11 entries/ })).toBeInTheDocument()
   })
 })

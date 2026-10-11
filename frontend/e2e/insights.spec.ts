@@ -15,21 +15,24 @@ async function expectNoHorizontalScroll(page: Page): Promise<void> {
 }
 
 const insights = (page: Page) => page.getByRole('dialog', { name: 'Insights' })
-const summary = (page: Page) => insights(page).getByRole('region', { name: 'Summary' })
+const chart = (page: Page) => insights(page).getByRole('img', { name: /Errors per 100 words across/ })
 
 async function openInsights(page: Page): Promise<void> {
   await page.getByRole('button', { name: 'Insights', exact: true }).click()
   await expect(insights(page).getByRole('heading', { level: 2, name: 'Insights' })).toBeFocused()
 }
 
-test('insights open over the workspace with the summary, the chart and the categories', async ({ page }) => {
+test('insights open on the chart, with no summary section, then the categories', async ({ page }) => {
   // Arrange
   await page.goto('/')
   // Act
   await openInsights(page)
   // Assert
   await expect(page).toHaveURL('/?insights=1')
-  await expect(summary(page)).toContainText('6 errors across 11 entries, 7.6 per 100 words.')
+  await expect(insights(page).getByRole('heading', { name: 'Summary' })).toHaveCount(0)
+  await expect(chart(page)).toBeVisible()
+  const first = await insights(page).locator('figure').evaluate((figure) => figure.parentElement?.firstElementChild === figure)
+  expect(first).toBe(true)
   await expect(insights(page).getByRole('img', { name: /across 11 entries.*Overall: steady/ })).toBeVisible()
   await expect(insights(page).getByRole('row', { name: /Verb conjugation/ })).toContainText('Getting worse')
   await expect(insights(page).getByRole('row', { name: /Article/ })).toContainText('Improving')
@@ -40,12 +43,11 @@ test('insights open over the workspace with the summary, the chart and the categ
 test('the filter narrows insights, and below three entries offers a way to write', async ({ page }) => {
   // Arrange
   await page.goto('/?insights=1')
-  await expect(summary(page)).toBeVisible()
+  await expect(chart(page)).toBeVisible()
   // Act
   await pickOption(insights(page).getByLabel('Filter by language'), 'Spanish')
   // Assert
   await expect(page).toHaveURL(/language=es/)
-  await expect(summary(page)).toContainText('Verb conjugation keeps recurring: 3 of your last 5 entries.')
   await expect(insights(page).getByRole('row', { name: /Verb conjugation/ })).toContainText('Recurring · 3 of last 5')
   await expectHealthy(page)
   await pickOption(insights(page).getByLabel('Filter by language'), 'German')
@@ -60,7 +62,7 @@ test('a new entry with feedback changes insights that were already loaded', asyn
   // Arrange
   await page.goto('/?language=fr')
   await openInsights(page)
-  await expect(summary(page)).toContainText('0 errors across 3 entries')
+  await expect(chart(page)).toHaveAccessibleName(/across 3 entries/)
   await page.keyboard.press('Escape')
   await expect(insights(page)).toBeHidden()
   await pickOption(composerLanguage(page), 'French')
@@ -70,8 +72,22 @@ test('a new entry with feedback changes insights that were already loaded', asyn
   await expect(mainColumn(page).getByRole('heading', { name: 'Feedback' })).toBeVisible()
   await openInsights(page)
   // Assert
-  await expect(summary(page)).toContainText('Article is getting worse (0.0 → 6.7 per 100 words).')
+  await expect(insights(page).getByRole('row', { name: /Article/ })).toContainText('Getting worse')
   await expectHealthy(page)
+})
+
+test('hovering the chart shows the entry numbers in a tooltip', async ({ page, isMobile }) => {
+  // No hover on touch screens.
+  test.skip(isMobile, 'no hover on touch')
+  // Arrange
+  await page.goto('/?insights=1')
+  const plot = chart(page)
+  await expect(plot).toBeVisible()
+  // Act
+  const box = await plot.boundingBox()
+  await page.mouse.move((box?.x ?? 0) + (box?.width ?? 0) / 2, (box?.y ?? 0) + (box?.height ?? 0) / 2)
+  // Assert
+  await expect(plot.getByText(/per 100 words/)).toBeVisible()
 })
 
 test('Back closes insights and Forward reopens them', async ({ page }) => {
@@ -141,5 +157,5 @@ test('the progress card in the sidebar opens insights for the same language', as
   // Act
   await progress.getByRole('button', { name: 'Open insights' }).click()
   // Assert
-  await expect(summary(page)).toContainText('Verb conjugation keeps recurring')
+  await expect(insights(page).getByRole('row', { name: /Verb conjugation/ })).toContainText('Recurring')
 })

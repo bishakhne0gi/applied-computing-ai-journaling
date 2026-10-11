@@ -4,17 +4,15 @@ import { formatRate } from './format'
 
 export interface ChartReadoutProps {
   point: RatePointOut
-  // Null when nothing is hovered: the readout then shows the latest entry.
-  position: { index: number; count: number } | null
 }
 
-// The numbers for one entry, above the plot (like a dashboard chart's header) instead of a floating tooltip. Hidden
+// The latest entry's numbers above the plot (like a dashboard chart's header); the tooltip covers the others. Hidden
 // from screen readers: RateTable already lists every entry.
-export function ChartReadout({ point, position }: ChartReadoutProps) {
+export function ChartReadout({ point }: ChartReadoutProps) {
   return (
     <div aria-hidden="true" className="flex flex-wrap items-end justify-between gap-x-4 gap-y-1">
       <div className="flex flex-col">
-        <span className="text-xs text-muted">{position ? `Entry ${position.index + 1} of ${position.count}` : 'Latest entry'}</span>
+        <span className="text-xs text-muted">Latest entry</span>
         <span className="text-sm text-fg-secondary">{formatDateTime(point.created_at)}</span>
         <span className="text-xs text-muted">{`${pluralize(point.error_count, 'error')} in ${pluralize(point.word_count, 'word')}`}</span>
       </div>

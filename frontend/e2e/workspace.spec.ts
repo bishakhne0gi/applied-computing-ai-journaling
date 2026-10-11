@@ -38,7 +38,7 @@ test('every surface fits a 375px screen', async ({ page }) => {
   await expect(heading(page, ENTRY_TITLE)).toBeVisible()
   await expectFitsWidth(page)
   await page.getByRole('button', { name: 'Insights', exact: true }).click()
-  await expect(page.getByRole('dialog', { name: 'Insights' }).getByRole('region', { name: 'Summary' })).toBeVisible()
+  await expect(page.getByRole('dialog', { name: 'Insights' }).getByRole('img', { name: /Errors per 100 words across/ })).toBeVisible()
   await expectFitsWidth(page)
   await expectNoA11yViolations(page)
 })

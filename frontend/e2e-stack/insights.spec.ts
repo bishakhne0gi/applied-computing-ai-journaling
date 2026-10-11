@@ -39,8 +39,7 @@ test('the real stack turns analysed entries into insights', async ({ page, reque
   const insights = page.getByRole('dialog', { name: 'Insights' })
   await pickOption(insights.getByLabel('Filter by language'), LANGUAGE_NAMES[language])
   // Assert
-  const summary = insights.getByRole('region', { name: 'Summary' })
-  for (const sentence of expected.summary) await expect(summary).toContainText(sentence)
+  await expect(insights.getByRole('heading', { name: 'Summary' })).toHaveCount(0)
   await expect(insights.getByRole('img', { name: new RegExp(`across ${expected.entry_count} entries`) })).toBeVisible()
   const verbs = insights.getByRole('row', { name: /Verb conjugation/ })
   await expect(verbs).toContainText(/Recurring · \d of last \d/)
