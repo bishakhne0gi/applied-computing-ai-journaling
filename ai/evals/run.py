@@ -32,10 +32,22 @@ async def _evaluate(analyzer: Analyzer, cases: Sequence[EvalCase]) -> list[CaseS
         await analyzer.aclose()
 
 
+def _positive_int(value: str) -> int:
+    try:
+        number = int(value)
+    except ValueError:
+        raise argparse.ArgumentTypeError(f"{value!r} is not an integer") from None
+    if number < 1:
+        raise argparse.ArgumentTypeError("must be at least 1")
+    return number
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Score the analyzer against the labelled dataset.")
     parser.add_argument("--provider", choices=["anthropic", "fake"], default="anthropic")
-    parser.add_argument("--limit", type=int, default=None, help="first N cases, languages interleaved")
+    parser.add_argument(
+        "--limit", type=_positive_int, default=None, help="first N cases, languages interleaved"
+    )
     args = parser.parse_args()
 
     provider = build_provider(

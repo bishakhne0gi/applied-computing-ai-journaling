@@ -10,7 +10,7 @@
   {"id": "es-gender-2", "language": "es", "text": "La casa de mi abuela es muy bonito.", "expected": [{"original": "bonito", "categories": ["gender_agreement"]}]},
   {"id": "es-order-1", "language": "es", "text": "Me no gusta el café por la mañana.", "expected": [{"original": "Me no gusta", "categories": ["word_order"]}]},
   {"id": "es-vocab-1", "language": "es", "text": "Voy a la librería para pedir prestado un libro.", "expected": [{"original": "librería", "categories": ["vocabulary"]}]},
-  {"id": "es-punct-1", "language": "es", "text": "Hola Ana. Cómo estás hoy?", "expected": [{"original": "Cómo", "categories": ["punctuation"]}]},
+  {"id": "es-punct-1", "language": "es", "text": "Buenas tardes. Cómo estás hoy?", "expected": [{"original": "Cómo", "categories": ["punctuation"]}]},
   {"id": "es-conj-1", "language": "es", "text": "Ayer nosotros comimos pizza y luego yo bebió un café.", "expected": [{"original": "bebió", "categories": ["verb_conjugation"]}]},
   {"id": "es-preposition-2", "language": "es", "text": "Mañana voy en la casa de mi amiga.", "expected": [{"original": "en", "categories": ["preposition"]}]},
   {"id": "es-accent-1", "language": "es", "text": "Mi padre trabaja en un hospital y el es médico.", "expected": [{"original": "el", "categories": ["spelling"]}]},

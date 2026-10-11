@@ -5,6 +5,7 @@ import pytest
 from pydantic import ValidationError
 
 from evals.dataset import EvalCase, interleave, load_dataset
+from evals.scoring import contains_phrase
 
 
 def _case(
@@ -65,12 +66,42 @@ def test_interleave_alternates_languages_so_a_limit_samples_both() -> None:
     assert [case.id for case in interleave(cases)] == ["es-case-1", "fr-case-1", "es-case-2", "es-case-3"]
 
 
-def test_a_snippet_matches_whole_words_case_insensitively() -> None:
-    case = _case(
-        "es",
-        1,
-        text="Hoy tengo La problema.",
-        expected=[{"original": "la problema", "categories": ["gender_agreement"]}],
-    )
+@pytest.mark.parametrize(
+    ("text", "phrase", "expected"),
+    [
+        ("Hoy tengo La problema.", "la problema", True),
+        ("Después comí.", "es", False),
+        ("Voy a casa.", "casa", True),
+        ("Voy a casas.", "casa", False),
+        ("Il fait tres beau.", "TRES", True),
+    ],
+)
+def test_contains_phrase_is_case_insensitive_and_whole_word(text: str, phrase: str, expected: bool) -> None:
+    assert contains_phrase(text, phrase) is expected
 
-    assert case.expected[0].original == "la problema"
+
+@pytest.mark.parametrize(
+    ("overrides", "message"),
+    [
+        ({"text": "   "}, "text"),
+        ({"text": ""}, "text"),
+        (
+            {"expected": [{"original": "Hola", "categories": ["spelling", "spelling"]}]},
+            "duplicate categories",
+        ),
+        (
+            {
+                "expected": [
+                    {"original": "Hola", "categories": ["spelling"]},
+                    {"original": "hola", "categories": ["punctuation"]},
+                ]
+            },
+            "duplicate originals",
+        ),
+    ],
+)
+def test_degenerate_labels_are_rejected(overrides: dict[str, object], message: str) -> None:
+    case = {"id": "es-case-1", "language": "es", "text": "Hola amigo.", "expected": [], **overrides}
+
+    with pytest.raises(ValidationError, match=message):
+        EvalCase.model_validate(case)

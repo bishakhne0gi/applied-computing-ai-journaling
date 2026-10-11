@@ -18,13 +18,19 @@ class ExpectedMistake(BaseModel):
     original: str = Field(min_length=1)
     categories: tuple[Category, ...] = Field(min_length=1)
 
+    @model_validator(mode="after")
+    def _categories_are_distinct(self) -> Self:
+        if len(set(self.categories)) != len(self.categories):
+            raise ValueError(f"duplicate categories for {self.original!r}")
+        return self
+
 
 class EvalCase(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
 
     id: str = Field(pattern=r"^[a-z]{2}-[a-z]+-\d+$")
     language: str
-    text: str = Field(min_length=1)
+    text: str = Field(min_length=1, pattern=r"\S")
     expected: tuple[ExpectedMistake, ...]
 
     @model_validator(mode="after")
@@ -34,6 +40,9 @@ class EvalCase(BaseModel):
             raise ValueError(f"{self.id}: unsupported language {self.language!r}")
         if not self.id.startswith(f"{self.language}-"):
             raise ValueError(f"{self.id}: id must start with {self.language}-")
+        originals = [item.original.casefold() for item in self.expected]
+        if len(set(originals)) != len(originals):
+            raise ValueError(f"{self.id}: duplicate originals")
         for item in self.expected:
             if not contains_phrase(self.text, item.original):
                 raise ValueError(f"{self.id}: {item.original!r} is not in the text")
