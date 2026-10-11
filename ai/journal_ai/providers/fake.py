@@ -67,16 +67,13 @@ def _correct(text: str) -> str:
 
 def _demo_response(entry: str) -> str:
     mistakes: list[dict[str, str]] = []
-    corrected = entry
     for wrong, right, category, explanation in _DEMO_RULES:
-        pattern = re.compile(rf"\b{re.escape(wrong)}\b", re.IGNORECASE)
-        for found in pattern.finditer(entry):
+        for found in re.finditer(rf"\b{re.escape(wrong)}\b", entry, re.IGNORECASE):
             mistakes.append(_item("error", category, found.group(0), right, explanation))
-        corrected = pattern.sub(_case_preserving(right), corrected)
     for match in _BRACKETED.finditer(entry):
         explanation = "Demo mode cannot translate. Set ANTHROPIC_API_KEY for real help."
         mistakes.append(_item("vocab_help", Category.VOCABULARY, match.group(0), match.group(1), explanation))
-    corrected = _BRACKETED.sub(r"\1", corrected)
+    corrected = _BRACKETED.sub(r"\1", _correct(entry))
     summary = "Demo feedback. Configure Claude for real corrections."
     return json.dumps({"corrected_text": corrected, "feedback_summary": summary, "mistakes": mistakes})
 

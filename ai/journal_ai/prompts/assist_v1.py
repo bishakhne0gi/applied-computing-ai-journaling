@@ -71,4 +71,4 @@ def language_of(system: str) -> str:
     for code, name in SUPPORTED_LANGUAGES.items():
         if f"{name} writing tutor" in system or f"entry in {name}" in system:
             return code
-    return "es"
+    raise ValueError("no supported language in the prompt")

@@ -44,7 +44,7 @@ def _key(text: str) -> str:
 
 
 def _first_line(value: Any) -> Any:
-    return value.split("\n", 1)[0] if isinstance(value, str) else value
+    return value.strip().split("\n", 1)[0] if isinstance(value, str) else value
 
 
 def _validate[M: BaseModel](model: type[M], item: Any) -> M | None:

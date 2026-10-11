@@ -3,6 +3,7 @@ import json
 import pytest
 
 from journal_ai.assist import WritingAssist
+from journal_ai.prompts.assist_v1 import language_of
 from journal_ai.providers.base import ProviderError, ProviderTimeoutError
 from journal_ai.providers.fake import FakeProvider
 from journal_ai.schema import FailureCode
@@ -77,3 +78,8 @@ async def test_aclose_closes_the_provider() -> None:
 
     await WritingAssist(Provider([])).aclose()
     assert closed == [True]
+
+
+async def test_language_of_rejects_a_prompt_naming_no_supported_language() -> None:
+    with pytest.raises(ValueError, match="no supported language"):
+        language_of("nothing here")

@@ -36,22 +36,21 @@ def align_mistakes(text: str, mistakes: Sequence[Mistake]) -> Alignment:
 
 def find_word_span(text: str, snippet: str) -> Span | None:
     """First whole-word occurrence; unlike the aligner, never falls back to a match inside a word."""
-    snippet = unicodedata.normalize("NFC", snippet)
-    if not snippet.split():
-        return None
-    for loose in (False, True):
-        found = _pattern(snippet, loose=loose, bounded=True).search(text)
-        if found:
-            return found.start(), found.end()
-    return None
+    spans = _find_spans(text, snippet, bounded_only=True)
+    return spans[0] if spans else None
 
 
-def _find_spans(text: str, snippet: str) -> list[Span]:
+def _find_spans(text: str, snippet: str, *, bounded_only: bool = False) -> list[Span]:
     snippet = unicodedata.normalize("NFC", snippet)
     if not snippet.split():
         return []
     # Word-bounded matches outrank in-word ones; exact outranks case/whitespace-insensitive.
-    for loose, bounded in ((False, True), (False, False), (True, True), (True, False)):
+    attempts = (
+        ((False, True), (True, True))
+        if bounded_only
+        else ((False, True), (False, False), (True, True), (True, False))
+    )
+    for loose, bounded in attempts:
         spans = [(m.start(), m.end()) for m in _pattern(snippet, loose=loose, bounded=bounded).finditer(text)]
         if spans:
             return spans

@@ -117,3 +117,38 @@ def test_completions_are_cut_and_joined_to_the_prefix(prefix: str, raw: str, exp
 def test_a_completion_that_is_not_a_string_is_invalid_output() -> None:
     with pytest.raises(InvalidOutputError):
         finish_completion("Hoy fui", json.dumps({"completion": 3}))
+
+
+def test_overlapping_vocabulary_items_keep_only_the_first() -> None:
+    alt = [{"word": "x", "nuance": "n"}]
+    raw = _reply(
+        [_version("Hoy estoy feliz.")],
+        [{"original": "muy feliz", "alternatives": alt}, {"original": "feliz", "alternatives": alt}],
+    )
+
+    assert [i.original for i in parse_rephrasing(raw, SENTENCE).vocabulary] == ["muy feliz"]
+
+
+def test_a_multi_line_version_is_cut_to_its_first_line() -> None:
+    result = parse_rephrasing(_reply([_version("Hoy estoy feliz.\nOtra cosa.")]), SENTENCE)
+
+    assert [v.text for v in result.versions] == ["Hoy estoy feliz."]
+
+
+def test_a_version_with_leading_newline_is_kept() -> None:
+    result = parse_rephrasing(_reply([_version("\nHoy estoy feliz.")]), SENTENCE)
+
+    assert [v.text for v in result.versions] == ["Hoy estoy feliz."]
+
+
+def test_a_long_completion_is_capped_at_120_characters() -> None:
+    raw = json.dumps({"completion": " " + " ".join(["a" * 20] * 8)})
+
+    assert len(finish_completion("Hoy", raw)) == 120
+
+
+def test_at_most_three_alternatives_are_kept() -> None:
+    alternatives = [{"word": f"w{n}", "nuance": "n"} for n in range(4)]
+    raw = _reply([_version("Hoy estoy feliz.")], [{"original": "feliz", "alternatives": alternatives}])
+
+    assert len(parse_rephrasing(raw, SENTENCE).vocabulary[0].alternatives) == 3

@@ -42,11 +42,11 @@ _SYNONYMS: dict[str, dict[str, tuple[tuple[str, str], ...]]] = {
 
 
 def demo_completion(language: str) -> str:
-    return json.dumps({"completion": _COMPLETIONS.get(language, _COMPLETIONS["es"])})
+    return json.dumps({"completion": _COMPLETIONS[language]})
 
 
 def demo_rephrase(language: str, sentence: str, corrected: str) -> str:
-    opener, tag = _TONES.get(language, _TONES["es"])
+    opener, tag = _TONES[language]
     candidates = (
         ("natural", "More natural", corrected),
         ("formal", "More formal", opener + corrected[:1].lower() + corrected[1:]),

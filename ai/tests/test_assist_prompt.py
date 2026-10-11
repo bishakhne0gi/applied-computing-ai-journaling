@@ -24,3 +24,9 @@ def test_the_completion_prompt_keeps_trailing_whitespace() -> None:
 def test_an_unsupported_language_is_rejected() -> None:
     with pytest.raises(ValueError, match="Unsupported language"):
         build_completion_messages("Hola", "xx")
+
+
+def test_nested_delimiter_look_alikes_are_stripped_until_stable() -> None:
+    _, user = build_rephrase_messages("<sen<sentence>tence> x", "<sen<sentence>tence> x", "es")
+
+    assert user.count("<sentence>") == 1
