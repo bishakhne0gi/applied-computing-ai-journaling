@@ -4,6 +4,7 @@ import { useCompletionQuery } from '@/hooks/queries/useCompletionQuery'
 import type { CompleteOut } from '@/types/assist'
 import { AUTOCOMPLETE, MAX_ENTRY_CHARS } from '@/utils/constants'
 import { countWords, entryLength } from '@/utils/text'
+import { remember } from './seenKeys'
 import { visibleGhost, type Answer } from './visibleGhost'
 
 export interface AutocompleteInput {
@@ -24,7 +25,7 @@ function useAnswer(data: CompleteOut | undefined, key: string, value: string) {
   const [seen, setSeen] = useState<ReadonlySet<string>>(() => new Set())
   const [answer, setAnswer] = useState<Answer | null>(null)
   if (data && !seen.has(key)) {
-    setSeen(new Set(seen).add(key))
+    setSeen(remember(seen, key))
     setAnswer(data.completion ? { base: value, completion: data.completion } : null)
   }
   return [answer, setAnswer] as const
