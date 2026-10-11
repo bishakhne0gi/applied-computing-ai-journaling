@@ -110,3 +110,23 @@ describe('hintAtCaret', () => {
     expect(at(9)).toBeUndefined()
   })
 })
+
+describe('reanchor kinds', () => {
+  it('softens a capitalisation-only error to a suggestion: a lower-case start is not a mistake while still writing', () => {
+    // Arrange
+    const text = 'mi nombre es Bishakh'
+    // Act
+    const [mi] = reanchor(checked(text, hint('mi', 0, 2, 'Mi')), text, new Set())
+    // Assert
+    expect(mi?.kind).toBe('suggestion')
+  })
+
+  it('keeps a real spelling error an error', () => {
+    // Arrange
+    const text = 'mi nombre es Bishakh'
+    // Act
+    const [nombre] = reanchor(checked(text, hint('nombre', 3, 9, 'nómbre')), text, new Set())
+    // Assert
+    expect(nombre?.kind).toBe('error')
+  })
+})

@@ -69,6 +69,13 @@ function withIds(hints: Placed[]): LiveHint[] {
   })
 }
 
+// A capital letter is not a mistake in text that is still being written ("mi nombre…" before the sentence is done), so a
+// correction that only changes case is shown as a gentle suggestion, not an error.
+function softened(hint: HintOut): HintOut['kind'] {
+  const caseOnly = hint.original !== hint.correction && hint.original.toLowerCase() === hint.correction.toLowerCase()
+  return hint.kind === 'error' && caseOnly ? 'suggestion' : hint.kind
+}
+
 // Hints describe a snapshot while the writer keeps typing: each span the server placed (not the model's `original`,
 // which may differ in case or spacing) is carried across the edit since the check, or dropped if the edit touched it.
 // Dismissing a hint hides every occurrence of that exact hint for the session.
@@ -81,7 +88,7 @@ export function reanchor(check: CheckOut | undefined, current: string, dismissed
   for (const hint of check.hints) {
     const key = hintKey(hint)
     const span = dismissed.has(key) ? null : place(hint, offsets, edit)
-    if (span) placed.push({ ...hint, key, start: view.toValue(span[0]), end: view.toValue(span[1]) })
+    if (span) placed.push({ ...hint, kind: softened(hint), key, start: view.toValue(span[0]), end: view.toValue(span[1]) })
   }
   return withIds(withoutOverlaps(placed))
 }
