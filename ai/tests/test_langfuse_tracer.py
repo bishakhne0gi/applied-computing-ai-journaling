@@ -1,3 +1,4 @@
+import asyncio
 import json
 from typing import Any, cast
 
@@ -149,3 +150,36 @@ def test_shutdown_flushes_the_client() -> None:
     _traced(client).shutdown()
 
     assert client.shut_down
+
+
+def test_a_client_that_cannot_start_falls_back_to_the_noop_tracer(
+    monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+) -> None:
+    def explode(**_: Any) -> None:
+        raise ValueError("bad environment: leaky-value")
+
+    monkeypatch.setattr(langfuse_tracer, "Langfuse", explode)
+
+    settings: dict[str, str] = {"public_key": "pk", "secret_key": "leaky-value", "host": "https://lf.test"}
+
+    tracer = build_tracer(**settings)
+
+    assert isinstance(tracer, NoopTracer)
+    assert "ValueError" in caplog.text
+    assert "leaky-value" not in caplog.text
+
+
+@pytest.mark.parametrize("interruption", [asyncio.CancelledError, KeyboardInterrupt])
+async def test_an_interrupted_analysis_still_ends_its_generation(interruption: type[BaseException]) -> None:
+    client = FakeLangfuse()
+
+    class Interrupted(FakeProvider):
+        async def complete(self, **_: Any) -> Any:
+            raise interruption
+
+    with pytest.raises(interruption):
+        await Analyzer(Interrupted([]), _traced(client)).analyze(TEXT, "es")
+
+    (generation,) = client.generations
+    assert generation.ended
+    assert generation.updates[-1]["level"] == "ERROR"

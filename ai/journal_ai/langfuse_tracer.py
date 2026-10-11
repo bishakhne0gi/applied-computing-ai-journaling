@@ -1,9 +1,13 @@
+import logging
+
 from langfuse import Langfuse, LangfuseGeneration
 from langfuse.types import SpanLevel
 
 from journal_ai.prompts.v1 import PROMPT_VERSION
 from journal_ai.schema import AnalysisOutcome
 from journal_ai.tracing import NoopTracer, Trace, Tracer, trace_metadata
+
+logger = logging.getLogger(__name__)
 
 
 class _LangfuseTrace:
@@ -20,6 +24,10 @@ class _LangfuseTrace:
             level=level,
             status_message=outcome.failure.value if outcome.failure else None,
         )
+        self._generation.end()
+
+    def abort(self) -> None:
+        self._generation.update(level="ERROR", status_message="interrupted")
         self._generation.end()
 
 
@@ -53,7 +61,16 @@ def build_tracer(
     # EU or self-hosted user's traces to the wrong place.
     if not (public_key and secret_key and host):
         return NoopTracer()
-    client = Langfuse(
-        public_key=public_key, secret_key=secret_key, base_url=host, environment=environment, release=release
-    )
+    try:
+        client = Langfuse(
+            public_key=public_key,
+            secret_key=secret_key,
+            base_url=host,
+            environment=environment,
+            release=release,
+        )
+    except Exception as exc:
+        # Class name only: the message can echo the keys or host we were given.
+        logger.warning("Langfuse tracing disabled: client failed to start (%s)", type(exc).__name__)
+        return NoopTracer()
     return LangfuseTracer(client)

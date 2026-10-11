@@ -8,6 +8,8 @@ TraceValue = str | int | bool | None
 class Trace(Protocol):
     def finish(self, outcome: AnalysisOutcome) -> None: ...
 
+    def abort(self) -> None: ...
+
 
 class Tracer(Protocol):
     def start(self, *, language: str) -> Trace: ...
@@ -17,6 +19,9 @@ class Tracer(Protocol):
 
 class _NoopTrace:
     def finish(self, outcome: AnalysisOutcome) -> None:
+        return None
+
+    def abort(self) -> None:
         return None
 
 

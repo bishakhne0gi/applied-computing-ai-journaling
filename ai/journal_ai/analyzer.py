@@ -63,7 +63,13 @@ class Analyzer:
         text = normalize_text(text)
         system, user = build_messages(text, language)
         trace = _start_trace(self._tracer, language)
-        outcome = await self._run(text, system, user)
+        try:
+            outcome = await self._run(text, system, user)
+        except BaseException:
+            # Cancellation must still close the span, then keep propagating.
+            with contextlib.suppress(Exception):
+                trace.abort()
+            raise
         # Tracing is diagnostics: a broken exporter must never turn a good analysis into an error.
         with contextlib.suppress(Exception):
             trace.finish(outcome)
