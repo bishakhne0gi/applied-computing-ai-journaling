@@ -10,15 +10,22 @@ function Harness() {
   return (
     <>
       <textarea aria-label="Entry" ref={ref} value={text} onChange={(event) => setText(event.target.value)} />
+      <output aria-label="Saved text">{text}</output>
       <Button onClick={() => ref.current && applyHint(ref.current, { start: 4, end: 9, correction: 'yo soy' })}>Accept</Button>
     </>
   )
 }
 
+// Records the selection at the moment of the call: insertText replaces whatever is selected then.
 function stubExecCommand(result: boolean) {
-  const execCommand = vi.fn(() => result)
+  const selection = { at: [] as (number | null)[] }
+  const execCommand = vi.fn(() => {
+    const active = document.activeElement as HTMLTextAreaElement
+    selection.at = [active.selectionStart, active.selectionEnd]
+    return result
+  })
   Object.defineProperty(document, 'execCommand', { value: execCommand, configurable: true })
-  return execCommand
+  return { execCommand, selection }
 }
 
 describe('applyHint', () => {
@@ -26,12 +33,13 @@ describe('applyHint', () => {
 
   it('edits through the editing API so the browser can undo it', () => {
     // Arrange
-    const execCommand = stubExecCommand(true)
+    const { execCommand, selection } = stubExecCommand(true)
     render(<Harness />)
     // Act
     screen.getByRole('button', { name: 'Accept' }).click()
     // Assert
     expect(execCommand).toHaveBeenCalledWith('insertText', false, 'yo soy')
+    expect(selection.at).toEqual([4, 9])
     expect(screen.getByRole('textbox')).toHaveFocus()
   })
 
@@ -45,5 +53,6 @@ describe('applyHint', () => {
     const textarea = screen.getByRole<HTMLTextAreaElement>('textbox')
     expect(textarea).toHaveValue('Hoy yo soy feliz.')
     expect(textarea.selectionStart).toBe(10)
+    expect(screen.getByRole('status', { name: 'Saved text' })).toHaveTextContent('Hoy yo soy feliz.')
   })
 })

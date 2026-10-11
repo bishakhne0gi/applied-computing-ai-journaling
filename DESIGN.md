@@ -51,6 +51,7 @@ pills (`rounded-full`). Shadows: `sm` resting cards and inputs, `md` popovers, `
 - **Tooltips:** ink background, white text, small; on focus and hover, Esc closes. A `card` tip (the feedback legend) is a wider white card with `shadow-lg`, opening below its trigger.
 - **Skeletons:** `border`-coloured pulsing blocks in the shape of what is loading.
 - **Editor chips:** `[word]` gets a `primary-soft` tint with a spread-only shadow — no padding, so the text never moves.
+- **Live hints:** an underline by kind; a hint on a chip keeps the tint. Dismiss hides every occurrence of that exact hint (same words, same correction) until the composer starts a new entry.
 
 ## Do / Don't
 - Do use roles (`text-muted`), never raw colours; add a token when a value is missing.

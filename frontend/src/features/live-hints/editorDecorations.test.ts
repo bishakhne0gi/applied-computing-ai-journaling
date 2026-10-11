@@ -42,6 +42,6 @@ describe('editorDecorations', () => {
     // Arrange + Act
     const decorations = editorDecorations([{ start: 6, end: 12 }], [liveHint(4, 8)])
     // Assert
-    expect(decorations.map((decoration) => decoration.start)).toEqual([4])
+    expect(decorations).toEqual([{ id: 'k4@4', start: 4, end: 8, className: underlineClasses.error }])
   })
 })
