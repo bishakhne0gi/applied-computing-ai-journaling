@@ -5,7 +5,7 @@ Spec: `docs/superpowers/specs/2026-10-10-ai-language-journal-design.md` · Plans
 
 ## Commands
 - `make install` · `make db` · `make migrate` · `make dev-backend` · `make dev-frontend` · `make up` (full stack on :8080)
-- `make verify-fast` (lint + types everywhere) · `make verify` (every gate, CI order) · `make test-ai` · `make test-backend` · `make e2e-stack` (Compose + fake AI + Playwright smoke)
+- `make verify-fast` (lint + types everywhere) · `make verify` (every CI gate except the Docker smoke, CI order) · `make e2e-stack` (Docker smoke) · `make test-ai` · `make test-backend` · `make eval` (real model; needs a key)
 
 ## Rules
 - Backend layers: api → services → repositories → db. Routes never touch the ORM; repositories hold no business rules; services depend on the `Analyzer` protocol, never a provider SDK. (import-linter)

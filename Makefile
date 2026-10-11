@@ -1,4 +1,4 @@
-.PHONY: e2e-stack eval install db migrate migrate-check revision dev-backend dev-frontend up down lint typecheck test-ai test-backend test hygiene verify-fast verify
+.PHONY: e2e-stack eval eval-fake install db migrate migrate-check revision dev-backend dev-frontend up down lint typecheck test-ai test-backend test hygiene verify-fast verify
 
 install:
 	uv sync --all-packages
@@ -53,7 +53,11 @@ hygiene:
 verify-fast: lint typecheck
 	pnpm -C frontend verify:fast
 
-verify: hygiene lint typecheck test migrate-check
+# CI runs the eval harness offline on every push; the demo provider proves the runner and dataset still work.
+eval-fake:
+	cd ai && uv run python -m evals.run --provider fake
+
+verify: hygiene lint typecheck test eval-fake migrate-check
 	pnpm -C frontend verify
 
 e2e-stack:
