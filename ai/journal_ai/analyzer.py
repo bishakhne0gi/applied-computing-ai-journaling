@@ -53,10 +53,12 @@ class Analyzer:
         self._tracer: Tracer = tracer or NoopTracer()
 
     async def aclose(self) -> None:
-        await self._provider.aclose()
-        # The SDK flush is blocking network I/O; keep it off the event loop, and never let it block shutdown.
-        with contextlib.suppress(Exception):
-            await asyncio.to_thread(self._tracer.shutdown)
+        try:
+            await self._provider.aclose()
+        finally:
+            # The SDK flush is blocking network I/O, so it runs off the loop; its errors never fail shutdown.
+            with contextlib.suppress(Exception):
+                await asyncio.to_thread(self._tracer.shutdown)
 
     async def analyze(self, text: str, language: str) -> AnalysisOutcome:
         # Callers rely on analyze() never raising for provider or output problems; only a bad language does.

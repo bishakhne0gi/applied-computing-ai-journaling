@@ -139,3 +139,17 @@ def test_the_noop_tracer_accepts_everything() -> None:
 
     tracer.start(language="es").finish(None)  # type: ignore[arg-type]  # the no-op never reads the outcome
     tracer.shutdown()
+
+
+class _FailingCloseProvider(FakeProvider):
+    async def aclose(self) -> None:
+        raise RuntimeError("socket already gone")
+
+
+async def test_the_tracer_is_flushed_even_when_closing_the_provider_fails() -> None:
+    tracer = RecordingTracer()
+
+    with pytest.raises(RuntimeError):
+        await Analyzer(_FailingCloseProvider([]), tracer).aclose()
+
+    assert tracer.shut_down
