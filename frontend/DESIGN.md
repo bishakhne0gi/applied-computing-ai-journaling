@@ -32,7 +32,13 @@ element's props, `ref` as a plain prop (React 19), Tailwind token utilities merg
 | `Select` | — | native `<select>`, `min-h-11`, pointer cursor |
 | `Textarea` | — | native `<textarea>`, `min-h-48`, `read-only:` surface tint |
 | `Field` | — | label + control; owns the spacing between them |
-| `LoadingState` | — | `role="status"` + `aria-busy`, muted label in place of content |
+| `LoadingState` | — | `role="status"` + `aria-busy`; muted label, or skeleton `children` with the label `sr-only` |
+| `Button` `plain` | — | unstyled trigger (focus ring and pointer cursor only) used by `Tooltip` |
+| `Button` `tab` | — | used by `AnimatedTabs`; text turns `fg` when `aria-selected` |
+| `AnimatedTabs` | 2–4 tabs | controlled segmented tabs (SmoothUI, MIT); arrows/Home/End; only the selected tab is tabbable and has `aria-controls`; pair with `role="tabpanel"` using `tabId`/`panelId` |
+| `Skeleton` | — | `aria-hidden` pulsing block; put skeletons inside `LoadingState` so the label stays for screen readers |
+| `Toast` | `tone`: `success`, `danger`, `neutral` | `useToast().show({ message, tone })`; `role="status"`, dismiss button, 5s, max 3 (SmoothUI, MIT) |
+| `Tooltip` | `align`: `start`, `center` (default), `end` | toggletip: children sit in a real `Button` (`plain` variant); hint shows on hover, focus and click (click toggles), `aria-describedby`, Esc/blur/mouse leave hide (SmoothUI, MIT); for supplementary text only |
 | `EmptyState` | — | dashed box: title + the next useful action as `children` |
 | `Card` | `as`: `div` (default), `section` | hairline card, `shadow-sm`; override padding/background with `className` |
 | `PageHeading` | — | `h1`, light 300, `tabIndex -1`, takes `ref` so the workspace can focus it |

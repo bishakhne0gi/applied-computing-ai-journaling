@@ -12,4 +12,19 @@ describe('LoadingState', () => {
     expect(screen.getByRole('status')).toHaveTextContent(label)
     expect(screen.getByRole('status')).toHaveAttribute('aria-busy', 'true')
   })
+
+  it('shows placeholders and keeps the label for screen readers', () => {
+    // Arrange
+    const label = 'Loading entries…'
+    // Act
+    render(
+      <LoadingState label={label}>
+        <span>placeholder</span>
+      </LoadingState>,
+    )
+    // Assert
+    expect(screen.getByRole('status')).toHaveTextContent(label)
+    expect(screen.getByText(label)).toHaveClass('sr-only')
+    expect(screen.getByText('placeholder')).toBeInTheDocument()
+  })
 })

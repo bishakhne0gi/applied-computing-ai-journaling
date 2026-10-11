@@ -7,6 +7,8 @@ const variants = {
   secondary: 'min-h-11 rounded-full border border-border-input bg-bg px-5 text-sm font-medium text-fg hover:border-primary hover:text-primary',
   ghost: 'min-h-11 rounded-full px-4 text-sm font-medium text-fg-secondary hover:bg-surface hover:text-fg',
   icon: 'size-11 shrink-0 rounded-full text-fg-secondary hover:bg-surface hover:text-fg',
+  tab: 'relative min-h-11 rounded-full px-4 text-sm font-medium text-fg-secondary hover:text-fg aria-selected:text-fg',
+  plain: 'rounded-sm',
   inline: 'inline rounded-sm px-0.5',
 } as const
 

@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, renderHook } from '@testing-library/react'
 import type { ReactElement, ReactNode } from 'react'
 import { MemoryRouter } from 'react-router'
+import { ToastProvider } from '@/components/ui/Toast'
 
 /** Fresh cache per test, no retries — so error states render immediately. */
 function createTestClient(): QueryClient {
@@ -11,7 +12,9 @@ function createTestClient(): QueryClient {
 // A plain function, not a component: this file also exports helpers, which fast refresh only tolerates without components.
 const wrap = (client: QueryClient, route: string, children: ReactNode) => (
   <QueryClientProvider client={client}>
-    <MemoryRouter initialEntries={[route]}>{children}</MemoryRouter>
+    <ToastProvider>
+      <MemoryRouter initialEntries={[route]}>{children}</MemoryRouter>
+    </ToastProvider>
   </QueryClientProvider>
 )
 
