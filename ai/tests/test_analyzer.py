@@ -242,3 +242,32 @@ async def test_fake_provider_closes_without_error() -> None:
 async def test_cancellation_propagates_instead_of_becoming_a_failure() -> None:
     with pytest.raises(asyncio.CancelledError):
         await Analyzer(_CancelledProvider()).analyze(TEXT, "es")
+
+
+async def test_a_single_attempt_analyzer_does_not_retry_unusable_output() -> None:
+    provider = FakeProvider(["not json", _valid()])
+
+    outcome = await Analyzer(provider, max_attempts=1).analyze(TEXT, "es")
+
+    assert outcome.failure is FailureCode.INVALID_OUTPUT
+    assert outcome.retried is False
+    assert len(provider.calls) == 1
+
+
+def test_max_attempts_below_one_is_rejected() -> None:
+    with pytest.raises(ValueError, match="at least 1"):
+        Analyzer(FakeProvider([]), max_attempts=0)
+
+
+async def test_the_demo_provider_answers_a_single_attempt_check_without_a_key() -> None:
+    text = "Hoy yo es feliz con la problema."
+
+    outcome = await Analyzer(FakeProvider(), max_attempts=1).analyze(text, "es")
+
+    assert outcome.result is not None
+    spans = {
+        (m.original, text[m.start : m.end])
+        for m in outcome.result.mistakes
+        if m.start is not None and m.end is not None
+    }
+    assert spans == {("yo es", "yo es"), ("la problema", "la problema")}

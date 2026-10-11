@@ -48,9 +48,19 @@ def _start_trace(tracer: Tracer, language: str) -> Trace:
 
 
 class Analyzer:
-    def __init__(self, provider: CompletionProvider, tracer: Tracer | None = None) -> None:
+    def __init__(
+        self,
+        provider: CompletionProvider,
+        tracer: Tracer | None = None,
+        *,
+        max_attempts: int = MAX_ATTEMPTS,
+    ) -> None:
+        if max_attempts < 1:
+            raise ValueError("max_attempts must be at least 1")
         self._provider = provider
         self._tracer: Tracer = tracer or NoopTracer()
+        # Live checks use one attempt: by the time a retry returned, the writer has typed on.
+        self._max_attempts = max_attempts
 
     async def aclose(self) -> None:
         try:
@@ -80,7 +90,7 @@ class Analyzer:
     async def _run(self, text: str, system: str, user: str) -> AnalysisOutcome:
         run = _Run(text=text)
         prompt = user
-        while run.attempts < MAX_ATTEMPTS:
+        while run.attempts < self._max_attempts:
             run.attempts += 1
             step = await self._attempt(run, system, prompt)
             if isinstance(step, AnalysisOutcome):
