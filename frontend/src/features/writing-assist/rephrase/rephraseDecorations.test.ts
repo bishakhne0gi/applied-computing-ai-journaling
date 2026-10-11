@@ -1,3 +1,4 @@
+import { CHIP_CLASS } from '@/components/ui/HighlightedTextarea'
 import { describe, expect, it } from 'vitest'
 import { REPHRASE_TARGET_ID, rephraseDecorations } from './rephraseDecorations'
 
@@ -26,5 +27,17 @@ describe('rephraseDecorations', () => {
     const result = rephraseDecorations([elsewhere], { start: 20, end: 40 })
     // Assert
     expect(result).toContainEqual(elsewhere)
+  })
+
+  it('keeps a [bracket] chip inside the sentence and tints around it', () => {
+    // Arrange
+    const chip = { id: 'c', start: 8, end: 14, className: CHIP_CLASS }
+    // Act
+    const result = rephraseDecorations([chip, underline], { start: 0, end: 20 })
+    // Assert
+    expect(result).toContainEqual(chip)
+    expect(result.filter((d) => d !== chip).map(({ start, end }) => [start, end])).toEqual([[0, 8], [14, 20]])
+    expect(result.filter((d) => d.id.startsWith(REPHRASE_TARGET_ID))).toHaveLength(2)
+    expect(result.find((d) => d.id === REPHRASE_TARGET_ID)).toMatchObject({ start: 0, end: 8 })
   })
 })
