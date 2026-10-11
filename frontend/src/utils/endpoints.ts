@@ -6,4 +6,6 @@ export const ENDPOINTS = {
   analyses: (entryId: string) => `entries/${entryId}/analyses`,
   insights: 'insights',
   check: 'check',
+  rephrase: 'rephrase',
+  complete: 'complete',
 } as const

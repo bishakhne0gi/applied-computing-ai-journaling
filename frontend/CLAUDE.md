@@ -5,7 +5,7 @@ Vite + React 19 + TypeScript (strict) + Tailwind v4. pnpm only. Run commands fro
 ## Commands
 - `pnpm dev` (http://localhost:5173) · `pnpm test` · `pnpm e2e` · `pnpm lint` · `pnpm typecheck` · `pnpm e2e:stack` (against a running stack; prefer `make e2e-stack`)
 - `pnpm verify` — full gate in pyramid order (types → lint → dupes/dead code → unit + coverage band → e2e + axe → Lighthouse), stops at the first failure. `pnpm verify:fast` — types + lint.
-- Dev data: MSW in-memory API (`src/mocks`) with `?mock=slow|error|empty|analysis-fail|check-unavailable`; `VITE_API_MOCKS=off pnpm dev` talks to `make dev-backend` through the Vite proxy. E2E runs its own server on :5174 with mocks forced on.
+- Dev data: MSW in-memory API (`src/mocks`) with `?mock=slow|error|empty|analysis-fail|check-unavailable|assist-unavailable`; `VITE_API_MOCKS=off pnpm dev` talks to `make dev-backend` through the Vite proxy. E2E runs its own server on :5174 with mocks forced on.
 
 ## Structural constraints (enforced by tools — do not work around them)
 1. **Single source of truth** — one owner per piece of state (local, URL or query cache; never two); derive counts/filters/sorts, never store them twice. No copy-pasted markup or styles: extract a primitive. (fallow, reviewer)
