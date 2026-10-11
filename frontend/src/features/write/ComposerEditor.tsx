@@ -1,13 +1,15 @@
 import { useCallback, useRef, useState } from 'react'
-import { EntryTextField } from '@/features/editor/EntryTextField'
+import { BRACKET_HINT, EntryTextField } from '@/features/editor/EntryTextField'
 import { mergeEvents } from '@/features/editor/mergeEvents'
 import { useTextareaSelection } from '@/features/editor/useTextareaSelection'
 import { HintPopover } from '@/features/live-hints/HintPopover'
-import { LiveHintsControls } from '@/features/live-hints/LiveHintsControls'
 import { useComposerHints } from '@/features/live-hints/useComposerHints'
-import { ComposerRephrase, RephraseButton } from '@/features/writing-assist/rephrase/ComposerRephrase'
+import { useComposerAutocomplete } from '@/features/writing-assist/autocomplete/useComposerAutocomplete'
+import { ComposerRephrase } from '@/features/writing-assist/rephrase/ComposerRephrase'
 import { rephraseDecorations } from '@/features/writing-assist/rephrase/rephraseDecorations'
 import { useComposerRephrase } from '@/features/writing-assist/rephrase/useComposerRephrase'
+
+import { ComposerControls } from './ComposerControls'
 
 export interface ComposerEditorProps {
   language: string
@@ -31,6 +33,7 @@ export function ComposerEditor({ language, value, onChange, onSubmitShortcut, re
   const selection = useTextareaSelection()
   const hints = useComposerHints({ value, language, readOnly, composing, textarea })
   const rephrase = useComposerRephrase({ value, language, readOnly, selection: selection.selection, textarea })
+  const auto = useComposerAutocomplete({ value, language, readOnly, composing, selection: selection.selection, suppressed: !!rephrase.open || !!hints.open })
   const { open } = hints
   const composingEvents = { onCompositionStart: () => setComposing(true), onCompositionEnd: () => setComposing(false) }
   return (
@@ -48,7 +51,9 @@ export function ComposerEditor({ language, value, onChange, onSubmitShortcut, re
       readOnly={readOnly}
       textareaRef={attach}
       decorations={rephraseDecorations(hints.decorations, rephrase.open?.span ?? null)}
-      textareaEvents={mergeEvents(selection.events, rephrase.events, hints.events, composingEvents)}
+      textareaEvents={mergeEvents(selection.events, auto.events, rephrase.events, hints.events, composingEvents)}
+      ghost={auto.ghost}
+      hint={auto.on ? `${BRACKET_HINT} Press Tab to accept a grey suggestion.` : undefined}
       overlay={
         <>
           {open && !rephrase.open && (
@@ -66,11 +71,7 @@ export function ComposerEditor({ language, value, onChange, onSubmitShortcut, re
           <ComposerRephrase rephrase={rephrase} selection={selection.selection} />
         </>
       }
-      footer={
-        <LiveHintsControls {...hints.controls} message={rephrase.announcement}>
-          <RephraseButton rephrase={rephrase} />
-        </LiveHintsControls>
-      }
+      footer={<ComposerControls hints={hints} rephrase={rephrase} auto={auto} />}
     />
   )
 }

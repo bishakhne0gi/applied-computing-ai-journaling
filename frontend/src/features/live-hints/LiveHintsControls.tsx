@@ -17,12 +17,14 @@ export interface LiveHintsControlsProps {
   onDismiss: (hint: LiveHint) => void
   // A one-off spoken message (a sentence was replaced) shares the polite region; it wins over the hint count until it clears.
   message?: string
+  // Switches that sit right after "Live hints" (autocomplete), so the hint count never moves them.
+  beside?: ReactNode
   children?: ReactNode // other composer actions share the switch row
 }
 
 const spoken = (message: string, hints: number) => message || (hints > 0 ? pluralize(hints, 'hint') : '')
 
-export function LiveHintsControls({ on, onToggle, hints, announcement, onAccept, onDismiss, message = '', children }: LiveHintsControlsProps) {
+export function LiveHintsControls({ on, onToggle, hints, announcement, onAccept, onDismiss, message = '', beside, children }: LiveHintsControlsProps) {
   const [expanded, setExpanded] = useState(false)
   const root = useRef<HTMLDivElement>(null)
   // Where focus goes once the acted-on hint is gone: its neighbour, or the switch when the list empties.
@@ -49,6 +51,7 @@ export function LiveHintsControls({ on, onToggle, hints, announcement, onAccept,
     <div ref={root} className="flex flex-col gap-2">
       <div className="-ml-2 flex flex-wrap items-center gap-1">
         <Switch label="Live hints" checked={on} onChange={onToggle} />
+        {beside}
         {visible && (
           <Button variant="ghost" className="gap-1 px-3" aria-expanded={expanded} aria-controls={listId} onClick={() => setExpanded((open) => !open)}>
             {pluralize(hints.length, 'hint')}

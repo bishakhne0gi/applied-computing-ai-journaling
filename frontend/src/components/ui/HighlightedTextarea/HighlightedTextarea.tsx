@@ -6,6 +6,8 @@ import { decorate, type Decoration } from './decorate'
 export interface HighlightedTextareaProps extends ComponentProps<'textarea'> {
   value: string
   decorations: readonly Decoration[]
+  // Suggested text drawn after the last character; the caller shows it only with the caret at the very end.
+  ghost?: string
 }
 
 // Tint plus a spread-only shadow: no padding, border or font change, so the chip never moves a glyph.
@@ -20,7 +22,7 @@ function assignRef<T>(ref: Ref<T> | undefined, node: T | null): void {
   else if (ref) ref.current = node
 }
 
-export function HighlightedTextarea({ value, decorations, className, onScroll, readOnly, ref, ...rest }: HighlightedTextareaProps) {
+export function HighlightedTextarea({ value, decorations, ghost, className, onScroll, readOnly, ref, ...rest }: HighlightedTextareaProps) {
   const backdropRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const setTextarea = useCallback((node: HTMLTextAreaElement | null) => {
@@ -44,6 +46,12 @@ export function HighlightedTextarea({ value, decorations, className, onScroll, r
             <span key={index}>{segment.text}</span>
           ),
         )}
+        {/* Only ever at the very end of the text: anywhere else it would push the following lines off the textarea's glyphs. */}
+        {ghost ? (
+          <span data-ghost="" className="text-muted">
+            {ghost}
+          </span>
+        ) : null}
         {/* A trailing newline collapses in a div but not in a textarea; the space gives that last line its height. */}{' '}
       </div>
       <Textarea

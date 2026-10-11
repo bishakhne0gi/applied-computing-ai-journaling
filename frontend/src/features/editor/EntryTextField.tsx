@@ -8,6 +8,8 @@ import { cn } from '@/utils/utils'
 
 export type TextareaEvents = Pick<ComponentProps<'textarea'>, 'onClick' | 'onSelect' | 'onBlur' | 'onFocus' | 'onKeyUp' | 'onKeyDown' | 'onCompositionStart' | 'onCompositionEnd'>
 
+export const BRACKET_HINT = "Stuck on a word? Write it in English, in [brackets] or not, and you'll get the word."
+
 export interface EntryTextFieldProps {
   id: string
   label: string
@@ -25,9 +27,12 @@ export interface EntryTextFieldProps {
   // Positioned over the editor (absolute, inside a relative frame): the live-hint popover.
   overlay?: ReactNode
   footer?: ReactNode
+  ghost?: string
+  // Replaces the sentence under the editor (it is also the editor's accessible description).
+  hint?: string
 }
 
-export function EntryTextField({ id, label, value, onChange, onSubmitShortcut, readOnly = false, textareaRef, decorations, textareaEvents, onTextareaChange, overlay, footer }: EntryTextFieldProps) {
+export function EntryTextField({ id, label, value, onChange, onSubmitShortcut, readOnly = false, textareaRef, decorations, textareaEvents, onTextareaChange, overlay, footer, ghost, hint = BRACKET_HINT }: EntryTextFieldProps) {
   const hintId = `${id}-hint`
   const countId = `${id}-count`
   const overId = `${id}-over`
@@ -49,6 +54,7 @@ export function EntryTextField({ id, label, value, onChange, onSubmitShortcut, r
           ref={textareaRef}
           value={value}
           decorations={decorations ?? chips}
+          ghost={ghost}
           readOnly={readOnly}
           aria-describedby={over > 0 ? `${hintId} ${countId} ${overId}` : `${hintId} ${countId}`}
           aria-invalid={over > 0}
@@ -62,7 +68,7 @@ export function EntryTextField({ id, label, value, onChange, onSubmitShortcut, r
         {overlay}
       </div>
       <div className="flex flex-wrap justify-between gap-2 text-sm text-muted">
-        <p id={hintId}>Stuck on a word? Write it in English, in [brackets] or not, and you'll get the word.</p>
+        <p id={hintId}>{hint}</p>
         <p id={countId} className="flex gap-3">
           <span>{pluralize(countWords(value), 'word')}</span>
           <span className={cn(over > 0 && 'font-medium text-danger')}>{`${length} / ${MAX_ENTRY_CHARS}`}</span>

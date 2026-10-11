@@ -4,9 +4,9 @@ import { createRef, useState } from 'react'
 import { describe, expect, it } from 'vitest'
 import { CHIP_CLASS, HighlightedTextarea } from '.'
 
-function Harness({ initial = 'en el [park].', readOnly = false }: { initial?: string; readOnly?: boolean }) {
+function Harness({ initial = 'en el [park].', readOnly = false, ghost }: { initial?: string; readOnly?: boolean; ghost?: string }) {
   const [value, setValue] = useState(initial)
-  return <HighlightedTextarea aria-label="Your entry" value={value} readOnly={readOnly} onChange={(event) => setValue(event.target.value)} decorations={[{ start: 6, end: 12, className: CHIP_CLASS }]} />
+  return <HighlightedTextarea aria-label="Your entry" value={value} readOnly={readOnly} onChange={(event) => setValue(event.target.value)} decorations={[{ start: 6, end: 12, className: CHIP_CLASS }]} ghost={ghost} />
 }
 
 // The backdrop is aria-hidden by design (the textarea is the accessible control), so it is reached through the DOM.
@@ -32,6 +32,25 @@ describe('HighlightedTextarea', () => {
     expect(marks).toHaveLength(1)
     expect(marks[0]).toHaveTextContent('[park]')
     expect(marks[0]).toHaveClass('bg-primary-soft', 'shadow-chip')
+  })
+
+  it('draws the ghost in the aria-hidden backdrop after the last character, and leaves the value alone', () => {
+    // Arrange + Act
+    const { container } = render(<Harness ghost=" y luego" />)
+    // Assert
+    const ghost = container.querySelector('[data-ghost]')
+    expect(ghost).toHaveTextContent('y luego')
+    expect(ghost).toHaveClass('text-muted')
+    expect(ghost?.closest('[aria-hidden="true"]')).toBe(backdrop(container))
+    expect(ghost?.previousSibling).toHaveTextContent('.')
+    expect(screen.getByRole('textbox')).toHaveValue('en el [park].')
+  })
+
+  it('draws no ghost without one', () => {
+    // Arrange + Act
+    const { container } = render(<Harness />)
+    // Assert
+    expect(container.querySelector('[data-ghost]')).not.toBeInTheDocument()
   })
 
   it('scrolls the backdrop with the textarea', () => {

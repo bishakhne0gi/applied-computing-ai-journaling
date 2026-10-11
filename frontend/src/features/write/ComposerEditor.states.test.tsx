@@ -34,7 +34,7 @@ describe('ComposerEditor live hint states', () => {
     // Act
     await user.click(screen.getByRole('switch', { name: 'Live hints' }))
     // Assert
-    expect(screen.getByRole('switch')).toHaveAttribute('aria-checked', 'false')
+    expect(screen.getByRole('switch', { name: 'Live hints' })).toHaveAttribute('aria-checked', 'false')
     expect(screen.queryByRole('button', { name: '1 hint' })).not.toBeInTheDocument()
     expect(localStorage.getItem(STORAGE_KEYS.liveHints)).toBe('off')
   })
