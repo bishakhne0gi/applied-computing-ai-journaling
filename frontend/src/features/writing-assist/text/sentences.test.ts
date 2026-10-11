@@ -14,6 +14,23 @@ describe('sentences', () => {
   })
 
   it.each([
+    ['es', 'El Sr. García vino a casa. Bien.', ['El Sr. García vino a casa.', 'Bien.']],
+    ['es', 'Vivo en EE. UU. desde ayer. Bien.', ['Vivo en EE. UU. desde ayer.', 'Bien.']],
+    ['de', 'Das ist z. B. gut. Ok.', ['Das ist z. B. gut.', 'Ok.']],
+    ['en', 'J. R. R. Tolkien wrote it. Hello.', ['J. R. R. Tolkien wrote it.', 'Hello.']],
+    ['fr', 'M. Dupont est là. Oui.', ['M. Dupont est là.', 'Oui.']],
+    ['es', 'Vivo en EE. UU. Me gusta.', ['Vivo en EE. UU.', 'Me gusta.']],
+  ])('keeps abbreviations inside the sentence: %s', (language, text, expected) => {
+    expect(sentenceSpans(text, language).map(({ start, end }) => text.slice(start, end))).toEqual(expected)
+  })
+
+  it('leaves a leading emoji after a terminator with the previous sentence, out of the next span', () => {
+    const text = 'Hola a todos. 😊 Hoy yo soy feliz.'
+    const spans = sentenceSpans(text, 'es').map(({ start, end }) => text.slice(start, end))
+    expect(spans).toEqual(['Hola a todos. 😊', 'Hoy yo soy feliz.'])
+  })
+
+  it.each([
     [0, 'Ayer fui al mercado.'],
     [20, 'Ayer fui al mercado.'],
     [TEXT.length, 'Hoy yo es muy feliz con mi familia.'],
