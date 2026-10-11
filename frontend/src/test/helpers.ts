@@ -39,6 +39,21 @@ export function slowDown(method: Method, path: string, ms = 100): void {
   )
 }
 
+// Like slowDown, but the response waits for the returned release(): a test that must act while a request is pending
+// cannot race a timer on a loaded machine.
+export function holdResponse(method: Method, path: string): () => void {
+  let release: () => void = () => undefined
+  const released = new Promise<void>((resolve) => {
+    release = resolve
+  })
+  server.use(
+    http[method](apiUrl(path), async () => {
+      await released
+    }),
+  )
+  return release
+}
+
 export function failWith(method: Method, path: string, status = 500): void {
   server.use(
     http[method](apiUrl(path), () =>

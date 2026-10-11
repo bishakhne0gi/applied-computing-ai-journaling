@@ -1,7 +1,7 @@
 import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
-import { setMockMode, slowDown, waitForLanguages } from '@/test/helpers'
+import { holdResponse, setMockMode, waitForLanguages } from '@/test/helpers'
 import { renderWithProviders } from '@/test/renderWithProviders'
 import { ENDPOINTS } from '@/utils/endpoints'
 import { Workspace } from './Workspace'
@@ -26,10 +26,11 @@ async function leaveWhileAnalysing(user: ReturnType<typeof userEvent.setup>) {
 describe('Workspace background toasts', () => {
   it('tells the learner when feedback arrives after they left the composer', async () => {
     // Arrange
-    slowDown('post', ENDPOINTS.analyses(':entryId'), 300)
+    const release = holdResponse('post', ENDPOINTS.analyses(':entryId'))
     const user = await submitEntry()
     // Act
     await leaveWhileAnalysing(user)
+    release()
     // Assert
     expect(await screen.findByText(/Feedback is ready/)).toBeInTheDocument()
   })
@@ -37,10 +38,11 @@ describe('Workspace background toasts', () => {
   it('says so when that analysis fails', async () => {
     // Arrange
     setMockMode('analysis-fail')
-    slowDown('post', ENDPOINTS.analyses(':entryId'), 300)
+    const release = holdResponse('post', ENDPOINTS.analyses(':entryId'))
     const user = await submitEntry()
     // Act
     await leaveWhileAnalysing(user)
+    release()
     // Assert
     expect(await screen.findByText(/did not finish/)).toBeInTheDocument()
   })
