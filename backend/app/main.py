@@ -50,8 +50,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             yield
         finally:
             # Closes the provider's pooled HTTP client and flushes queued traces before the process exits.
-            await app.state.analyzer.aclose()
-            await engine.dispose()
+            try:
+                await app.state.analyzer.aclose()
+            finally:
+                await engine.dispose()
 
     app = FastAPI(title="Language Journal API", version=settings.release, lifespan=lifespan)
     app.add_middleware(

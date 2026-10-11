@@ -41,6 +41,59 @@ async def test_shutdown_closes_the_analyzer_even_after_a_crash(settings: Setting
     assert spy.closed
 
 
+class _OrderedAnalyzer:
+    def __init__(self, calls: list[str], *, fail: bool = False) -> None:
+        self._calls = calls
+        self._fail = fail
+
+    async def aclose(self) -> None:
+        self._calls.append("analyzer.aclose")
+        if self._fail:
+            raise RuntimeError("provider close failed")
+
+
+class _OrderedEngine:
+    def __init__(self, calls: list[str]) -> None:
+        self._calls = calls
+
+    async def dispose(self) -> None:
+        self._calls.append("engine.dispose")
+
+
+def _record_engine(monkeypatch: pytest.MonkeyPatch, calls: list[str]) -> None:
+    monkeypatch.setattr(main, "create_engine", lambda _url: _OrderedEngine(calls))
+    monkeypatch.setattr(main, "create_sessionmaker", lambda _engine: None)
+
+
+async def test_shutdown_closes_the_analyzer_before_disposing_the_engine(
+    settings: Settings, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    calls: list[str] = []
+    _record_engine(monkeypatch, calls)
+    app = main.create_app(settings)
+    app.state.analyzer = _OrderedAnalyzer(calls)
+
+    async with app.router.lifespan_context(app):
+        pass
+
+    assert calls == ["analyzer.aclose", "engine.dispose"]
+
+
+async def test_a_failing_analyzer_close_still_disposes_the_engine_and_propagates(
+    settings: Settings, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    calls: list[str] = []
+    _record_engine(monkeypatch, calls)
+    app = main.create_app(settings)
+    app.state.analyzer = _OrderedAnalyzer(calls, fail=True)
+
+    with pytest.raises(RuntimeError, match="provider close failed"):
+        async with app.router.lifespan_context(app):
+            pass
+
+    assert calls == ["analyzer.aclose", "engine.dispose"]
+
+
 def _capture_tracer_kwargs(monkeypatch: pytest.MonkeyPatch) -> dict[str, Any]:
     seen: dict[str, Any] = {}
 
