@@ -36,10 +36,14 @@ element's props, `ref` as a plain prop (React 19), Tailwind token utilities merg
 | `EmptyState` | — | dashed box: title + the next useful action as `children` |
 | `Card` | `as`: `div` (default), `section` | hairline card, `shadow-sm`; override padding/background with `className` |
 | `PageHeading` | — | `h1`, light 300, `tabIndex -1`, takes `ref` so the workspace can focus it |
+| `Icon` | `name`: `close`, `check`, `alert`, `menu`, `chart`, `plus` | inline 24px stroke SVG, `aria-hidden`; the control around it carries the name |
+| `Sheet` | `side`: `left`, `right`, `bottom` | modal dialog in a portal (SmoothUI drawer motion, MIT): heading focused on open, Esc/scrim/Close dismiss, Tab trapped, focus restored unless the user moved on, page scroll locked |
 
 ## 3. Composition
 Features compose primitives. Prefer compound components (`<Tabs><Tabs.List/><Tabs.Panel/></Tabs>`) and
 `children` over boolean props (`isCompact`, `hasIcon`, …). A new variant is a prop value, not a new component.
+
+Motion: only `m.*` from `motion/react` (LazyMotion is strict); every animated element skips offsets and uses `{ duration: 0 }` when `useReducedMotion()` is true. Springs: `{ type: 'spring', bounce: 0–0.1, duration: 0.25–0.3 }`.
 
 Charts are plain SVG (no chart library): colour-role utilities `stroke-primary`, `fill-primary`, `stroke-border`,
 `fill-none`, widths `stroke-1`/`stroke-2`, `vectorEffect="non-scaling-stroke"` on lines. The `<svg>` is
