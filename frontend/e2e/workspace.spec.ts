@@ -1,28 +1,28 @@
 import { expect, test, type Page } from '@playwright/test'
 import { expectNoA11yViolations } from './a11y'
 import { expectButtonsShowPointer } from './cursor'
-import { mainColumn, openEntries } from './workspace'
+import { mainColumn, openEntries, ENTRY_TITLE } from './workspace'
 
 async function expectFitsWidth(page: Page): Promise<void> {
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)
   expect(overflow).toBeLessThanOrEqual(0)
 }
 
-const heading = (page: Page, name: string) => mainColumn(page).getByRole('heading', { level: 1, name })
+const heading = (page: Page, name: string | RegExp) => mainColumn(page).getByRole('heading', { level: 1, name })
 
 test('Back and Forward walk between the composer and entries without leaving the workspace', async ({ page }) => {
   // Arrange
   await page.goto('/')
   const entries = await openEntries(page)
   await entries.getByRole('link', { name: /Je suis allé au marché/ }).click()
-  await expect(heading(page, 'Entry')).toBeVisible()
+  await expect(heading(page, ENTRY_TITLE)).toBeVisible()
   // Act
   await page.goBack()
   // Assert
   await expect(heading(page, 'Write')).toBeVisible()
   await expect(page).toHaveURL('/')
   await page.goForward()
-  await expect(heading(page, 'Entry')).toBeVisible()
+  await expect(heading(page, ENTRY_TITLE)).toBeVisible()
 })
 
 test('every surface fits a 375px screen', async ({ page }) => {
@@ -35,7 +35,7 @@ test('every surface fits a 375px screen', async ({ page }) => {
   await expect(entries.getByRole('list', { name: 'Entries' })).toBeVisible()
   await expectFitsWidth(page)
   await entries.getByRole('link', { name: /Hoy 😀 la problema/ }).click()
-  await expect(heading(page, 'Entry')).toBeVisible()
+  await expect(heading(page, ENTRY_TITLE)).toBeVisible()
   await expectFitsWidth(page)
   await page.getByRole('button', { name: 'Insights', exact: true }).click()
   await expect(page.getByRole('dialog', { name: 'Insights' }).getByRole('region', { name: 'Summary' })).toBeVisible()

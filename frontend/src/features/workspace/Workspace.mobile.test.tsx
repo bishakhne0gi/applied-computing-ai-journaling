@@ -1,3 +1,4 @@
+import { ENTRY_TITLE } from '@/test/helpers'
 import { act, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -78,7 +79,7 @@ describe('Workspace on a phone', () => {
     await user.click(await within(sheet()).findByRole('link', { name: /Je suis allé au marché/ }))
     // Assert
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
-    expect(await within(main()).findByRole('heading', { level: 1, name: 'Entry' })).toHaveFocus()
+    expect(await within(main()).findByRole('heading', { level: 1, name: ENTRY_TITLE })).toHaveFocus()
   })
 
   it('closes on "New entry" and focuses the editor', async () => {
@@ -95,7 +96,7 @@ describe('Workspace on a phone', () => {
     // Arrange
     const user = await openEntriesSheet()
     await user.click(await within(sheet()).findByRole('link', { name: /Je suis allé au marché/ }))
-    await within(main()).findByRole('heading', { level: 1, name: 'Entry' })
+    await within(main()).findByRole('heading', { level: 1, name: ENTRY_TITLE })
     // Act
     await user.click(screen.getByRole('button', { name: 'Go back' }))
     // Assert

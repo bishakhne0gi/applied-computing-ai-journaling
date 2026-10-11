@@ -16,17 +16,17 @@ export interface WorkspaceHeaderProps {
 export function WorkspaceHeader({ insights, children }: WorkspaceHeaderProps) {
   const { composerHref } = useWorkspaceParams()
   return (
-    <header className="border-b border-border bg-linear-to-r from-band via-band-violet to-band-pink">
-      <div className="flex min-h-15 items-center gap-3 px-4 py-2 lg:px-6">
+    <header className="sticky top-0 z-sticky h-header border-b border-border bg-linear-to-r from-band via-band-violet to-band-pink">
+      <div className="flex h-full items-center gap-3 px-4 lg:px-6">
         {children}
         <Link to={composerHref} className="shrink-0 text-base font-light tracking-tight whitespace-nowrap text-fg sm:text-lg">
           Language Journal
         </Link>
         <LanguageStatus />
         {insights && (
-          <Button className="ml-auto" aria-haspopup="dialog" aria-expanded={insights.open} onClick={insights.onOpen}>
+          <Button className="ml-auto max-sm:size-11 max-sm:px-0" aria-haspopup="dialog" aria-expanded={insights.open} onClick={insights.onOpen}>
             <Icon name="chart" className="size-4" />
-            {/* Icon-only on phones: with the Entries button and the language badge the row would overflow 375px. */}
+            {/* Icon-only (a round 44px target) on phones: with the Entries button the row would overflow 375px. */}
             <span className="sr-only sm:not-sr-only">Insights</span>
           </Button>
         )}

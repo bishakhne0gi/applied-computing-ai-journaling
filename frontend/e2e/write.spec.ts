@@ -25,7 +25,7 @@ test('writing an entry shows inline feedback, a detail panel and the corrected v
   await mainColumn(page).getByRole('button', { name: 'Get feedback' }).click()
   // Assert
   await expect(page.getByRole('heading', { name: 'Feedback' })).toBeVisible()
-  await expect(mainColumn(page).getByRole('status')).toHaveText('Saved')
+  await expect(mainColumn(page).getByText(/^Saved/)).toHaveCount(0)
   await expectHealthy(page)
   const highlight = page.getByRole('button', { name: /yo es/ })
   await highlight.click()

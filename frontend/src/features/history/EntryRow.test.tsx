@@ -30,7 +30,7 @@ describe('history rows', () => {
     const row = rowContaining('Hoy 😀 la problema')
     // Assert
     expect(within(row).getByRole('link')).toHaveAttribute('href', `/?entry=${SEEDED.emoji}`)
-    expect(row).toHaveTextContent(/Oct \d{1,2}, 2026/)
+    expect(row).toHaveTextContent(/Oct \d{1,2}, \d{1,2}:\d{2}/)
     expect(within(row).getByText('2 errors')).toBeInTheDocument()
   })
 
@@ -41,7 +41,7 @@ describe('history rows', () => {
     const link = within(rowContaining('Mañana voy a el cine')).getByRole('link')
     // Assert
     expect(link).toHaveAccessibleName('Mañana voy a el cine con mis amigos.')
-    expect(link).toHaveAccessibleDescription(/^Oct \d{1,2}, 2026, .* · Spanish Analysis failed$/)
+    expect(link).toHaveAccessibleDescription(/^Oct \d{1,2}, .* · Spanish Analysis failed$/)
   })
 
   it('mark the open entry as the current one', async () => {
@@ -66,7 +66,7 @@ describe('history rows', () => {
     // Arrange
     const user = await renderRows()
     const row = rowContaining('Mañana voy a el cine')
-    expect(within(row).getByText('Analysis failed')).toBeInTheDocument()
+    expect(row).toHaveTextContent('Analysis failed')
     // Act
     await user.click(within(row).getByRole('button', { name: /^Retry analysis/ }))
     // Assert
@@ -101,7 +101,7 @@ describe('history rows', () => {
     // Arrange
     const user = await renderRows()
     const row = rowContaining('Hier, je suis allé')
-    expect(within(row).getByText('Analysis interrupted')).toBeInTheDocument()
+    expect(row).toHaveTextContent('Analysis interrupted')
     // Act
     await user.click(within(row).getByRole('button', { name: /^Retry analysis/ }))
     // Assert

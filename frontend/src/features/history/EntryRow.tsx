@@ -7,7 +7,7 @@ import { useRunAnalysisMutation } from '@/hooks/mutations/useRunAnalysisMutation
 import { useLanguageName } from '@/features/languages/useLanguageName'
 import type { EntrySummaryOut } from '@/types/entry'
 import { toErrorMessage } from '@/utils/errorMessage'
-import { formatDateTime, pluralize } from '@/utils/formatter'
+import { formatShortDateTime, pluralize } from '@/utils/formatter'
 import { cn } from '@/utils/utils'
 import { RetryAnalysisButton } from './RetryAnalysisButton'
 
@@ -15,13 +15,18 @@ export interface EntryRowProps {
   entry: EntrySummaryOut
 }
 
+// Short visible words keep every row on one meta line; the hidden "Analysis" keeps the spoken status complete.
 function EntryStatus({ entry, id }: EntryRowProps & { id: string }) {
   if (entry.latest_status === 'succeeded') {
     return <Badge id={id} tone={entry.error_count > 0 ? 'danger' : 'success'}>{pluralize(entry.error_count, 'error')}</Badge>
   }
   if (entry.latest_status === null) return <Badge id={id}>Not analyzed</Badge>
   // A pending latest analysis outlived its request (client went away mid-call), so it is as retryable as a failure.
-  return <Badge id={id} tone="warning">{entry.latest_status === 'pending' ? 'Analysis interrupted' : 'Analysis failed'}</Badge>
+  return (
+    <Badge id={id} tone="warning">
+      <span className="sr-only">Analysis</span> <span className="capitalize">{entry.latest_status === 'pending' ? 'interrupted' : 'failed'}</span>
+    </Badge>
+  )
 }
 
 const OUTCOME_MESSAGE = { succeeded: 'Feedback ready', failed: 'Analysis failed again', pending: '' } as const
@@ -49,12 +54,12 @@ export function EntryRow({ entry }: EntryRowProps) {
       <Link ref={linkRef} to={entryHref(entry.id)} aria-current={current ? 'true' : undefined} aria-describedby={`${metaId} ${statusId}`} data-ring="custom" className={linkClass}>
         <span className="line-clamp-2">{entry.preview}</span>
       </Link>
-      <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 text-xs text-fg-secondary">
-        <span id={metaId}>
-          {formatDateTime(entry.created_at)} · {languageName}
+      <div className="flex min-h-5 items-center justify-between gap-2 text-xs text-fg-secondary">
+        <span id={metaId} className="min-w-0 truncate">
+          {formatShortDateTime(entry.created_at)} · {languageName}
         </span>
-        <span className="ml-auto flex items-center gap-2">
-          <EntryStatus entry={entry} id={statusId} />
+        {/* The action sits before the pill so every pill ends on the same right edge. */}
+        <span className="flex shrink-0 items-center gap-2">
           {entry.latest_status !== 'succeeded' && (
             <RetryAnalysisButton
               label={entry.latest_status === null ? 'Get feedback' : 'Retry analysis'}
@@ -63,6 +68,7 @@ export function EntryRow({ entry }: EntryRowProps) {
               onRetry={() => analyze.mutate(entry.id)}
             />
           )}
+          <EntryStatus entry={entry} id={statusId} />
         </span>
       </div>
       {analyze.error ? <InlineAlert>{toErrorMessage(analyze.error)}</InlineAlert> : null}

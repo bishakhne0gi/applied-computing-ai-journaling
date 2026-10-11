@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { Button } from '@/components/ui/Button'
 import { EntryTextField } from '@/features/editor/EntryTextField'
 import { LanguageSelect } from '@/features/languages/LanguageSelect'
@@ -18,11 +19,13 @@ export interface EntryFormProps {
   text: string
   onTextChange: (text: string) => void
   phase: WritePhase
+  // The live status line; it sits beside the button so the outcome of pressing it reads in one place.
+  status?: ReactNode
   focusOnMount: boolean
   onSubmit: () => void
 }
 
-export function EntryForm({ language, onLanguageChange, text, onTextChange, phase, focusOnMount, onSubmit }: EntryFormProps) {
+export function EntryForm({ language, onLanguageChange, text, onTextChange, phase, status, focusOnMount, onSubmit }: EntryFormProps) {
   const focusRef = useFocusOnMount<HTMLTextAreaElement>()
   const locked = phase !== 'editing'
   const canSubmit = !locked && language !== '' && isSubmittableEntry(text)
@@ -43,11 +46,12 @@ export function EntryForm({ language, onLanguageChange, text, onTextChange, phas
         <LanguageSelect id="entry-language" label="Language" value={language} onChange={onLanguageChange} disabled={locked} />
       </div>
       <EntryTextField id="entry-text" label="Your entry" value={text} onChange={onTextChange} onSubmitShortcut={submit} readOnly={locked} textareaRef={focusOnMount ? focusRef : undefined} />
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
         <Button type="submit" variant="primary" disabled={!canSubmit}>
           {SUBMIT_LABELS[phase]}
         </Button>
-        <p className="text-sm text-muted">or press ⌘/Ctrl + Enter</p>
+        {!locked && <p className="text-sm text-muted">or press ⌘/Ctrl + Enter</p>}
+        <div className="sm:ml-auto">{status}</div>
       </div>
     </form>
   )

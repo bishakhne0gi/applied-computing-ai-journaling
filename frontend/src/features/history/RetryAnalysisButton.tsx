@@ -1,4 +1,6 @@
 import { Button } from '@/components/ui/Button'
+import { Icon } from '@/components/ui/Icon'
+import { cn } from '@/utils/utils'
 
 export interface RetryAnalysisButtonProps {
   label: string
@@ -8,18 +10,20 @@ export interface RetryAnalysisButtonProps {
   onRetry: () => void
 }
 
-// Sits on the row's meta line: negative margins keep the 44px target without making the row taller.
+// An icon beside the status pill, so every row keeps one meta line; the negative margins keep a 44px target without
+// making that line taller or pushing the pill.
 export function RetryAnalysisButton({ label, preview, pending, onRetry }: RetryAnalysisButtonProps) {
   const text = pending ? 'Analyzing…' : label
   return (
     <Button
-      variant="ghost"
+      variant="icon"
       onClick={onRetry}
       disabled={pending}
       aria-label={`${text}: ${preview}`}
-      className="relative -my-3 -mr-2 px-2 text-xs text-primary hover:bg-transparent hover:text-primary-pressed hover:underline"
+      title={text}
+      className="relative -m-3 text-primary hover:bg-transparent hover:text-primary-pressed"
     >
-      {text}
+      <Icon name={label === 'Get feedback' ? 'sparkle' : 'refresh'} className={cn('size-4', pending && 'motion-safe:animate-spin')} />
     </Button>
   )
 }

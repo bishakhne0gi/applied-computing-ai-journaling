@@ -1,3 +1,4 @@
+import { cn } from '@/utils/utils'
 import type { WritePhase } from './useWriteSession'
 
 const MESSAGES: Record<WritePhase, string> = {
@@ -13,12 +14,13 @@ export interface WriteStatusProps {
   draftPersisted: boolean
 }
 
-// Always rendered so screen readers hear each change; the fixed height avoids layout shift.
+// Always rendered so screen readers hear each change. Progress is spoken only: the button label already shows it,
+// and printing it twice beside the button would be noise.
 export function WriteStatus({ phase, hasDraft, draftPersisted }: WriteStatusProps) {
   const draftMessage = draftPersisted ? 'Draft kept on this device' : 'Draft not saved on this device'
   const message = phase === 'editing' && hasDraft ? draftMessage : MESSAGES[phase]
   return (
-    <p role="status" className="min-h-5 text-sm text-muted">
+    <p role="status" className={cn('text-sm text-muted', phase !== 'editing' && 'sr-only')}>
       {message}
     </p>
   )

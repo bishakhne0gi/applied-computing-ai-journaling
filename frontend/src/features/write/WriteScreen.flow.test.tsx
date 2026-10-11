@@ -27,12 +27,15 @@ describe('WriteScreen submitting', () => {
     // Arrange
     slowDown('post', ENDPOINTS.analyses(':entryId'))
     const user = await startWithDraft()
+    expect(screen.getByText(/^Write freely/)).toBeInTheDocument()
     // Act
     await user.click(getFeedback())
     // Assert
     expect(await screen.findByText('Saved. Analyzing…')).toBeInTheDocument()
     expect(await screen.findByRole('heading', { name: 'Feedback' })).toBeInTheDocument()
-    expect(screen.getByRole('status')).toHaveTextContent(/^Saved$/)
+    // The feedback is the status now: no leftover "Saved" line or writing prompt above it.
+    expect(screen.queryByText(/^Saved/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/^Write freely/)).not.toBeInTheDocument()
     expect(localStorage.getItem(STORAGE_KEYS.draft)).toBeNull()
   })
 

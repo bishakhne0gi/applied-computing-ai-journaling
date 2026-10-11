@@ -63,13 +63,19 @@
   /* Spread-only outline for editor chips: grows the tint without padding, so glyph positions never move. */
   --shadow-chip: 0 0 0 0.125rem var(--color-primary-soft);
 
+  /* The sticky header's height; the desktop sidebar fills the rest of the viewport below it and scrolls on its own. */
+  --spacing-header: 3.75rem;
+  --spacing-below-header: calc(100dvh - var(--spacing-header));
+
   --z-index-dropdown: 10;
   --z-index-sticky: 20;
   --z-index-overlay: 30;
   --z-index-toast: 40;
 
-  --container-sidebar: 20rem;
-  --container-main: 44rem;
+  --container-sidebar: 21rem;
+
+  /* Wide enough to fill the column beside the sidebar at 1280px; running text inside keeps max-w-prose. */
+  --container-main: 56rem;
   --container-sheet: 36rem;
 }
 

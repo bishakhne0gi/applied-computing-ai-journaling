@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test'
 import { expectNoA11yViolations } from './a11y'
 import { expectButtonsShowPointer } from './cursor'
-import { mainColumn, openEntries } from './workspace'
+import { mainColumn, openEntries, ENTRY_TITLE } from './workspace'
 import { pickOption } from './select'
 
 async function expectHealthy(page: Page): Promise<void> {
@@ -25,7 +25,7 @@ test('the sidebar filters and pages entries, then opens one whose past analyses 
   await entries.getByRole('link', { name: /Je suis allé au marché/ }).click()
   // Assert
   const main = mainColumn(page)
-  await expect(main.getByRole('heading', { level: 1, name: 'Entry' })).toBeFocused()
+  await expect(main.getByRole('heading', { level: 1, name: ENTRY_TITLE })).toBeFocused()
   await expect(main.getByText('Great job — no mistakes found!')).toBeVisible()
   await expect(page).toHaveURL(/[?&]entry=00000000-0000-4000-8000-000000000001/)
   await expectHealthy(page)
@@ -50,7 +50,8 @@ test('an interrupted analysis is flagged in the sidebar and can be retried in pl
   await page.goto('/')
   const entries = await openEntries(page)
   const row = entries.getByRole('listitem').filter({ hasText: 'Hier, je suis allé' })
-  await expect(row.getByText('Analysis interrupted')).toBeVisible()
+  await expect(row.getByText('interrupted', { exact: true })).toBeVisible()
+  await expect(row).toContainText('Analysis interrupted')
   await expectHealthy(page)
   // Act
   await row.getByRole('button', { name: /^Retry analysis/ }).click()

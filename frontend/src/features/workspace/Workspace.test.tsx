@@ -2,7 +2,7 @@ import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { SEEDED } from '@/mocks/seed'
-import { waitForLanguages } from '@/test/helpers'
+import { waitForLanguages, ENTRY_TITLE } from '@/test/helpers'
 import { LocationProbe } from '@/test/LocationProbe'
 import { renderWithProviders } from '@/test/renderWithProviders'
 import { Workspace } from './Workspace'
@@ -32,7 +32,7 @@ describe('Workspace', () => {
     // Act
     await user.click(await marketRow())
     // Assert
-    expect(await within(main()).findByRole('heading', { level: 1, name: 'Entry' })).toHaveFocus()
+    expect(await within(main()).findByRole('heading', { level: 1, name: ENTRY_TITLE })).toHaveFocus()
     expect(await marketRow()).toHaveAttribute('aria-current', 'true')
     expect(location()).toHaveTextContent(`/?entry=${SEEDED.revisedFrench}`)
     expect(within(main()).queryByLabelText('Your entry')).not.toBeInTheDocument()
@@ -41,7 +41,7 @@ describe('Workspace', () => {
   it('starts a new entry from the sidebar: selection cleared, editor focused', async () => {
     // Arrange
     const user = renderWorkspace(`/?entry=${SEEDED.emoji}`)
-    await within(main()).findByRole('heading', { level: 1, name: 'Entry' })
+    await within(main()).findByRole('heading', { level: 1, name: ENTRY_TITLE })
     // Act
     await user.click(within(sidebar()).getByRole('button', { name: 'New entry' }))
     // Assert
@@ -68,7 +68,7 @@ describe('Workspace', () => {
     await waitForLanguages()
     await user.type(within(main()).getByLabelText('Your entry'), 'Hola amigos')
     await user.click(await marketRow())
-    await within(main()).findByRole('heading', { level: 1, name: 'Entry' })
+    await within(main()).findByRole('heading', { level: 1, name: ENTRY_TITLE })
     // Act
     await user.click(screen.getByRole('button', { name: 'Go back' }))
     // Assert

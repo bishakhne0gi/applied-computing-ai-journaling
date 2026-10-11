@@ -15,7 +15,7 @@ export interface AnnotatedTextProps {
 
 export function AnnotatedText({ text, placed, selectedId, panelId, onSelect }: AnnotatedTextProps) {
   return (
-    <p className="text-lg leading-loose whitespace-pre-wrap">
+    <p className="max-w-prose text-lg leading-loose whitespace-pre-wrap">
       {segmentText(text, placed).map(({ text: part, mistake }, index) => {
         if (!mistake) return <span key={`text-${index}`}>{part}</span>
         const selected = mistake.id === selectedId

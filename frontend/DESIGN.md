@@ -10,7 +10,7 @@ Three layers. Always use the lowest layer that already solves the problem.
 | Space / type | Tailwind default rem scale | `p-4`, `gap-3`, `text-sm`, `font-bold` |
 | Shape | `--radius-sm, md, lg, full`, `--shadow-sm, md, lg, chip, focus` | `rounded-lg`, `shadow-lg`, `shadow-chip`; `--shadow-focus` is the global keyboard ring (2px page-colour gap, 2px solid indigo ring, 3px indigo glow at 20%; the gap keeps it visible on a solid indigo button; `:focus-visible` only, unlayered in `global.css`; `data-ring="custom"` opts out for a control that draws its own, like a history row) |
 | Layers | `--z-index-dropdown, sticky, overlay, toast` | `z-overlay` — never `z-10` |
-| Layout | `--container-sidebar` (20rem), `main` (44rem), `sheet` (36rem), `--font-sans` | `w-sidebar`, `max-w-main`, `max-w-sheet` |
+| Layout | `--container-sidebar` (21rem), `main` (56rem), `sheet` (36rem), `--spacing-header` (3.75rem), `below-header` (viewport − header), `--font-sans` | `w-sidebar`, `max-w-main`, `max-w-sheet`, `h-header`, `top-header`, `h-below-header` (the sticky desktop sidebar); running text inside `max-w-main` keeps `max-w-prose` |
 
 Mark contrast (computed, pinned by src/styles/tokens.contrast.test.ts): text fg on each tint ≥12.7:1; mark colour on its tint ≥5.1:1. Visual intent and the full table: /DESIGN.md.
 
@@ -40,12 +40,12 @@ element's props, `ref` as a plain prop (React 19), Tailwind token utilities merg
 | `AnimatedTabs` | 2–4 tabs | controlled segmented tabs (SmoothUI, MIT); arrows/Home/End; only the selected tab is tabbable and has `aria-controls`; pair with `role="tabpanel"` using `tabId`/`panelId` |
 | `Skeleton` | — | `aria-hidden` pulsing block; put skeletons inside `LoadingState` so the label stays for screen readers |
 | `Toast` | `tone`: `success`, `danger`, `neutral` | `useToast().show({ message, tone })`; two always-present `aria-live` regions (polite; assertive for danger), dismiss button, 5s paused on hover/focus, max 3 (SmoothUI, MIT) |
-| `Tooltip` | `align`: `start`, `center` (default), `end` | toggletip: children sit in a real `Button` (`plain` variant); hint shows on hover, focus and click (click toggles), `aria-describedby`, Esc/blur/mouse leave hide (SmoothUI, MIT); for supplementary text only; the trigger is a button, so children must be phrasing content (no block elements or nested interactives) |
+| `Tooltip` | `align`: `start`, `center` (default), `end`; `placement`: `top` (default), `bottom`; `size`: `hint` (default, short dark label), `card` (wider light panel for a few rows) | toggletip: children sit in a real `Button` (`plain` variant); hint shows on hover, focus and click (click toggles), `aria-describedby`, Esc/blur/mouse leave hide (SmoothUI, MIT); for supplementary text only; the trigger is a button, so children must be phrasing content (no block elements or nested interactives) |
 | `EmptyState` | — | dashed box: title + the next useful action as `children` |
 | `Card` | `as`: `div` (default), `section` | hairline card, `shadow-sm`; override padding/background with `className` |
 | `PageHeading` | — | `h1`, light 300, `tabIndex -1`, takes `ref` so the workspace can focus it |
 | `SectionHeading` | `level`: `2` (default), `3` | section titles one step below `PageHeading`: h2 `text-lg` medium in `fg-secondary`, h3 `text-base` medium; never heavier than the light page title |
-| `Icon` | `name`: `close`, `check`, `alert`, `menu`, `chart`, `plus`, `chevron` | inline 24px stroke SVG, `aria-hidden`; the control around it carries the name |
+| `Icon` | `name`: `close`, `check`, `alert`, `menu`, `chart`, `plus`, `chevron`, `info`, `refresh`, `sparkle` | inline 24px stroke SVG, `aria-hidden`; the control around it carries the name |
 | `Sheet` | `side`: `left`, `right`, `bottom` | modal dialog in a portal (SmoothUI drawer motion, MIT): heading focused on open, Esc/scrim/Close dismiss, Tab trapped, focus restored unless the user moved on, page scroll locked |
 | `ErrorBoundary` | — | catches a render error (e.g. a failed lazy chunk) and shows `fallback(retry)`; `onRetry` runs first so the caller can start a fresh import |
 

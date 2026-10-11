@@ -6,6 +6,8 @@ import { useLanguageFilter } from './useLanguageFilter'
 export interface LanguageFilteredProps {
   id: string
   loadingLabel: string
+  // Skeleton shapes of the results, shown while the language list loads.
+  placeholder?: ReactNode
   // Rendered above the filter; gets the language once it is safe to query (undefined while the list loads).
   header?: (language: string | null | undefined) => ReactNode
   hideLabel?: boolean
@@ -14,7 +16,7 @@ export interface LanguageFilteredProps {
 
 // When the language list fails, LanguageSelect owns the only error and retry: results that fail beside it
 // would put a second "Try again" on the same screen.
-export function LanguageFiltered({ id, loadingLabel, header, hideLabel, children }: LanguageFilteredProps) {
+export function LanguageFiltered({ id, loadingLabel, placeholder, header, hideLabel, children }: LanguageFilteredProps) {
   const filter = useLanguageFilter()
   const ready = filter.state === 'ready'
   return (
@@ -24,7 +26,7 @@ export function LanguageFiltered({ id, loadingLabel, header, hideLabel, children
         <LanguageSelect id={id} label="Filter by language" hideLabel={hideLabel} value={filter.language ?? ''} onChange={filter.changeLanguage} allLabel="All languages" />
       </div>
       {ready && children(filter.language)}
-      {filter.state === 'pending' && <LoadingState label={loadingLabel} />}
+      {filter.state === 'pending' && <LoadingState label={loadingLabel}>{placeholder}</LoadingState>}
     </div>
   )
 }

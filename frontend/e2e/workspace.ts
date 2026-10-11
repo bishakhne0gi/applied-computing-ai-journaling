@@ -17,3 +17,6 @@ export const mainColumn = (page: Page): Locator => page.getByRole('main')
 
 /** "Filter by language" also contains "Language", so the composer's select needs an exact match. */
 export const composerLanguage = (page: Page): Locator => page.getByLabel('Language', { exact: true })
+
+/** An open entry is titled by its date ("Thursday, October 9"). */
+export const ENTRY_TITLE = /^(Mon|Tues|Wednes|Thurs|Fri|Satur|Sun)day, [A-Z][a-z]+ \d{1,2}(, \d{4})?$/

@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { beforeAll, describe, expect, it } from 'vitest'
 import { SEEDED } from '@/mocks/seed'
 import { LocationProbe } from '@/test/LocationProbe'
-import { pickOption } from '@/test/helpers'
+import { pickOption, ENTRY_TITLE } from '@/test/helpers'
 import { renderWithProviders } from '@/test/renderWithProviders'
 import { AppRoutes } from './AppRoutes'
 
@@ -55,7 +55,7 @@ describe('routes', () => {
     // Arrange + Act
     renderAt(`/entries/${SEEDED.emoji}`)
     // Assert
-    expect(await screen.findByRole('heading', { level: 1, name: 'Entry' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { level: 1, name: ENTRY_TITLE })).toBeInTheDocument()
     expect(document.body).toHaveFocus()
   })
 

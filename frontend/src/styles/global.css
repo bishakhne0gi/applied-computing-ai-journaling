@@ -1,6 +1,11 @@
 @import './tokens.css';
 
 @layer base {
+  /* Keeps anything scrolled into view (focus, #main) clear of the sticky header. */
+  html {
+    scroll-padding-top: var(--spacing-header);
+  }
+
   body {
     margin: 0;
     font-family: var(--font-sans);

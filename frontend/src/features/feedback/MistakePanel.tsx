@@ -22,7 +22,7 @@ export function MistakePanel({ id, mistake, onClose }: MistakePanelProps) {
   useEffect(() => headingRef.current?.focus(), [mistake.id])
 
   return (
-    <Card as="section" id={id} aria-labelledby={titleId} className="flex flex-col items-start gap-3 bg-surface p-4 md:p-4">
+    <Card as="section" id={id} aria-labelledby={titleId} className="flex max-w-prose flex-col items-start gap-3 bg-surface p-4 md:p-4">
       <SectionHeading level={3} id={titleId} ref={headingRef} tabIndex={-1}>
         <Correction original={mistake.original} correction={mistake.correction} />
       </SectionHeading>

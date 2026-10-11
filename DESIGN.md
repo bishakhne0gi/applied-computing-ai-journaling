@@ -34,7 +34,7 @@ with tight tracking (`text-3xl font-light tracking-tight`); section headings ste
 `tabular-nums`.
 
 ## Space, layout, shape
-8px grid (Tailwind's 0.25rem scale, even steps). Full-width header (white with the band, hairline below), then sidebar `20rem` on `surface` with a hairline right edge + white main column `≤44rem` aligned to the sidebar edge (not centred, so it never floats);
+8px grid (Tailwind's 0.25rem scale, even steps). Sticky full-width header (white with the band, hairline below), then a sticky sidebar `21rem` on `surface` with a hairline right edge and its own scroll + white main column `≤56rem` aligned to the sidebar edge (not centred, so it never floats), running text inside capped at `max-w-prose`;
 insights sheet `36rem` from the right (bottom sheet on phones). Radii 6 / 8 / 12px (`rounded-sm|md|lg`); actions are
 pills (`rounded-full`). Shadows: `sm` resting cards and inputs, `md` popovers, `lg` sheets and toasts.
 
@@ -48,7 +48,7 @@ pills (`rounded-full`). Shadows: `sm` resting cards and inputs, `md` popovers, `
 - **Sheets:** white panel, hairline edge, `shadow-lg`, scrim `fg` at 40%; slide with a short spring.
 - **Tabs:** segmented pill; a white indicator slides under the selected tab.
 - **Toasts:** bottom right (bottom centre on phones), white card with a tone stripe and icon.
-- **Tooltips:** ink background, white text, small; on focus and hover, Esc closes.
+- **Tooltips:** ink background, white text, small; on focus and hover, Esc closes. A `card` tip (the feedback legend) is a wider white card with `shadow-lg`, opening below its trigger.
 - **Skeletons:** `border`-coloured pulsing blocks in the shape of what is loading.
 - **Editor chips:** `[word]` gets a `primary-soft` tint with a spread-only shadow — no padding, so the text never moves.
 

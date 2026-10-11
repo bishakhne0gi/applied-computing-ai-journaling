@@ -49,3 +49,6 @@ export function failWith(method: Method, path: string, status = 500): void {
     ),
   )
 }
+
+// An open entry is titled by its date ("Thursday, October 9"), so tests match the shape, not a fixed day.
+export const ENTRY_TITLE = /^(Mon|Tues|Wednes|Thurs|Fri|Satur|Sun)day, [A-Z][a-z]+ \d{1,2}(, \d{4})?$/

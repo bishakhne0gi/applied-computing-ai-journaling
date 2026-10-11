@@ -5,6 +5,7 @@ import { toErrorMessage } from '@/utils/errorMessage'
 import { EntryForm } from './EntryForm'
 import type { Draft } from './useDraft'
 import type { WriteSession } from './useWriteSession'
+import { WriteStatus } from './WriteStatus'
 
 export interface WriteEditorProps {
   draft: Draft
@@ -17,13 +18,14 @@ export interface WriteEditorProps {
 export function WriteEditor({ draft, session, focusOnMount, newEntryButton }: WriteEditorProps) {
   const { entry, phase } = session
   return (
-    <>
+    <div className="flex flex-col gap-4">
       <EntryForm
         language={entry?.language ?? draft.language}
         onLanguageChange={draft.setLanguage}
         text={entry?.text ?? draft.text}
         onTextChange={draft.setText}
         phase={phase}
+        status={<WriteStatus phase={phase} hasDraft={draft.text.trim() !== ''} draftPersisted={draft.persisted} />}
         focusOnMount={focusOnMount}
         onSubmit={() => session.submit({ language: draft.language, text: draft.text })}
       />
@@ -36,6 +38,6 @@ export function WriteEditor({ draft, session, focusOnMount, newEntryButton }: Wr
           {newEntryButton}
         </div>
       )}
-    </>
+    </div>
   )
 }

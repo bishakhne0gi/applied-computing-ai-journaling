@@ -42,7 +42,12 @@ export function Workspace() {
       </WorkspaceHeader>
       <div className="flex flex-1 flex-col lg:flex-row">
         {desktop && (
-          <aside aria-label="Your entries" className="border-border bg-surface px-6 py-8 lg:w-sidebar lg:shrink-0 lg:border-r">
+          // Sticky with its own scroll, so reaching Progress never scrolls the open entry away; the padding keeps
+          // focus rings and the selected row's tint inside the scroll area's clip.
+          <aside
+            aria-label="Your entries"
+            className="sticky top-header h-below-header w-sidebar shrink-0 self-start overflow-y-auto overscroll-contain border-r border-border bg-surface px-6 py-8"
+          >
             {sidebar}
           </aside>
         )}

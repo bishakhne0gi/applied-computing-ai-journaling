@@ -2,6 +2,7 @@ import { useId } from 'react'
 import { LanguageFiltered } from '@/features/languages/LanguageFiltered'
 import { useEntriesQuery } from '@/hooks/queries/useEntriesQuery'
 import { FilteredHistory } from './FilteredHistory'
+import { RowPlaceholders } from './HistoryResults'
 
 export interface HistoryListProps {
   onStartWriting: () => void
@@ -27,9 +28,10 @@ export function HistoryList({ onStartWriting }: HistoryListProps) {
       <LanguageFiltered
         id={id}
         loadingLabel="Loading entries…"
+        placeholder={<RowPlaceholders />}
         hideLabel
         header={(language) => (
-          <div className="flex items-baseline justify-between gap-2">
+          <div className="flex items-baseline gap-2">
             <h2 id={headingId} className="text-sm font-medium text-fg-secondary">
               History
             </h2>

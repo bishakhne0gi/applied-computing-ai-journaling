@@ -28,7 +28,8 @@ describe('Workspace insights while the code loads', () => {
     // Assert
     const sheet = screen.getByRole('dialog', { name: 'Insights' })
     expect(load).toHaveBeenCalled()
-    expect(within(sheet).getByRole('status')).toHaveTextContent('Loading insights…')
+    // Skeletons from the first frame: the label is for screen readers only.
+    expect(within(within(sheet).getByRole('status')).getByText('Loading insights…')).toHaveClass('sr-only')
     expect(within(sheet).getByRole('heading', { level: 2, name: 'Insights' })).toHaveFocus()
     await user.keyboard('{Escape}')
     expect(insightsButton()).toHaveFocus()

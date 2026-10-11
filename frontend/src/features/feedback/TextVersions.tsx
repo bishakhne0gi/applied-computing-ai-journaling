@@ -36,7 +36,7 @@ export function TextVersions({ analysis, onSwitch, children, hasHighlights }: Te
         />
       </div>
       <div role="tabpanel" id={panelId(prefix, version)} aria-labelledby={tabId(prefix, version)} tabIndex={corrected || !hasHighlights ? 0 : undefined}>
-        {corrected ? <p className="text-lg leading-loose whitespace-pre-wrap">{analysis.corrected_text ?? analysis.input_text}</p> : children}
+        {corrected ? <p className="max-w-prose text-lg leading-loose whitespace-pre-wrap">{analysis.corrected_text ?? analysis.input_text}</p> : children}
       </div>
     </div>
   )

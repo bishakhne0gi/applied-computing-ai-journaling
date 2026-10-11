@@ -1,11 +1,11 @@
 import { EmptyState } from '@/components/ui/EmptyState'
 import { ErrorState } from '@/components/ui/ErrorState'
 import { LoadingState } from '@/components/ui/LoadingState'
-import { Skeleton } from '@/components/ui/Skeleton'
 import { TextLink } from '@/components/ui/TextLink'
 import { useInsightsQuery } from '@/hooks/queries/useInsightsQuery'
 import { toErrorMessage } from '@/utils/errorMessage'
 import { InsightsReport } from './InsightsReport'
+import { InsightsShapes } from './InsightsSkeleton'
 
 export interface InsightsResultsProps {
   language: string | null
@@ -19,8 +19,7 @@ export function InsightsResults({ language }: InsightsResultsProps) {
     if (insights.isError) return <ErrorState message={toErrorMessage(insights.error)} onRetry={() => void insights.refetch()} />
     return (
       <LoadingState label="Loading insights…">
-        <Skeleton className="h-20" />
-        <Skeleton className="h-48" />
+        <InsightsShapes />
       </LoadingState>
     )
   }

@@ -39,7 +39,7 @@ export function FeedbackView({ analysis, actions, focusHeading = false }: Feedba
       <SectionHeading id={headingId} ref={focusHeading ? headingRef : undefined} tabIndex={-1}>
         Feedback
       </SectionHeading>
-      <p>{analysis.feedback_summary}</p>
+      <p className="max-w-prose">{analysis.feedback_summary}</p>
       {analysis.mistakes.length === 0 && <p className="text-muted">Nothing to correct in this entry.</p>}
       <Legend mistakes={analysis.mistakes} />
       <TextVersions analysis={analysis} onSwitch={() => setSelected(null)} hasHighlights={placed.length > 0}>
