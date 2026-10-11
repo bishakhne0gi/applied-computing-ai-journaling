@@ -23,6 +23,7 @@ const phrase = (words: string) => new RegExp(`(?<!\\p{L})${words}(?!\\p{L})`, 'g
 const always = (value: string) => () => value
 
 const GLOSSARY: Record<string, string> = { park: 'parque', pie: 'tarte', paella: 'paella', 'grocery store': 'supermercado' }
+const UNBRACKETED: Record<string, string> = { market: 'mercado', beach: 'playa' }
 const bracketed = (found: string) => found.slice(1, -1)
 
 // The same demo rules as the backend's fake provider, plus a suggestion and a small glossary.
@@ -38,6 +39,14 @@ const RULES: Rule[] = [
     kind: 'vocab_help',
     category: 'vocabulary',
     explanation: 'Here is the word you were looking for.',
+  },
+  {
+    // English written in the running text, with no brackets, is treated like bracket help.
+    pattern: /(?<![\p{L}[])(market|beach)(?![\p{L}\]])/giu,
+    correct: (found) => UNBRACKETED[found.toLowerCase()] ?? found,
+    kind: 'vocab_help',
+    category: 'vocabulary',
+    explanation: 'This is the word for the English you wrote.',
   },
 ]
 

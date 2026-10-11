@@ -25,5 +25,5 @@ export function failureMessage(code: FailureCode | null): string {
 export const KIND_HINTS: Record<MistakeKind, string> = {
   error: 'A mistake in grammar or spelling.',
   suggestion: 'Correct, but not how a native would say it.',
-  vocab_help: 'The word for your [English] in brackets.',
+  vocab_help: 'The word for English you wrote, in [brackets] or not.',
 }

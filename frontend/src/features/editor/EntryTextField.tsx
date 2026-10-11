@@ -62,7 +62,7 @@ export function EntryTextField({ id, label, value, onChange, onSubmitShortcut, r
         {overlay}
       </div>
       <div className="flex flex-wrap justify-between gap-2 text-sm text-muted">
-        <p id={hintId}>Stuck on a word? Write it in English in [brackets] and the feedback will suggest it.</p>
+        <p id={hintId}>Stuck on a word? Write it in English, in [brackets] or not, and you'll get the word.</p>
         <p id={countId} className="flex gap-3">
           <span>{pluralize(countWords(value), 'word')}</span>
           <span className={cn(over > 0 && 'font-medium text-danger')}>{`${length} / ${MAX_ENTRY_CHARS}`}</span>

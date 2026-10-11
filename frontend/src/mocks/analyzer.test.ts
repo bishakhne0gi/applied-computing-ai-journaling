@@ -54,4 +54,22 @@ describe('mock analyzer', () => {
     // Assert
     expect(analysis).toMatchObject({ status: 'failed', error_code: 'provider_timeout', mistakes: [], corrected_text: null })
   })
+
+  it('offers word help for a glossary word written without brackets', () => {
+    // Arrange
+    const text = 'Hoy fui al market con mi madre.'
+    // Act
+    const analysis = analyzeText('entry-1', text)
+    // Assert
+    expect(analysis.mistakes).toHaveLength(1)
+    expect(analysis.mistakes[0]).toMatchObject({ kind: 'vocab_help', category: 'vocabulary', original: 'market', correction: 'mercado', start: 11, end: 17 })
+    expect(analysis.corrected_text).toBe('Hoy fui al mercado con mi madre.')
+  })
+
+  it('keeps a bracketed glossary word as one item', () => {
+    // Arrange + Act
+    const analysis = analyzeText('entry-1', 'Hoy fui al [market] con mi madre.')
+    // Assert
+    expect(analysis.mistakes.map((m) => m.original)).toEqual(['[market]'])
+  })
 })

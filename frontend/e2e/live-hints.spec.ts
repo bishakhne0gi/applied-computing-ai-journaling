@@ -88,3 +88,19 @@ test('when live hints are unavailable, writing and feedback carry on without the
   await mainColumn(page).getByRole('button', { name: 'Get feedback' }).click()
   await expect(mainColumn(page).getByRole('heading', { name: 'Feedback' })).toBeVisible()
 })
+
+test('English without brackets gets word help like a bracket', async ({ page }) => {
+  // Arrange
+  await page.goto('/')
+  await pickOption(composerLanguage(page), 'Spanish')
+  const editor = page.getByLabel('Your entry')
+  // Act
+  await editor.fill('Hoy fui al market con mi madre.')
+  // Assert
+  await expect(mainColumn(page).locator('mark[data-decoration-id]', { hasText: 'market' })).toBeVisible()
+  await mainColumn(page).getByRole('button', { name: '1 hint' }).click()
+  await expect(mainColumn(page).getByText('Word help')).toBeVisible()
+  await mainColumn(page).getByRole('button', { name: 'Accept mercado for market' }).click()
+  await expect(editor).toHaveValue('Hoy fui al mercado con mi madre.')
+  await expectHealthy(page)
+})

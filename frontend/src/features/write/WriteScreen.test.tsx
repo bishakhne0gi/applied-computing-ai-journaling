@@ -63,7 +63,7 @@ describe('WriteScreen while drafting', () => {
     // Arrange + Act
     renderWithProviders(<WriteScreen />)
     // Assert
-    expect(screen.getByLabelText('Your entry')).toHaveAccessibleDescription(/in English in \[brackets\]/)
+    expect(screen.getByLabelText('Your entry')).toHaveAccessibleDescription(/in English, in \[brackets\] or not/)
   })
 
   it('keeps "Get feedback" disabled until there is text', async () => {

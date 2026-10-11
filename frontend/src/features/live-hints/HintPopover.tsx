@@ -33,6 +33,7 @@ export function HintPopover({ hint, onAccept, onDismiss, onClose, onEscape }: Hi
       className="absolute z-dropdown w-72 max-w-full"
     >
       <Card className="flex flex-col gap-2 p-3 text-sm shadow-lg md:p-3">
+        {hint.kind === 'vocab_help' && <p className="text-xs font-medium text-mark-vocab">Word help</p>}
         <p className="font-semibold">
           <Correction original={hint.original} correction={hint.correction} kind={hint.kind} />
         </p>
