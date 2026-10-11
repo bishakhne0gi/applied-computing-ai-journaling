@@ -21,11 +21,13 @@ export function usePassiveDialog(ref: RefObject<HTMLElement | null>, onClose: ()
       if (event.relatedTarget instanceof Node && !root.contains(event.relatedTarget)) onClose()
     }
     root.addEventListener('pointerdown', keepFocus)
+    root.addEventListener('mousedown', keepFocus)
     root.addEventListener('keydown', escape)
     root.addEventListener('focusout', leave)
     document.addEventListener('pointerdown', outside)
     return () => {
       root.removeEventListener('pointerdown', keepFocus)
+    root.removeEventListener('mousedown', keepFocus)
       root.removeEventListener('keydown', escape)
       root.removeEventListener('focusout', leave)
       document.removeEventListener('pointerdown', outside)

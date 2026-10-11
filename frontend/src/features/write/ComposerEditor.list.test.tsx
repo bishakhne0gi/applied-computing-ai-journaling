@@ -29,6 +29,24 @@ describe('ComposerEditor hint list', () => {
     expect(accepts[1]).toHaveFocus()
   })
 
+  it('does not leave focus in the text for even a moment after Accept in the list', async () => {
+    // Arrange
+    const user = await openList(TWO)
+    const entry = screen.getByLabelText('Your entry')
+    const accepts = screen.getAllByRole('button', { name: /^Accept/ })
+    const seen: Element[] = []
+    // The edit has to focus the text to be undoable; focus must have moved on before this task ends.
+    entry.addEventListener('focus', () => setTimeout(() => seen.push(document.activeElement as Element), 0))
+    // Act
+    await user.click(accepts[0] as HTMLElement)
+    await new Promise((resolve) => setTimeout(resolve, 10))
+    // Assert
+    expect(entry).toHaveValue('Hoy yo soy feliz y la problema es grande.')
+    expect(seen).toHaveLength(1)
+    expect(seen).not.toContain(entry)
+    expect(accepts[1]).toHaveFocus()
+  })
+
   it('moves focus to the switch when the last hint is gone', async () => {
     // Arrange
     const user = await openList('Hoy yo es feliz y tranquilo.')

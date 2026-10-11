@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from 'react'
+import { useId, useLayoutEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Icon } from '@/components/ui/Icon'
 import { Switch } from '@/components/ui/Switch'
@@ -25,7 +25,9 @@ export function LiveHintsControls({ on, onToggle, hints, announcement, onAccept,
   const listId = useId()
   const visible = on && hints.length > 0
   if (!visible && expanded) setExpanded(false)
-  useEffect(() => {
+  // Layout effect: applying a hint focuses the text for the undoable edit; moving on in the same task means the text
+  // never stays focused (no lingering keyboard on a phone, no announcement of the textarea).
+  useLayoutEffect(() => {
     const target = focusNext.current
     if (!target) return
     focusNext.current = null

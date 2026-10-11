@@ -3,7 +3,7 @@ import { placePopover } from './placePopover'
 
 // Pixel geometry from the rendered underline cannot be a token, so it is written on the element after layout. It is
 // re-run on scroll (the textarea scrolls its own text) and resize, so the popover stays on its underline.
-export function useAnchorBelow(ref: RefObject<HTMLElement | null>, decorationId: string): void {
+export function useAnchorBelow(ref: RefObject<HTMLElement | null>, decorationId: string, onClose: () => void): void {
   useLayoutEffect(() => {
     const popover = ref.current
     const frame = popover?.parentElement
@@ -11,7 +11,11 @@ export function useAnchorBelow(ref: RefObject<HTMLElement | null>, decorationId:
     const place = () => {
       const mark = Array.from(frame.querySelectorAll<HTMLElement>('mark[data-decoration-id]')).find((candidate) => candidate.dataset.decorationId === decorationId)
       if (!mark) return
-      const at = placePopover(mark.getBoundingClientRect(), frame.getBoundingClientRect(), { width: popover.offsetWidth, height: popover.offsetHeight }, { width: window.innerWidth, height: window.innerHeight })
+      const markBox = mark.getBoundingClientRect()
+      const visible = frame.querySelector('textarea')?.getBoundingClientRect()
+      // The textarea scrolls its own text, so the word can leave its box; a popover left behind would point at nothing.
+      if (visible && (markBox.bottom < visible.top || markBox.top > visible.bottom)) return onClose()
+      const at = placePopover(markBox, frame.getBoundingClientRect(), { width: popover.offsetWidth, height: popover.offsetHeight }, { width: window.innerWidth, height: window.innerHeight })
       popover.style.left = `${at.left}px`
       popover.style.top = `${at.top}px`
     }
@@ -30,5 +34,5 @@ export function useAnchorBelow(ref: RefObject<HTMLElement | null>, decorationId:
       frame.removeEventListener('scroll', later, true)
       window.removeEventListener('resize', later)
     }
-  }, [ref, decorationId])
+  }, [ref, decorationId, onClose])
 }

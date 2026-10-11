@@ -21,12 +21,12 @@ export interface HintPopoverProps {
 export function HintPopover({ hint, onAccept, onDismiss, onClose, onEscape }: HintPopoverProps) {
   const ref = useRef<HTMLDivElement>(null)
   const explanationId = useId()
-  useAnchorBelow(ref, hint.id)
+  useAnchorBelow(ref, hint.id, onClose)
   usePassiveDialog(ref, onClose, onEscape)
   return (
     <div
       ref={ref}
-      role="dialog"
+      role="group"
       data-hint-popover=""
       aria-label={`Hint: ${hint.original} should be ${hint.correction}`}
       aria-describedby={explanationId}
@@ -42,9 +42,6 @@ export function HintPopover({ hint, onAccept, onDismiss, onClose, onEscape }: Hi
         <div className="flex gap-2">
           <Button variant="primary" className="min-h-9 px-4" onClick={onAccept}>
             Accept
-            <kbd aria-hidden="true" className="font-sans text-xs opacity-75 pointer-coarse:hidden">
-              ↵
-            </kbd>
           </Button>
           <Button variant="ghost" className="min-h-9 px-3" onClick={onDismiss}>
             Dismiss

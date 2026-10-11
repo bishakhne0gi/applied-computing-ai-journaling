@@ -51,7 +51,7 @@ test('clicking an underline opens the hint without taking the keyboard; the Acce
   expect(box).not.toBeNull()
   // Act
   if (box) await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2)
-  const popover = page.getByRole('dialog', { name: 'Hint: yo es should be yo soy' })
+  const popover = page.getByRole('group', { name: 'Hint: yo es should be yo soy' })
   await expect(popover).toBeVisible()
   await expect(page.getByLabel('Your entry')).toBeFocused()
   await expectHealthy(page)

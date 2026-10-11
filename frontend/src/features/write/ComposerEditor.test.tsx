@@ -1,34 +1,6 @@
 import { fireEvent, screen, within } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
-import { waitForLanguages } from '@/test/helpers'
-import { renderWithProviders } from '@/test/renderWithProviders'
-import { STORAGE_KEYS } from '@/utils/constants'
-import { WriteScreen } from './WriteScreen'
-
-const TEXT = 'Hoy yo es feliz y tranquilo.'
-const FIXED = 'Hoy yo soy feliz y tranquilo.'
-
-// A stored draft is checked at once (the debounce starts at the current text) and avoids typing `[`.
-async function renderWithDraft(text = TEXT) {
-  localStorage.setItem(STORAGE_KEYS.draft, text)
-  const utils = renderWithProviders(<WriteScreen />)
-  await waitForLanguages()
-  return { user: userEvent.setup(), ...utils }
-}
-
-const editor = () => screen.getByLabelText<HTMLTextAreaElement>('Your entry')
-const hintsButton = () => screen.findByRole('button', { name: '1 hint' })
-const popover = () => screen.queryByRole('dialog', { name: 'Hint: yo es should be yo soy' })
-const inPopover = () => within(screen.getByRole('dialog', { name: 'Hint: yo es should be yo soy' }))
-
-// Caret between «yo» and « es»: strictly inside the underlined words.
-async function openByClick() {
-  const utils = await renderWithDraft()
-  await hintsButton()
-  await utils.user.pointer({ keys: '[MouseLeft]', target: editor(), offset: 6 })
-  return utils
-}
+import { editor, FIXED, hintsButton, inPopover, openByClick, popover, renderWithDraft, TEXT } from '@/test/composerHints'
 
 describe('ComposerEditor live hints', () => {
   it('underlines a likely mistake and lists it as a hint', async () => {
@@ -144,7 +116,7 @@ describe('ComposerEditor live hints', () => {
     expect(popover()).not.toBeInTheDocument()
   })
 
-  it('describes the hint as a non-modal dialog', async () => {
+  it('describes the hint as a passive group', async () => {
     // Arrange + Act
     await openByClick()
     // Assert
@@ -158,7 +130,7 @@ describe('ComposerEditor live hints', () => {
     // Act
     await user.pointer({ keys: '[MouseLeft]', target: editor(), offset: 20 })
     // Assert
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(screen.queryByRole('group')).not.toBeInTheDocument()
   })
 
   it('does not open anything for a click in the blank space after a hinted last word', async () => {
@@ -169,7 +141,7 @@ describe('ComposerEditor live hints', () => {
     // Act
     await user.pointer({ keys: '[MouseLeft]', target: editor(), offset: text.length })
     // Assert
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(screen.queryByRole('group')).not.toBeInTheDocument()
     expect(editor()).toHaveFocus()
   })
 })
