@@ -1,12 +1,18 @@
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { useChangedSinceMount } from '@/hooks/misc/useChangedSinceMount'
 import { useWorkspaceParams } from '@/hooks/misc/useWorkspaceParams'
 import { MainColumn } from './MainColumn'
 import { Sidebar } from './Sidebar'
 import { WorkspaceHeader } from './WorkspaceHeader'
 
+// Insights (and its chart code) load on first open, keeping them off the writing screen's critical path.
+const InsightsSheet = lazy(() => import('./InsightsSheet').then((module) => ({ default: module.InsightsSheet })))
+
 export function Workspace() {
-  const { entryId, selectEntry } = useWorkspaceParams()
+  const { entryId, insightsOpen, selectEntry, openInsights } = useWorkspaceParams()
+  // Stays mounted after the first open so closing can animate out and focus can return to the header button.
+  const [insightsSeen, setInsightsSeen] = useState(insightsOpen)
+  if (insightsOpen && !insightsSeen) setInsightsSeen(true)
   // Bumped by "New entry" so a finished session starts over even when no entry was selected.
   const [composerKey, setComposerKey] = useState(0)
   // False on first load, so a deep link never steals focus; true once the learner moves within the workspace.
@@ -17,7 +23,7 @@ export function Workspace() {
   }
   return (
     <div className="flex min-h-screen flex-col">
-      <WorkspaceHeader />
+      <WorkspaceHeader insightsOpen={insightsOpen} onOpenInsights={openInsights} />
       <div className="mx-auto flex w-full max-w-content flex-1 flex-col px-4 lg:flex-row lg:gap-8 lg:px-6">
         {/* Below lg the composer comes first: the list loading in above it would push it down (layout shift). Task 8 moves the list into a sheet. */}
         <aside
@@ -32,6 +38,11 @@ export function Workspace() {
           </div>
         </main>
       </div>
+      {insightsSeen && (
+        <Suspense fallback={null}>
+          <InsightsSheet />
+        </Suspense>
+      )}
     </div>
   )
 }

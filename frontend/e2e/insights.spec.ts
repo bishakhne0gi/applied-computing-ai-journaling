@@ -13,76 +13,93 @@ async function expectNoHorizontalScroll(page: Page): Promise<void> {
   expect(overflow).toBeLessThanOrEqual(0)
 }
 
-const summary = (page: Page) => page.getByRole('region', { name: 'Summary' })
-const insightsLink = (page: Page) => page.getByRole('link', { name: 'Insights', exact: true })
+const insights = (page: Page) => page.getByRole('dialog', { name: 'Insights' })
+const summary = (page: Page) => insights(page).getByRole('region', { name: 'Summary' })
 
-test('insights summarise every language, chart the rate and break errors down by category', async ({ page }) => {
+async function openInsights(page: Page): Promise<void> {
+  await page.getByRole('button', { name: 'Insights', exact: true }).click()
+  await expect(insights(page).getByRole('heading', { level: 2, name: 'Insights' })).toBeFocused()
+}
+
+test('insights open over the workspace with the summary, the chart and the categories', async ({ page }) => {
   // Arrange
   await page.goto('/')
   // Act
-  await insightsLink(page).click()
+  await openInsights(page)
   // Assert
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Insights')
+  await expect(page).toHaveURL('/?insights=1')
   await expect(summary(page)).toContainText('6 errors across 11 entries — 7.6 per 100 words.')
-  await expect(page.getByRole('img', { name: /across 11 entries.*Overall: steady/ })).toBeVisible()
-  await expect(page.getByRole('row', { name: /Verb conjugation/ })).toContainText('Getting worse')
-  await expect(page.getByRole('row', { name: /Article/ })).toContainText('Improving')
+  await expect(insights(page).getByRole('img', { name: /across 11 entries.*Overall: steady/ })).toBeVisible()
+  await expect(insights(page).getByRole('row', { name: /Verb conjugation/ })).toContainText('Getting worse')
+  await expect(insights(page).getByRole('row', { name: /Article/ })).toContainText('Improving')
   await expectHealthy(page)
   await expectNoHorizontalScroll(page)
 })
 
-test('the language filter narrows insights and below three entries offers a way to write', async ({ page }) => {
+test('the filter narrows insights, and below three entries offers a way to write', async ({ page }) => {
   // Arrange
-  await page.goto('/insights')
+  await page.goto('/?insights=1')
   await expect(summary(page)).toBeVisible()
   // Act
-  await page.getByLabel('Filter by language').selectOption('es')
+  await insights(page).getByLabel('Filter by language').selectOption('es')
   // Assert
   await expect(page).toHaveURL(/language=es/)
   await expect(summary(page)).toContainText('Verb conjugation keeps recurring: 3 of your last 5 entries.')
-  await expect(page.getByRole('row', { name: /Verb conjugation/ })).toContainText('Recurring · 3 of last 5')
+  await expect(insights(page).getByRole('row', { name: /Verb conjugation/ })).toContainText('Recurring · 3 of last 5')
   await expectHealthy(page)
-  await expectNoHorizontalScroll(page)
-  await page.getByLabel('Filter by language').selectOption('de')
-  await expect(page.getByText('Insights start after 3 entries with feedback — 3 to go.')).toBeVisible()
+  await insights(page).getByLabel('Filter by language').selectOption('de')
+  await expect(insights(page).getByText('Insights start after 3 entries with feedback — 3 to go.')).toBeVisible()
   await expectHealthy(page)
-  await page.getByRole('link', { name: 'Write an entry' }).click()
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Write')
+  await insights(page).getByRole('link', { name: 'Write an entry' }).click()
+  await expect(insights(page)).toBeHidden()
+  await expect(mainColumn(page).getByRole('heading', { level: 1 })).toHaveText('Write')
 })
 
 test('a new entry with feedback changes insights that were already loaded', async ({ page }) => {
   // Arrange
-  await page.goto('/insights?language=fr')
+  await page.goto('/?language=fr')
+  await openInsights(page)
   await expect(summary(page)).toContainText('0 errors across 3 entries')
-  await page.getByRole('link', { name: 'Back to your journal' }).click()
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Write')
+  await page.keyboard.press('Escape')
+  await expect(insights(page)).toBeHidden()
   await composerLanguage(page).selectOption('fr')
   await page.getByLabel('Your entry').fill('Je vais à le cinéma ce soir.')
   // Act
   await mainColumn(page).getByRole('button', { name: 'Get feedback' }).click()
-  await expect(page.getByRole('heading', { name: 'Feedback' })).toBeVisible()
-  await insightsLink(page).click()
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Insights')
-  await page.getByLabel('Filter by language').selectOption('fr')
+  await expect(mainColumn(page).getByRole('heading', { name: 'Feedback' })).toBeVisible()
+  await openInsights(page)
   // Assert
   await expect(summary(page)).toContainText('Article is getting worse (0.0 → 6.7 per 100 words).')
   await expectHealthy(page)
 })
 
+test('Back closes insights and Forward reopens them', async ({ page }) => {
+  // Arrange
+  await page.goto('/')
+  await openInsights(page)
+  // Act
+  await page.goBack()
+  // Assert
+  await expect(insights(page)).toBeHidden()
+  await expect(page).toHaveURL('/')
+  await page.goForward()
+  await expect(insights(page)).toBeVisible()
+})
+
 test('insights show loading, a single retry on failure and an empty state', async ({ page }) => {
   // Arrange
-  await page.goto('/insights?mock=slow')
+  await page.goto('/?insights=1&mock=slow')
   // Act
-  const loading = page.getByRole('status').filter({ hasText: 'Loading insights…' })
+  const loading = insights(page).getByRole('status').filter({ hasText: 'Loading' })
   // Assert
-  await expect(loading).toBeVisible()
-  await page.goto('/insights?mock=error')
-  await expect(page.getByRole('alert')).toHaveCount(1)
-  await expect(page.getByRole('button', { name: 'Try again' })).toHaveCount(1)
-  await expect(page.getByRole('status')).toHaveCount(0)
+  await expect(loading.first()).toBeVisible()
+  await page.goto('/?insights=1&mock=error')
+  await expect(insights(page).getByRole('alert')).toHaveCount(1)
+  await expect(insights(page).getByRole('button', { name: 'Try again' })).toHaveCount(1)
+  await expect(insights(page).getByRole('status')).toHaveCount(0)
   await expectHealthy(page)
-  await page.goto('/insights?mock=empty')
-  await expect(page.getByText('Not enough entries yet')).toBeVisible()
+  await page.goto('/?insights=1&mock=empty')
+  await expect(insights(page).getByText('Not enough entries yet')).toBeVisible()
   await expectHealthy(page)
 })
 
@@ -107,8 +124,8 @@ test('a long unbroken example wraps instead of scrolling the page sideways on a 
   await page.setViewportSize({ width: 375, height: 800 })
   await withLongExample(page)
   // Act
-  await page.goto('/insights')
+  await page.goto('/?insights=1')
   // Assert
-  await expect(page.getByRole('row', { name: /Verb conjugation/ })).toContainText('x'.repeat(120))
+  await expect(insights(page).getByRole('row', { name: /Verb conjugation/ })).toContainText('x'.repeat(120))
   await expectNoHorizontalScroll(page)
 })

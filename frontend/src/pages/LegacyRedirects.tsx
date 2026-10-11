@@ -19,3 +19,8 @@ export function EntryRedirect() {
   const target = useWorkspaceTarget({ entry: entryId })
   return <Navigate replace to={target} />
 }
+
+export function InsightsRedirect() {
+  const target = useWorkspaceTarget({ insights: '1' })
+  return <Navigate replace to={target} />
+}

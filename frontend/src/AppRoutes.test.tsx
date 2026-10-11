@@ -1,6 +1,6 @@
 import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it } from 'vitest'
+import { beforeAll, describe, expect, it } from 'vitest'
 import { SEEDED } from '@/mocks/seed'
 import { LocationProbe } from '@/test/LocationProbe'
 import { renderWithProviders } from '@/test/renderWithProviders'
@@ -16,6 +16,9 @@ const renderAt = (route: string) =>
   )
 const location = () => screen.getByLabelText('Location')
 
+// The sheet is code-split; loading it up front keeps a cold transform (slow under coverage) out of the 1s findBy budget.
+beforeAll(() => import('@/features/workspace/InsightsSheet'))
+
 describe('routes', () => {
   it('opens the workspace at the root: brand, composer and entries', async () => {
     // Arrange + Act
@@ -29,6 +32,7 @@ describe('routes', () => {
   it.each([
     ['/entries', '/'],
     ['/entries?language=fr', '/?language=fr'],
+    ['/insights?language=fr', '/?language=fr&insights=1'],
     [`/entries/${SEEDED.emoji}`, `/?entry=${SEEDED.emoji}`],
     [`/entries/${SEEDED.emoji}?language=es`, `/?language=es&entry=${SEEDED.emoji}`],
   ])('redirects the old link %s into the workspace at %s', async (route, target) => {
@@ -37,6 +41,13 @@ describe('routes', () => {
     // Assert
     await waitFor(() => expect(location()).toHaveTextContent(target))
     expect(location().textContent).toBe(target)
+  })
+
+  it('opens insights as a sheet for the old /insights link', async () => {
+    // Arrange + Act
+    renderAt('/insights')
+    // Assert
+    expect(await screen.findByRole('dialog', { name: 'Insights' })).toBeInTheDocument()
   })
 
   it('leaves focus alone on first load, even through a redirect', async () => {
@@ -88,7 +99,7 @@ describe('routes', () => {
   it.each([
     ['/', 'Write · Language Journal'],
     [`/?entry=${SEEDED.emoji}`, 'Entry · Language Journal'],
-    ['/insights', 'Insights · Language Journal'],
+    ['/?insights=1', 'Write · Language Journal'],
     ['/nowhere', 'Page not found · Language Journal'],
   ])('titles the document for %s', async (route, title) => {
     // Arrange + Act
