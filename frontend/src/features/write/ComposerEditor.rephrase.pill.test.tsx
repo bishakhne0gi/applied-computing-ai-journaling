@@ -1,6 +1,6 @@
-import { fireEvent, screen, within } from '@testing-library/react'
+import { act, fireEvent, screen, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { caretAt, composerField as editor, PAIR_TEXT as TEXT, renderComposer } from '@/test/composerRephrase'
+import { caretAt, composerField as editor, openCard, PAIR_TEXT as TEXT, renderComposer } from '@/test/composerRephrase'
 
 afterEach(() => vi.unstubAllGlobals())
 
@@ -92,6 +92,24 @@ describe('ComposerEditor selection pill', () => {
     expect(pill()).not.toBeInTheDocument()
     // Act
     fireEvent.pointerUp(document, { pointerType: 'mouse' })
+    // Assert
+    expect(pill()).toBeInTheDocument()
+  })
+
+  it('stays hidden over the sentence a close re-selected, and returns once the selection moves', async () => {
+    // Arrange
+    pointer(true)
+    const { user } = renderComposer()
+    editor().focus()
+    await openCard(user)
+    // Act
+    await user.keyboard('{Escape}')
+    // Assert
+    expect(screen.queryByRole('dialog', { name: 'Rephrase' })).not.toBeInTheDocument()
+    expect(editor().selectionEnd - editor().selectionStart).toBeGreaterThan(0)
+    expect(pill()).not.toBeInTheDocument()
+    // Act
+    act(() => select('yo es feliz'))
     // Assert
     expect(pill()).toBeInTheDocument()
   })

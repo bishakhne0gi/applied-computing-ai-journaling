@@ -12,6 +12,8 @@ interface OpenRephrase {
   span: Span
 }
 
+type ClosedSpan = { span: Span; before: Span }
+
 interface Input {
   value: string
   language: string
@@ -29,10 +31,16 @@ export function useComposerRephrase({ value, language, readOnly, selection, text
   const [open, setOpen] = useState<OpenRephrase | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
   const [announcement, setAnnouncement] = useState('')
+  const [closed, setClosed] = useState<ClosedSpan | null>(null)
   const target = useMemo(
     () => (readOnly || language === '' ? null : rephraseTarget(value, selection.start, selection.end, language)),
     [readOnly, language, value, selection.start, selection.end],
   )
+  const sameSpan = (span: Span) => selection.start === span.start && selection.end === span.end
+  // Closing re-selects the sentence for the writer's next keystroke; the pill must not offer to rephrase a selection they never made.
+  // Over before-and-after the close the selection is the same one; once it moves, the pill is back.
+  const pillSuppressed = !!closed && (sameSpan(closed.span) || sameSpan(closed.before))
+  if (closed && !pillSuppressed) setClosed(null)
   const openCard = () => {
     const server = target && toServerSpan(value, target)
     if (!server) return
@@ -46,11 +54,12 @@ export function useComposerRephrase({ value, language, readOnly, selection, text
   const close = useCallback(() => {
     setOpen(null)
     const el = textarea.current
+    if (open) setClosed({ span: open.span, before: { start: selection.start, end: selection.end } })
     if (open && el) {
       el.focus()
       el.setSelectionRange(open.span.start, open.span.end)
     }
-  }, [open, textarea])
+  }, [open, textarea, selection.start, selection.end])
   // The card's offsets index the text as it was sent; if the text at the target changed since, nothing is replaced.
   // An edit after the sentence leaves the offsets valid, so it does not block.
   const replace = (startCp: number, endCp: number, replacement: string) => {
@@ -75,7 +84,7 @@ export function useComposerRephrase({ value, language, readOnly, selection, text
       openCard()
     },
   }
-  return { target, open, openCard, close, closeQuietly, clearAnnouncement, applyVersion, applyWord, notice, announcement, events }
+  return { target, pillSuppressed, open, openCard, close, closeQuietly, clearAnnouncement, applyVersion, applyWord, notice, announcement, events }
 }
 
 export type ComposerRephraseState = ReturnType<typeof useComposerRephrase>
