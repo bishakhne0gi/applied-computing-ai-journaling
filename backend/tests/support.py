@@ -19,6 +19,12 @@ class ApiFactory(Protocol):
     ) -> AbstractAsyncContextManager[AsyncClient]: ...
 
 
+class LiveApiFactory(Protocol):
+    def __call__(
+        self, script: Sequence[str | Exception] | None = None, *, analyzer: object | None = None
+    ) -> AbstractAsyncContextManager[AsyncClient]: ...
+
+
 def entry_at(created_at: datetime, language: str = "es", text: str = "Hola mundo") -> Entry:
     return Entry(
         language=language,

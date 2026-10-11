@@ -9,13 +9,13 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.pool import NullPool
 
 import app.db.models  # noqa: F401  registers models on Base.metadata
-from app.api.deps import get_analyzer, get_session
+from app.api.deps import get_analyzer, get_live_analyzer, get_session
 from app.core.config import Settings
 from app.db.base import Base
 from app.main import create_app
 from journal_ai import Analyzer
 from journal_ai.providers.fake import FakeProvider
-from tests.support import ApiFactory, ClientFactory
+from tests.support import ApiFactory, ClientFactory, LiveApiFactory
 
 TEST_DATABASE_URL = os.environ.get(
     "TEST_DATABASE_URL", "postgresql+asyncpg://journal:journal@localhost:5432/journal_test"
@@ -68,6 +68,22 @@ def make_api(settings: Settings, db_session: AsyncSession, make_client: ClientFa
         # One analyzer per app so a scripted provider keeps its place across requests.
         analyzer = Analyzer(FakeProvider(script))
         app.dependency_overrides[get_analyzer] = lambda: analyzer
+        async with make_client(app) as http:
+            yield http
+
+    return factory
+
+
+@pytest.fixture
+def make_live_api(settings: Settings, db_session: AsyncSession, make_client: ClientFactory) -> LiveApiFactory:
+    @asynccontextmanager
+    async def factory(
+        script: Sequence[str | Exception] | None = None, *, analyzer: object | None = None
+    ) -> AsyncIterator[AsyncClient]:
+        app = create_app(settings)
+        app.dependency_overrides[get_session] = lambda: db_session
+        live = analyzer or Analyzer(FakeProvider(script), max_attempts=1)
+        app.dependency_overrides[get_live_analyzer] = lambda: live
         async with make_client(app) as http:
             yield http
 

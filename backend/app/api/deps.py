@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.services.analyses import AnalysisService, AnalyzerPort
 from app.services.entries import EntryService
 from app.services.insights.service import InsightsService
+from app.services.live_check import LiveCheckService
 
 
 async def get_session(request: Request) -> AsyncIterator[AsyncSession]:
@@ -19,6 +20,10 @@ SessionDep = Annotated[AsyncSession, Depends(get_session)]
 
 def get_analyzer(request: Request) -> AnalyzerPort:
     return cast(AnalyzerPort, request.app.state.analyzer)
+
+
+def get_live_analyzer(request: Request) -> AnalyzerPort:
+    return cast(AnalyzerPort, request.app.state.live_analyzer)
 
 
 def get_entry_service(session: SessionDep) -> EntryService:
@@ -35,6 +40,13 @@ def get_insights_service(session: SessionDep) -> InsightsService:
     return InsightsService(session)
 
 
+def get_live_check_service(
+    analyzer: Annotated[AnalyzerPort, Depends(get_live_analyzer)],
+) -> LiveCheckService:
+    return LiveCheckService(analyzer)
+
+
 EntryServiceDep = Annotated[EntryService, Depends(get_entry_service)]
 AnalysisServiceDep = Annotated[AnalysisService, Depends(get_analysis_service)]
 InsightsServiceDep = Annotated[InsightsService, Depends(get_insights_service)]
+LiveCheckServiceDep = Annotated[LiveCheckService, Depends(get_live_check_service)]

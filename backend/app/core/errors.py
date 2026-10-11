@@ -27,6 +27,11 @@ class NotFoundError(AppError):
     title = "Not Found"
 
 
+class ServiceUnavailableError(AppError):
+    status_code = HTTPStatus.SERVICE_UNAVAILABLE
+    title = "Service Unavailable"
+
+
 def problem(request: Request, status: int, title: str, detail: str, **extra: Any) -> JSONResponse:
     request_id: str | None = getattr(request.state, "request_id", None)
     body = {
