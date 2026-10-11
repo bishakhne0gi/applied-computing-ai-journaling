@@ -64,4 +64,45 @@ describe('HighlightedTextarea', () => {
     expect(container.firstChild).toHaveClass('bg-surface')
     expect(screen.getByRole('textbox')).toHaveAttribute('readonly')
   })
+
+  it('keeps the placeholder visible although the typed text is transparent', () => {
+    // Arrange + Act
+    render(<HighlightedTextarea aria-label="Entry" value="" placeholder="Write here" decorations={[]} onChange={() => undefined} />)
+    // Assert
+    expect(screen.getByRole('textbox')).toHaveClass('text-transparent', 'placeholder:text-muted')
+  })
+
+  it('draws decorations on a transparent mark so underline-only styles sit on no yellow background', () => {
+    // Arrange + Act
+    const { container } = render(<HighlightedTextarea aria-label="Entry" value="abc" readOnly decorations={[{ start: 0, end: 1, className: 'underline' }]} />)
+    // Assert
+    expect(container.querySelector('mark')).toHaveClass('bg-transparent', 'text-fg', 'underline')
+  })
+
+  it('stops the browser translating the backdrop and gives a final empty line its height', () => {
+    // Arrange + Act
+    const { container } = render(<HighlightedTextarea aria-label="Entry" value={'a\n'} readOnly decorations={[]} />)
+    // Assert
+    expect(backdrop(container)).toHaveAttribute('translate', 'no')
+    expect(backdrop(container)?.textContent).toBe('a\n ')
+  })
+
+  it('hides the typed text so only the backdrop is seen', () => {
+    // Arrange + Act
+    render(<Harness />)
+    // Assert
+    expect(screen.getByRole('textbox')).toHaveClass('text-transparent')
+  })
+
+  it('re-syncs the backdrop scroll after a render that changes the text, without a scroll event', async () => {
+    // Arrange
+    const user = userEvent.setup()
+    const { container } = render(<Harness initial="" />)
+    const textarea = screen.getByRole('textbox')
+    textarea.scrollTop = 25
+    // Act
+    await user.type(textarea, 'x')
+    // Assert
+    expect(backdrop(container)?.scrollTop).toBe(25)
+  })
 })

@@ -147,5 +147,7 @@ test('a bracketed English word becomes a chip as soon as the bracket closes', as
     return textarea.clientWidth === layer.clientWidth && textarea.clientHeight === layer.clientHeight && textarea.scrollHeight === layer.scrollHeight
   })
   expect(sameBox).toBe(true)
+  // The languages load after the first paint and enable the submit button; measure after that colour change, not during it.
+  await expect(mainColumn(page).getByRole('button', { name: 'Get feedback' })).toBeEnabled()
   await expectHealthy(page)
 })
