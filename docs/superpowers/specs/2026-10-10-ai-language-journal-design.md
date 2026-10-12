@@ -258,7 +258,7 @@ wording in the repo).
 | P2 Backend Stage 1 | models, migration, repositories, services, routes | integration flow test green |
 | P3 Frontend Stage 1 | Write, Feedback, History | component + e2e + axe green |
 | P4 Stage 2 | insights calc, endpoint, Insights screen | calc + endpoint + UI tests green |
-| P5 Ship | eval tuning, README, CD, Loom outline | all gates green; README complete |
+| P5 Ship | eval tuning, README, CD | all gates green; README complete |
 
 Each phase: failing tests first, small commits per step, `make verify` output shown, one reviewer pass.
 

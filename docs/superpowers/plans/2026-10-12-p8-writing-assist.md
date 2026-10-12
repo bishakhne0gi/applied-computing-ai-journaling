@@ -67,7 +67,7 @@ frontend/src/components/ui/HighlightedTextarea/{HighlightedTextarea.tsx, decorat
 ai/journal_ai/prompts/{v1.py → v2.py}, analyzer.py, providers/fake.py, ai/evals/dataset.json, ai/tests/*, backend/tests (prompt_version)
   frontend/src/mocks/analyzer.ts (+test), src/features/feedback/labels.ts, src/features/live-hints/{HintPopover, HintList}.tsx · e2e/live-hints.spec.ts  (T10)
 frontend/e2e-stack/{rephrase,autocomplete,word-help}.spec.ts (new) · README.md · docs/superpowers/specs/2026-10-10-ai-language-journal-design.md
-  docs/superpowers/specs/2026-10-11-p6-workspace-redesign.md (§7 pointer) · docs/loom-outline.md · DESIGN.md · frontend/DESIGN.md · .env.example (comment)
+  docs/superpowers/specs/2026-10-11-p6-workspace-redesign.md (§7 pointer) · DESIGN.md · frontend/DESIGN.md · .env.example (comment)
   docs/superpowers/plans/2026-10-10-00-index.md · docs/qa/p8-*.png  (T11)
 ```
 
@@ -2203,7 +2203,7 @@ git commit -m "feat(ai): word help for English written without brackets (prompt 
 
 **Files:**
 - Create: `frontend/e2e-stack/rephrase.spec.ts`, `frontend/e2e-stack/autocomplete.spec.ts`, `frontend/e2e-stack/word-help.spec.ts`, `docs/qa/p8-*.png`
-- Modify: `README.md`, `docs/superpowers/specs/2026-10-10-ai-language-journal-design.md` (§2, §5, §6, §7, §9, §14), `docs/superpowers/specs/2026-10-11-p6-workspace-redesign.md` (§7 pointer), `docs/superpowers/specs/2026-10-12-p8-writing-assist.md` (status line), `docs/loom-outline.md`, `docs/superpowers/plans/2026-10-10-00-index.md`; any file a BLOCKING finding names.
+- Modify: `README.md`, `docs/superpowers/specs/2026-10-10-ai-language-journal-design.md` (§2, §5, §6, §7, §9, §14), `docs/superpowers/specs/2026-10-11-p6-workspace-redesign.md` (§7 pointer), `docs/superpowers/specs/2026-10-12-p8-writing-assist.md` (status line), `docs/superpowers/plans/2026-10-10-00-index.md`; any file a BLOCKING finding names.
 
 - [ ] **Step 1: Full-stack journeys (demo provider)**
 
@@ -2256,13 +2256,6 @@ Expected: eval 0 failed, FP 0% (the loanword cases are the ones to watch), recal
 
 Main spec — §2: add rows for rephrase/autocomplete/word help; remove "autocomplete" from the deliberately-left-out sentence; §5: add both routes; §6: `WritingAssist` and prompt v2; §7: "Writing assist: see `2026-10-12-p8-writing-assist.md`"; §9: the new log events; §14: `AI_LIVE_MODEL` also serves rephrase and autocomplete. P6 spec §7: add "7.3 Writing assist (P8) — see `2026-10-12-p8-writing-assist.md`". P8 spec status: "implemented (P8)".
 
-`docs/loom-outline.md` — a 0:45 segment after Write → feedback: "Caret in a sentence → Rephrase: three versions, changed words in indigo, the info explains why; Compare; apply, ⌘Z. Pause at the end → grey ghost, Tab. `market` without brackets → word help." Deep-dive Q&A:
-- **You listed autocomplete as left out because it writes for the learner — why add it?** It is short, appears only at a pause at the end, is accepted deliberately with Tab, and has its own switch, separate from hints; rephrase teaches through the explanation on every version.
-- **Why does the client compute the diff?** The model only has to return text, which is easier to validate; a word-level LCS on a ≤ 500-character sentence is instant and deterministic, and it is unit-tested.
-- **Why recharts now, after "no chart library"?** The user asked for a shadcn-style animated chart; recharts is what shadcn's chart is, and it ships only in the lazy insights chunk, so the writing screen and Lighthouse are untouched. The sidebar sparkline is still hand-drawn.
-- **How do you keep the foreign-word rule from flagging names?** The prompt excludes names, brands and loanwords, and the eval has clean cases with exactly those, so the false-positive rate measures it.
-- **Why two separate semaphores?** A ghost-text call in flight must never refuse the click on Rephrase.
-
 - [ ] **Step 6: Full gate**
 
 Run: `make verify` then `make e2e-stack`
@@ -2276,7 +2269,7 @@ Index row (numbers from Steps 4 and 6):
 ```
 
 ```bash
-git add README.md docs/superpowers/specs docs/loom-outline.md docs/superpowers/plans/2026-10-10-00-index.md docs/qa frontend/e2e-stack
+git add README.md docs/superpowers/specs docs/superpowers/plans/2026-10-10-00-index.md docs/qa frontend/e2e-stack
 git commit -m "docs: P8 writing assist done"
 ```
 

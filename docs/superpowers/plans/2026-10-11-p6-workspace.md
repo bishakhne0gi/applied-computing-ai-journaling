@@ -71,7 +71,7 @@ frontend/
   src/pages/{WorkspacePage, LegacyRedirects (new), NotFoundPage}; delete Write/History/EntryDetail/Insights pages  (T5, T6)
   e2e/{workspace.ts (new), smoke, history, write, insights, workspace.spec (new)}.ts           (T5–T11)
   e2e-stack/{journal, insights}.spec.ts                                                        (T11)
-README.md · docs/loom-outline.md · frontend/CLAUDE.md · main spec §7 · docs/qa/p6-*.png · plans index  (T12)
+README.md · frontend/CLAUDE.md · main spec §7 · docs/qa/p6-*.png · plans index  (T12)
 ```
 
 Tasks: 1 design tokens + DESIGN.md + primitive restyle · 2 `motion` + Icon + Sheet · 3 AnimatedTabs, Skeleton, Toast, Tooltip · 4 URL-state hooks · 5 workspace flip (layout, sidebar, main column, redirects) · 6 insights sheet · 7 progress card, skeletons, header status · 8 phone layout (entries sheet) · 9 feedback polish (tabs toggle, legend tooltips, background toasts) · 10 bracket chips (`HighlightedTextarea`) · 11 e2e workspace sweep, full-stack journeys, Lighthouse · 12 docs + checkpoint.
@@ -4793,7 +4793,7 @@ git commit -m "test(frontend): workspace journeys (history, 375px, reduced motio
 ### Task 12: Docs and phase checkpoint
 
 **Files:**
-- Modify: `README.md`, `docs/loom-outline.md`, `frontend/CLAUDE.md`, `docs/superpowers/specs/2026-10-10-ai-language-journal-design.md` (§7), `docs/superpowers/plans/2026-10-10-00-index.md`; any file a BLOCKING finding names.
+- Modify: `README.md`, `frontend/CLAUDE.md`, `docs/superpowers/specs/2026-10-10-ai-language-journal-design.md` (§7), `docs/superpowers/plans/2026-10-10-00-index.md`; any file a BLOCKING finding names.
 - Create: `docs/qa/p6-*.png` (ui-qa screenshots).
 
 **Interfaces:**
@@ -4842,16 +4842,6 @@ Dispatch the `reviewer` agent on the P6 commit range (Task 1 through Task 11) wi
 - "Tech choices": `| React Router | Three routes with URL-held filters (?language=) |` → `| React Router | URL search params are the workspace state (entry, insights, language); old routes redirect |`; `| React 19 + Vite SPA | Three screens, one user, …` → `| React 19 + Vite SPA | One workspace screen, one user, no SEO — SSR would add a server for nothing |`; add `| motion (LazyMotion + domAnimation) | Sheet, tab and toast motion ported from SmoothUI; ~5 kB up front, features lazy-loaded, off under reduced motion |`.
 - "Testing" table: Frontend units/components count `⟨FILL: Vitest total⟩`, e2e count `⟨FILL: Playwright total⟩`, Full stack `6`, Lighthouse `desktop 100, mobile ⟨FILL: mobile score⟩`; replace each marker with the number from Step 5's output.
 
-`docs/loom-outline.md` — replace rows 0:30–4:15 with:
-```markdown
-| 0:30–2:00 | Write → feedback | The workspace; type a Spanish entry with `[to travel]` (chip appears); ⌘/Ctrl+Enter | One screen. Saved first, analysed second; highlights in my text; panel; the bracket became `vocab_help`; "Your text / Corrected" tabs. |
-| 2:00–2:30 | Failure | `/?mock=analysis-fail` on the mock build | The entry is kept, the failed analysis is a stored resource, "Retry analysis" runs it again. |
-| 2:30–3:00 | Revise + history | "Revise & re-check"; pick an older entry in the sidebar | The main column swaps in place; the switcher keeps every analysis; my draft is still there when I come back. |
-| 3:00–3:30 | URL as state | Copy `/?entry=…`, Back/Forward, open on a phone width | Selection, sheet and filter live in the URL; phones get sheets, not pages. |
-| 3:30–4:15 | Insights | Progress card → "Open insights", choose Spanish | Errors per 100 words over time, earlier vs recent per category, recurring badge — in a sheet over the workspace. |
-```
-and add to "Deep-dive Q&A": **Why one screen instead of routes?** Every context switch was a page change; with the URL as the only state owner, the workspace keeps shareable links and Back while removing navigation. **Why port SmoothUI by hand instead of the shadcn CLI?** One token system, no Radix/vaul/CVA, file-size and a11y rules; `motion` is the only new dependency.
-
 `frontend/CLAUDE.md` — under "## Layout", add:
 ```markdown
 - `features/workspace/` — the single screen: `Workspace` (header, sidebar or entries sheet, main column, insights sheet). Workspace state lives only in the URL via `hooks/misc/useWorkspaceParams` (`entry`, `insights`, `language`); never mirror it in state.
@@ -4873,7 +4863,7 @@ In `docs/superpowers/plans/2026-10-10-00-index.md`, replace the P6 row with (num
 ```
 
 ```bash
-git add README.md docs/loom-outline.md frontend/CLAUDE.md docs/superpowers/specs/2026-10-10-ai-language-journal-design.md docs/superpowers/plans/2026-10-10-00-index.md docs/qa
+git add README.md frontend/CLAUDE.md docs/superpowers/specs/2026-10-10-ai-language-journal-design.md docs/superpowers/plans/2026-10-10-00-index.md docs/qa
 git commit -m "docs: P6 workspace done"
 ```
 Paste the `make verify` tail, the `make e2e-stack` result, the ui-qa table and the reviewer verdict into the phase report.

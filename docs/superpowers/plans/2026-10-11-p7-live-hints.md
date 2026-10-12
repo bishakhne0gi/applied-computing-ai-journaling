@@ -52,7 +52,7 @@ frontend/src/
   features/live-hints/{useLiveHints.ts, useLiveHintsSetting.ts, HintPopover.tsx, HintList.tsx, LiveHintsControls.tsx} (new)
   features/editor/EntryTextField.tsx · features/write/{ComposerEditor.tsx (new, +tests), EntryForm.tsx}  (T6)
 frontend/e2e/live-hints.spec.ts (new) · frontend/e2e-stack/live-hints.spec.ts (new)            (T7)
-README.md · main spec §2/§5/§7 · docs/loom-outline.md · frontend/DESIGN.md · plans index · docs/qa/p7-*.png   (T8)
+README.md · main spec §2/§5/§7 · frontend/DESIGN.md · plans index · docs/qa/p7-*.png   (T8)
 ```
 
 Tasks: 1 single-attempt analyzer · 2 live analyzer settings and wiring · 3 `/check` route, service, 503 and privacy · 4 frontend data layer (query, debounce, mock) · 5 re-anchoring, decorations, accept · 6 composer UI (underlines, popover, hint list, switch) · 7 e2e (mock + full stack) · 8 docs + checkpoint.
@@ -1932,7 +1932,7 @@ git commit -m "test(frontend): live hint journeys on the mock API and the full s
 ### Task 8: Docs and phase checkpoint
 
 **Files:**
-- Modify: `README.md`, `docs/superpowers/specs/2026-10-10-ai-language-journal-design.md` (§2, §5, §9), `docs/loom-outline.md`, `docs/superpowers/plans/2026-10-10-00-index.md`; any file a BLOCKING finding names.
+- Modify: `README.md`, `docs/superpowers/specs/2026-10-10-ai-language-journal-design.md` (§2, §5, §9), `docs/superpowers/plans/2026-10-10-00-index.md`; any file a BLOCKING finding names.
 - Create: `docs/qa/p7-*.png`.
 
 **Interfaces:**
@@ -1977,8 +1977,6 @@ Expected: `200` with hints for «yo es» and «la problema» in a few seconds. A
 
 Main spec — §2 "Feedback timing" row → `Quiet live hints while writing; full saved feedback on submit (amended by P6 §7.2)`; remove "live grammar checking" from the deliberately-left-out sentence; §5 API: add the `/check` row; §9: add the live-check logging rule.
 
-`docs/loom-outline.md` — in the Write → feedback row, add: "Pause: «yo es» underlines; Accept from the list; ⌘Z; the saved analysis is still the source of truth." Deep-dive Q&A: **You said live correction interrupts — why add it?** The interruption was pop-ups and forced corrections; these are quiet underlines with opt-in accept, the fast model never writes history, and the switch turns them off.
-
 - [ ] **Step 5: Full gate**
 
 Run: `make verify` then `make e2e-stack`
@@ -1992,7 +1990,7 @@ Index row (numbers from Step 5):
 ```
 
 ```bash
-git add README.md docs/superpowers/specs/2026-10-10-ai-language-journal-design.md docs/loom-outline.md docs/superpowers/plans/2026-10-10-00-index.md docs/qa
+git add README.md docs/superpowers/specs/2026-10-10-ai-language-journal-design.md docs/superpowers/plans/2026-10-10-00-index.md docs/qa
 git commit -m "docs: P7 live hints done"
 ```
 
