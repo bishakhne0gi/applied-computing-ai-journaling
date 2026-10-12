@@ -79,8 +79,10 @@ mistake on its own, retries once on unusable output, and aligns every mistake to
 text. The result is stored either way (`succeeded` with mistakes, or `failed` with an error code) and surfaced as
 highlights, a detail panel and a corrected-text tab, or as "Retry analysis". Details: "How it works", "AI pipeline".
 
-**What was left out.** Auth, deleting entries, storing rewrites, severity scores, a job queue, streaming and a
-deployment target; the reasons are under "Deliberately left out".
+**What was left out.** Auth and multiple users (a single learner, as the brief allows), deleting entries, storing
+rewrites and accepted suggestions (insights measure what the learner wrote), severity scores (categories are more
+reliable and actionable), a job queue (analyses take about 4 s; see "Scaling path") and a hosted deployment
+(Docker Compose runs the whole stack with one command).
 
 ## How it works
 
@@ -402,23 +404,6 @@ scope. To enable them: `gh auth refresh -s workflow`, remove `.github/workflows/
 the two files, and set the optional `SENTRY_AUTH_TOKEN` and `HYGIENE_TERMS` secrets and the
 `SENTRY_ORG`/`SENTRY_PROJECT`/`VITE_SENTRY_DSN` variables. Until then, `make verify` + `make e2e-stack` run the
 same gates locally.
-
-## Deliberately left out
-
-| Omission | Why |
-|---|---|
-| Auth / multiple users | Single-learner slice; a `user_id` column and a row filter are mechanical later |
-| Deleting entries | Not needed to show the learning loop; history is the point |
-| Rate limiting on `/check`, `/rephrase`, `/complete` | Single user. The client debounces and cancels stale requests, but the server still pays for a cancelled call, so each endpoint caps at 2 concurrent per process (its own `Semaphore(2)`, shared by all users) and answers 503 beyond that. A per-client limiter is the first scaling step |
-| Storing rephrasings and accepted suggestions | Nothing to learn from yet; insights measure the submitted text |
-| Rephrasing a whole entry | One sentence keeps the diff readable and the call fast |
-| Severity scores | Unreliable from a model and not actionable; categories are |
-| Background job queue | One user, ~4 s analyses; synchronous with a timeout is simpler (scaling path below) |
-| Streaming responses | Feedback is shown as a whole annotated text; partial JSON adds complexity for no UX gain |
-| Vector DB / embeddings | Nothing to retrieve; insights are counts |
-| LangChain / LangGraph | One structured call with one retry; a framework would hide the failure handling |
-| GraphQL | Twelve REST endpoints with stable shapes |
-| Deployment target | The brief marks deployment optional; Docker Compose runs the whole stack with one command, and choosing a host is outside the slice |
 
 ## Scaling path
 
