@@ -4,9 +4,9 @@ Date: 2026-10-10 · Status: approved in brainstorming, pending written-spec revi
 
 ## 1. Context and goal
 
-Take-home for Applied Computing (`appliedcomputingtech/senior-fullstack-take-home-2`): a web app where a single user
-writes journal entries in a language they are learning, gets AI feedback, reviews past entries (Stage 1, required) and
-sees how their mistakes evolve (Stage 2, bonus). Deliverables: this repo, a Loom walkthrough, and a deep-dive call.
+A web app where a single user writes journal entries in a language they are learning, gets AI feedback, reviews past
+entries (Stage 1, required) and sees how their mistakes evolve (Stage 2, optional), built to the brief in
+`appliedcomputingtech/senior-fullstack-take-home-2`.
 
 Graded on: product judgment, API + data model, AI integration and handling, correction/review UX, code clarity,
 tests, scoping and README. "A coherent, well-reasoned product slice" beats feature count.

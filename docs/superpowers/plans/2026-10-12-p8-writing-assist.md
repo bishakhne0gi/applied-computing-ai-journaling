@@ -2240,7 +2240,7 @@ Expected: eval 0 failed, FP 0% (the loanword cases are the ones to watch), recal
 
 `README.md`:
 - Screenshot table — add "Rephrase" and "Autocomplete" images from `docs/qa/p8-*`.
-- New section **"Writing assist"** after "Live hints", answering the take-home's questions for each feature (what it does, why it is in the product, how it works, how the AI output is made safe, what it costs, what is left out):
+- New section **"Writing assist"** after "Live hints", answering the brief's questions for each feature (what it does, why it is in the product, how it works, how the AI output is made safe, what it costs, what is left out):
   - *Rephrase and better words* — sentence or selection → three explained versions (natural/formal/casual/simpler), changed words in indigo, side-by-side compare, better words with nuance; apply is undoable; read-only with copy on saved entries; the client computes the word diff so the model only returns text; nothing stored. Latency ⟨FILL: rephrase latency⟩.
   - *Autocomplete* — ghost text after 700 ms at the end of the entry, Tab accepts (never trapped), Esc dismisses, its own switch; why: the earlier "writes for the learner" objection is answered by making it opt-out separately from hints, short (≤ 8 words) and only at a pause. Cost: one live-model call per pause, at most 2 concurrent per process. Latency ⟨FILL: completion latency⟩.
   - *Word help without brackets* — prompt v2; names and loanwords excluded; eval numbers ⟨FILL: foreign recall / FP⟩.

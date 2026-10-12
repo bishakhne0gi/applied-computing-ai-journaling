@@ -125,7 +125,7 @@ feedback on submit.** This is a product decision, defended below.
 - Control: a "Live hints" switch in the composer (remembered locally, default on). Demo mode (`AI_PROVIDER=fake`)
   serves scripted hints so the feature works without a key.
 - Guard rails: same 5000-code-point limit and text privacy rules (never logged, never sent to Sentry or Langfuse).
-- **Defence for the deep-dive.** The original "post-writing only" choice was about interruption. The interruption the
+- **Why it still fits the brief.** The original "post-writing only" choice was about interruption. The interruption the
   brief warns about is modal correction and focus theft; these hints never take focus, never open by themselves and
   can be switched off. The real risk is false underlines, and the live model's eval answers it: `claude-haiku-5-5`
   at low effort on the 36-case set, 0 failed, recall 90%, category accuracy 93%, **0% false positives**, p50 2.1 s per

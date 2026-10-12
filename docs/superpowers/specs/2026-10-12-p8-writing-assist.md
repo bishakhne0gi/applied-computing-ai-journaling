@@ -8,7 +8,7 @@ this phase is stored.
 
 ## 1. Problem
 
-The take-home README lists open directions beyond corrections: style suggestions, rewritten versions, side-by-side
+The brief lists open directions beyond corrections: style suggestions, rewritten versions, side-by-side
 comparison, vocabulary improvements and autocomplete. The user asked for all of them as one "writing assist" layer
 on top of P7's live hints, plus two fixes to the insights sheet (the summary bullets repeat what the chart shows; the
 table reads as a spreadsheet).
