@@ -32,6 +32,9 @@ open http://localhost:8080
 
 ### Local development
 
+Needs Docker with Compose v2, Python 3.13 with [uv](https://docs.astral.sh/uv/), Node 24 and pnpm 10
+(`corepack enable`). With an API key configured, `make dev-backend` uses Claude; without one it uses the demo provider.
+
 | Command | What it does |
 |---|---|
 | `make install` | `uv sync` (Python workspace) + `pnpm install` |
@@ -39,9 +42,45 @@ open http://localhost:8080
 | `make dev-backend` | FastAPI on :8000 with reload |
 | `make dev-frontend` | Vite on :5173 against the in-memory MSW API; `VITE_API_MOCKS=off make dev-frontend` uses the real backend |
 | `make verify-fast` | lint + types everywhere |
-| `make verify` | every CI gate in CI order: hygiene → ruff → import-linter → mypy → pytest → offline eval → migrations check → frontend (types, lint, dead code, Vitest + coverage band, Playwright + axe, Lighthouse) |
+
+### Running tests
+
+| Command | What it runs |
+|---|---|
+| `make test` | AI package and backend tests (pytest); the backend tests need `make db` |
+| `make test-ai` · `make test-backend` | one package at a time (the backend run enforces 85% coverage) |
+| `pnpm -C frontend test` | frontend unit and component tests (Vitest) |
+| `pnpm -C frontend e2e` | browser journeys with accessibility checks (Playwright + axe, desktop and phone) |
 | `make e2e-stack` | the full Compose stack with the demo provider + Playwright smoke |
+| `make verify` | every CI gate in CI order: hygiene → ruff → import-linter → mypy → pytest → offline eval → migrations check → frontend (types, lint, dead code, Vitest + coverage band, Playwright + axe, Lighthouse) |
 | `make eval` | the eval set against the real model (needs a key) |
+
+## Correction approach
+
+**What it gives.** On "Get feedback", each mistake comes back with a kind (`error`, `suggestion` or `vocab_help`),
+one of 11 fixed categories, the correction and a one-sentence English explanation, plus the fully corrected text
+and a short encouraging summary. While writing, the same feedback arrives as quiet underlines (live hints), and on
+request as rewritten versions of a sentence, better words and a short autocomplete.
+
+**Why it helps a learner.** Mistakes are shown inside the learner's own sentences, where they were made, and each
+explanation teaches the rule rather than only the fix. Fixed categories make mistakes countable, so insights can
+show which ones are fading and which keep coming back. Only errors count as progress, so style tips never inflate
+the error rate. A word the learner doesn't know can be written in English, with or without `[brackets]`, and comes
+back as the word to use, so writing never stops for a dictionary. "Revise & re-check" asks the learner to fix the
+text themselves, and every rewritten version says why it reads better.
+
+**How the UI supports writing and review.** One screen: write, get feedback, revise and open past entries without
+changing page. The draft autosaves and the entry is saved before it is analysed, so an AI failure never loses text.
+Hints never take focus, and every accepted change can be undone with Cmd/Ctrl+Z. The history sidebar opens any
+entry with its highlighted corrections and keeps every earlier analysis; insights open over the workspace.
+
+**How AI output is handled.** The model answers in JSON against an explicit schema; the parser validates each
+mistake on its own, retries once on unusable output, and aligns every mistake to character offsets in the analysed
+text. The result is stored either way (`succeeded` with mistakes, or `failed` with an error code) and surfaced as
+highlights, a detail panel and a corrected-text tab, or as "Retry analysis". Details: "How it works", "AI pipeline".
+
+**What was left out.** Auth, deleting entries, storing rewrites, severity scores, a job queue, streaming and a
+deployment target; the reasons are under "Deliberately left out".
 
 ## How it works
 
@@ -292,11 +331,10 @@ Pure functions in `backend/app/services/insights/calculations.py`, every thresho
 |---|---|---|---|
 | AI package | pytest + `FakeProvider` | parsing table, alignment (accents, repeats, fallback, not found), retry → success/failure, timeout, refusal, tracing never leaks text, live attempts, the writing-assist parsers, the eval scorer | 229 |
 | Backend | pytest on real Postgres (per-test rollback) | create → analyse → store → retrieve, failed analyses persisted, re-analysis, 404/422, paging, insights rules and the latest-succeeded query | 237 (coverage 99%, floor 85%) |
-| Frontend units/components | Vitest + Testing Library + MSW | every screen's loading/empty/error/ready states, highlights, keyboard, revise loop, insights rules ported for the mock | 821 (coverage band 65–85%) |
+| Frontend units/components | Vitest + Testing Library + MSW | every screen's loading/empty/error/ready states, highlights, keyboard, revise loop, insights rules ported for the mock | 824 (coverage band 65–85%) |
 | Frontend e2e | Playwright + axe, 1280 px and 375 px | user journeys with zero axe violations and pointer cursors on every button | 87 |
 | Full stack | Compose + demo provider + Playwright | write → feedback → history → insights through nginx, FastAPI and Postgres, including a live-hint accept, a rephrase apply, a Tab-accepted autocomplete and an unbracketed word help (7 specs, run at both widths) | 14 |
 | Performance/a11y | Lighthouse (median of 3) | desktop 100 in every category, mobile performance ≥ 90 | desktop 100, mobile 92 |
-
 | Live hints (real model) | `make eval` with `AI_MODEL=claude-haiku-5-5`, prompt v2; time-to-hint from the debounce plus the check | 42-case eval: 0 failed, p50 1.9 s per check; about 3.1 s to a hint |
 
 Tests never use SQLite and never call a real model; the real model is measured by the eval set instead.
