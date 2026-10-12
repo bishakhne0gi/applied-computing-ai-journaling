@@ -135,3 +135,6 @@ feedback on submit.** This is a product decision, defended below.
   fall because a model fixed the text. This is acceptable for this slice because accept is per hint, the switch turns
   hints off, and the fast model writes no history; the saved analysis stays the record of what the learner submitted.
   Follow-up: record accepted-hint categories (no text) per entry and show "caught while writing" next to the rate.
+
+### 7.3 Writing assist (P8)
+Rephrase, better words, Tab autocomplete and unbracketed word help build on 7.2: see `2026-10-12-p8-writing-assist.md`.

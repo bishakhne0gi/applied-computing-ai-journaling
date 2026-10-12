@@ -1,6 +1,6 @@
 # P8 — Writing assist (rephrase, better words, autocomplete, unbracketed word help) and insights polish
 
-Date: 2026-10-12 · Status: scope approved by the user (controller decisions
+Date: 2026-10-12 · Status: implemented (P8; scope approved by the user, controller decisions
 `.superpowers/sdd/2026-10-12-p8-writing-assist/decisions.md`, D1–D8).
 Amends the main spec §2 (product decisions, "deliberately left out"), §5 (API), §6 (AI pipeline), §7 (frontend),
 §9 (observability) and §14 (configuration), and P6 §7. Data model and insights rules are unchanged: nothing in

@@ -22,20 +22,22 @@ Success for us:
 | Decision | Choice | Why |
 |---|---|---|
 | Feedback timing | Quiet live hints while writing; full saved feedback on submit (amended by P6 §7.2) | The interruption to avoid is modal correction and stolen focus; quiet underlines with opt-in accept do neither, and the live model scores 0% false positives on the eval's clean entries |
-| Writing aid | `[English word]` bracket fallback; AI fills it in as `vocab_help` | Keeps the learner writing; tiny to build; teaches the word |
+| Writing aid | `[English word]` bracket fallback, or just the English word (prompt v2); AI fills it in as `vocab_help` | Keeps the learner writing; teaches the word; names and loanwords are never flagged |
+| Rephrase | On request, three explained versions of one sentence plus better words; apply undoable; nothing stored (P8) | Teaches by showing what changed and why |
+| Autocomplete | Opt-out switch of its own; ghost text at the end of the text after a pause; Tab accepts (P8) | Short and deliberate, so it helps the learner write instead of writing for them |
 | Correction kinds | `error` (grammar/spelling), `suggestion` (style/naturalness), `vocab_help` | Only errors count toward progress, so style tips don't inflate "mistakes" |
 | Presentation | Inline highlights on the original text + detail panel; toggle for full corrected version; unplaceable items under "Other notes" | Learner sees mistakes in their own words; nothing silently dropped |
 | Save model | Save first, analyze second; auto-saved, no Save button | Writing is never lost if the AI fails |
 | Revision loop | "Revise & re-check" edits text and creates a new analysis | Encourages self-correction; analyses stay historical |
 | Languages | Multiple: `es, fr, de, it, pt` (`journal_ai.SUPPORTED_LANGUAGES`) | Language is a column; universal taxonomy keeps insights comparable |
 | Taxonomy | Fixed enum (below); unknown → `other` | Free-form categories cannot be aggregated |
-| Insights summary | Deterministic sentences from numbers | Testable, cannot hallucinate |
+| Insights | Chart and category table carry the numbers; deterministic sentences only in the not-enough-data state (amended by P8) | Testable, cannot hallucinate; the summary repeated the chart |
 
 Categories: `verb_conjugation, verb_tense, gender_agreement, number_agreement, article, preposition, word_order,
 spelling, vocabulary, punctuation, other`.
 
-Deliberately left out (README lists each with reason): auth/multi-user, delete, autocomplete,
-severity scores, background job queue, streaming, vector DB/embeddings, LangChain/LangGraph, GraphQL, deployment target.
+Deliberately left out (README lists each with reason): auth/multi-user, delete,
+storing rephrasings and accepted suggestions, rephrasing a whole entry, severity scores, background job queue, streaming, vector DB/embeddings, LangChain/LangGraph, GraphQL, deployment target.
 
 ## 3. Architecture
 
@@ -116,17 +118,19 @@ Insights read only the latest succeeded analysis per entry, so re-analysis never
 | POST | `/entries/{id}/analyses` | Runs analysis synchronously → 201 Analysis (status `succeeded` or `failed` + `error_code`) |
 | GET | `/entries/{id}/analyses` | Analysis history, newest first |
 | POST | `/check` | `{language, text}` → 200 `{analyzed_text, hints}` from the fast live model (`AI_LIVE_MODEL`); nothing stored, untraced; 503 problem+json when unavailable or busy |
+| POST | `/rephrase` | `{language, text, start, end}` → 200 `{sentence, versions, vocabulary}` from the live model; text returned normalised or 422, code-point offsets, vocabulary offsets index the returned sentence; nothing stored, untraced; 503 when unavailable or busy (P8) |
+| POST | `/complete` | `{language, text}` → 200 `{completion}` (≤ 8 words, `""` allowed, text not trimmed); nothing stored, untraced; 503 when unavailable or busy (P8) |
 | GET | `/insights?language=` | Stage 2 payload |
 
 Validation: text 1–5000 chars after trim, language in supported list → 422 otherwise; unknown id → 404.
 Errors use RFC 7807 `application/problem+json` including `request_id`. A failed AI call is persisted, not thrown:
-the analysis is a resource and its outcome is data. `/check` is the exception by design: it creates nothing, so there is no resource to hold a failure, and a stale hint has no value later; it answers 503.
+the analysis is a resource and its outcome is data. `/check`, `/rephrase` and `/complete` are the exception by design: it creates nothing, so there is no resource to hold a failure, and a stale hint has no value later; it answers 503.
 
 ## 6. AI pipeline (`journal_ai`)
 
 `Analyzer.analyze(text, language) → AnalysisOutcome` (result or failure, plus raw response, usage, latency, retried).
 
-1. Build prompt from `prompts/v1` (`PROMPT_VERSION = "v1"`). System prompt: language tutor for the given language;
+1. Build prompt from `prompts/v2` (`PROMPT_VERSION = "v2"`; P8 added unbracketed foreign words, excluding names and loanwords). System prompt: language tutor for the given language;
    fixed categories; kinds; `[brackets]` → `vocab_help`; one-line English explanations; one encouraging
    `feedback_summary`; never flag correct text; entry text delimited and treated as data (prompt-injection defence).
 2. `provider.complete(system, user, json_schema)` → raw text + usage.
@@ -147,6 +151,12 @@ the analysis is a resource and its outcome is data. `/check` is the exception by
 5. On `InvalidOutput`: one retry with the validation error appended; then failure `invalid_output`.
    Timeout → `provider_timeout`; API errors and refusals → `provider_error`. Raw response stored whenever present.
 
+Writing assist (P8): `WritingAssist` is a second provider-agnostic port with `rephrase(...)` and `complete(...)`; one
+implementation per provider (Anthropic and the fake) with two prompts, two JSON schemas and two parsers
+(`assist_parsing.py`: per-item validation, versions deduplicated against the sentence, vocabulary offsets located by
+the parser, completions cut to one line of at most 8 words). It runs on `AI_LIVE_MODEL`, effort low, one attempt, no
+tracer, each endpoint behind its own `Semaphore(2)`. Details: `2026-10-12-p8-writing-assist.md`.
+
 Tracing (P5): a `Tracer` wraps `analyze()`; the Langfuse adapter is built only when `LANGFUSE_PUBLIC_KEY`,
 `LANGFUSE_SECRET_KEY` and `LANGFUSE_HOST` are all set (no silent default region). Traces are metadata-only — model,
 prompt version, latency, tokens, status, failure code, mistake counts — never entry text, which only the model
@@ -159,6 +169,8 @@ expected-mistake recall, category accuracy, false-positive rate, p50 latency; op
 ## 7. Frontend
 
 > Amended by P6 (`2026-10-11-p6-workspace.md`): one workspace screen on `/`; History, Entry detail and Insights live in its sidebar, main column and insights sheet; URL search params hold the state; old routes redirect.
+>
+> Writing assist (rephrase, better words, autocomplete) and the insights chart and table polish: see `2026-10-12-p8-writing-assist.md`.
 
 Kit conventions: `components/` pure library · `features/` composition · data only via `hooks/queries|mutations` ·
 semantic Tailwind tokens · loading/empty/error/ready states · keyboard operable · 375px and 1280px ·
@@ -173,7 +185,7 @@ focusable highlights opening a panel (original → correction, category chip, ex
 **History (`/entries`, `/entries/:id`)** — language filter, "Load more" cursor paging, rows with date, preview,
 error-count badge, status (retry on failed). Detail reuses `FeedbackView` with a past-analyses switcher.
 
-**Insights (`/insights`)** — language filter, headline summary, errors-per-100-words SVG line (no chart dependency),
+**Insights (`/insights`)** — language filter, errors-per-100-words chart first (recharts in the lazy chunk, amended by P8; the sidebar sparkline stays hand-drawn),
 category table (earlier vs recent rate, trend arrow, recurring badge, latest example), empty state below 3 entries.
 
 ## 8. Stage 2 insights logic
@@ -202,7 +214,7 @@ rule) and groups the rows into per-category counts. Only `kind = error` counts.
 
 - structlog: JSON in prod, console in dev. Middleware binds `request_id` (honours incoming `X-Request-ID`, echoes it),
   logs method, path, status, duration. Analysis log line: `entry_id, analysis_id, model, prompt_version, latency_ms,
-  tokens, mistakes_kept, mistakes_dropped, retried, status`. Entry text is never logged. Live checks (`POST /check`) log `language, model, latency_ms, hint_count, failure code` only, are not traced in Langfuse, and their text never reaches Sentry.
+  tokens, mistakes_kept, mistakes_dropped, retried, status`. Entry text is never logged. P8 adds `rephrase_completed`, `rephrase_crashed`, `completion_completed` and `completion_crashed` (language, model, latency, counts, error code or exception class; never text; untraced; slot refusals log nothing). Live checks (`POST /check`) log `language, model, latency_ms, hint_count, failure code` only, are not traced in Langfuse, and their text never reaches Sentry.
 - Sentry (only when DSN set): backend FastAPI integration, `release` = git SHA, `request_id` tag,
   `send_default_pii=False`, `before_send` strips entry text, `invalid_output` captured as warning. Frontend
   `@sentry/react` error boundary, lazy-initialised.
@@ -252,7 +264,7 @@ Each phase: failing tests first, small commits per step, `make verify` output sh
 
 ## 14. Configuration
 
-`DATABASE_URL, AI_PROVIDER (anthropic|fake), AI_MODEL, AI_EFFORT, AI_TIMEOUT_SECONDS, AI_LIVE_MODEL, AI_LIVE_TIMEOUT_SECONDS, ANTHROPIC_API_KEY,
+`DATABASE_URL, AI_PROVIDER (anthropic|fake), AI_MODEL, AI_EFFORT, AI_TIMEOUT_SECONDS, AI_LIVE_MODEL (also serves rephrase and autocomplete since P8), AI_LIVE_TIMEOUT_SECONDS, ANTHROPIC_API_KEY,
 LOG_LEVEL, LOG_FORMAT (json|console), SENTRY_DSN, SENTRY_ENVIRONMENT, RELEASE,
 LANGFUSE_PUBLIC_KEY, LANGFUSE_SECRET_KEY, LANGFUSE_HOST (passed to the v4 SDK as `base_url`), CORS_ORIGINS`; frontend `VITE_API_BASE, VITE_API_MOCKS,
 VITE_SENTRY_DSN`. `.env.example` documents all; Compose defaults to `AI_PROVIDER=fake` when no key is set.
