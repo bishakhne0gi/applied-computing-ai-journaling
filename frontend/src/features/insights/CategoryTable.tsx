@@ -17,7 +17,7 @@ export interface CategoryTableProps {
   entriesToTrends: number
 }
 
-const headClass = 'px-1.5 pb-2 text-left font-medium text-muted md:px-2'
+const headClass = 'px-1.5 pb-2 text-left align-bottom font-medium whitespace-nowrap text-muted md:px-2'
 const cellClass = 'border-t border-border px-1.5 py-3 align-top md:px-2'
 
 // Before trends there are no windows to compare, but the category's rate across every entry is still real data.
@@ -72,8 +72,11 @@ export function CategoryTable({ categories, recurringWindow, totalWords, entries
             <th scope="col" className={headClass}>
               {entriesToTrends === 0 ? (
                 <>
-                  Earlier <span aria-hidden="true">→</span>
-                  <span className="sr-only">to</span> recent, per 100 words
+                  <span className="block whitespace-nowrap">Per 100 words<span className="sr-only">,</span></span>{' '}
+                  <span className="block text-xs font-normal whitespace-nowrap">
+                    earlier <span aria-hidden="true">→</span>
+                    <span className="sr-only">to</span> recent
+                  </span>
                 </>
               ) : (
                 'Per 100 words'

@@ -48,6 +48,15 @@ describe('CategoryTable', () => {
     expect(row).not.toHaveTextContent('—')
   })
 
+  it('once trends arrive, labels the rate column on two short lines that never break mid-phrase', () => {
+    // Arrange + Act
+    render(<CategoryTable categories={[verbs]} recurringWindow={5} totalWords={60} entriesToTrends={0} />)
+    // Assert
+    const header = screen.getByRole('columnheader', { name: 'Per 100 words, earlier to recent' })
+    for (const line of header.querySelectorAll('span.block')) expect(line).toHaveClass('whitespace-nowrap')
+    expect(header.querySelectorAll('span.block')).toHaveLength(2)
+  })
+
   it('shows trends as arrows whose words are only for screen readers', () => {
     // Arrange
     const worsening = { ...verbs, category: 'preposition' as const }

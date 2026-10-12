@@ -76,7 +76,7 @@
 
   /* Wide enough to fill the column beside the sidebar at 1280px; running text inside keeps max-w-prose. */
   --container-main: 56rem;
-  --container-sheet: 36rem;
+  --container-sheet: 52rem;
 }
 
 /* Light only, like Stripe (dark mode is out of scope); tells native controls and scrollbars to stay light too. */

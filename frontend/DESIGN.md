@@ -10,7 +10,7 @@ Three layers. Always use the lowest layer that already solves the problem.
 | Space / type | Tailwind default rem scale | `p-4`, `gap-3`, `text-sm`, `font-bold` |
 | Shape | `--radius-sm, md, lg, full`, `--shadow-sm, md, lg, chip, focus` | `rounded-lg`, `shadow-lg`, `shadow-chip`; `--shadow-focus` is the global keyboard ring (2px page-colour gap, 2px solid indigo ring, 3px indigo glow at 20%; the gap keeps it visible on a solid indigo button; `:focus-visible` only, unlayered in `global.css`; `data-ring="custom"` opts out for a control that draws its own, like a history row) |
 | Layers | `--z-index-dropdown, sticky, overlay, toast` | `z-overlay` — never `z-10` |
-| Layout | `--container-sidebar` (21rem), `main` (56rem), `sheet` (36rem), `--spacing-header` (3.75rem), `below-header` (viewport − header), `--font-sans` | `w-sidebar`, `max-w-main`, `max-w-sheet`, `h-header`, `top-header`, `h-below-header` (the sticky desktop sidebar); running text inside `max-w-main` keeps `max-w-prose` |
+| Layout | `--container-sidebar` (21rem), `main` (56rem), `sheet` (52rem), `--spacing-header` (3.75rem), `below-header` (viewport − header), `--font-sans` | `w-sidebar`, `max-w-main`, `max-w-sheet`, `h-header`, `top-header`, `h-below-header` (the sticky desktop sidebar); running text inside `max-w-main` keeps `max-w-prose` |
 
 Mark contrast (computed, pinned by src/styles/tokens.contrast.test.ts): text fg on each tint ≥12.7:1; mark colour on its tint ≥5.1:1. Visual intent and the full table: /DESIGN.md.
 
