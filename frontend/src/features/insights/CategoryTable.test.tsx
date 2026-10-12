@@ -75,6 +75,15 @@ describe('CategoryTable', () => {
     expect(document.querySelectorAll('svg[data-icon="arrowDown"], svg[data-icon="arrowUp"], svg[data-icon="minus"]')).toHaveLength(1)
   })
 
+  it('draws the steady arrow in the muted token so it weighs the same as the other two', () => {
+    // Arrange / Act
+    render(<CategoryTable categories={[{ ...verbs, trend: 'stable' }]} recurringWindow={5} totalWords={60} entriesToTrends={0} />)
+    // Assert
+    const badge = document.querySelector('svg[data-icon="minus"]')?.closest('[title]')
+    expect(badge).toHaveClass('text-muted')
+    expect(badge).not.toHaveClass('text-fg-secondary')
+  })
+
   it('puts the table in a focusable region that scrolls sideways instead of wrapping', () => {
     // Arrange / Act
     render(<CategoryTable categories={[verbs]} recurringWindow={5} totalWords={60} entriesToTrends={0} />)

@@ -48,6 +48,13 @@ describe('Sheet', () => {
     expect(screen.getByRole('heading', { level: 2, name: 'Insights' })).toHaveFocus()
   })
 
+  it('keeps its title bar above the scrolling content, including positioned controls', async () => {
+    // Arrange / Act
+    await openSheet()
+    // Assert
+    expect(screen.getByRole('heading', { name: 'Insights' }).closest('.sticky')).toHaveClass('z-sticky')
+  })
+
   it('closes on Escape and returns focus to the button that opened it', async () => {
     // Arrange
     const user = await openSheet()

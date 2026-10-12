@@ -2,6 +2,7 @@ import { Badge, type BadgeProps } from '@/components/ui/Badge'
 import { Icon, type IconName } from '@/components/ui/Icon'
 import type { Trend } from '@/types/insights'
 import { pluralize } from '@/utils/formatter'
+import { cn } from '@/utils/utils'
 import { formatRate, TREND_TEXT } from './format'
 
 const TONES = { improving: 'success', stable: 'neutral', worsening: 'danger' } as const satisfies Record<Trend, BadgeProps['tone']>
@@ -27,7 +28,7 @@ export function TrendPending({ entriesLeft }: { entriesLeft: number }) {
 export function TrendBadge({ trend }: { trend: Trend | null }) {
   if (trend === null) return <span className="text-muted">Not measured</span>
   return (
-    <Badge tone={TONES[trend]} className="whitespace-nowrap" title={TREND_TEXT[trend]}>
+    <Badge tone={TONES[trend]} className={cn('whitespace-nowrap', trend === 'stable' && 'text-muted')} title={TREND_TEXT[trend]}>
       <Icon name={TREND_ICONS[trend]} weight="bold" className="size-4" />
       <span className="sr-only">{TREND_TEXT[trend]}</span>
     </Badge>

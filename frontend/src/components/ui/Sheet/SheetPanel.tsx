@@ -57,7 +57,7 @@ export function SheetPanel({ onClose, side, title, description, children }: Shee
         exit={reduce ? { opacity: 0 } : OFFSCREEN[side]}
         transition={reduce ? INSTANT : SPRING}
       >
-        <div className="sticky top-0 flex items-start justify-between gap-4 border-b border-border bg-bg px-4 py-3 md:px-6">
+        <div className="sticky top-0 z-sticky flex items-start justify-between gap-4 border-b border-border bg-bg px-4 py-3 md:px-6">
           <div className="flex flex-col gap-1">
             <h2 id={titleId} ref={headingRef} tabIndex={-1} className="text-xl font-light tracking-tight">
               {title}
