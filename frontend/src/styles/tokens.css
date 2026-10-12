@@ -72,6 +72,9 @@
   --z-index-overlay: 30;
   --z-index-toast: 40;
 
+  /* Tooltips float above everything, including an open sheet, because they are portalled to <body>. */
+  --z-index-tooltip: 50;
+
   --container-sidebar: 21rem;
 
   /* Wide enough to fill the column beside the sidebar at 1280px; running text inside keeps max-w-prose. */

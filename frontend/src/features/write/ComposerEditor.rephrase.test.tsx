@@ -133,6 +133,20 @@ describe('ComposerEditor rephrase', () => {
     expect(screen.getByRole('dialog', { name: 'Rephrase' })).toBeInTheDocument()
   })
 
+  it('a press on the open info tip keeps the card open, though the tip floats outside it', async () => {
+    // Arrange
+    const { user } = renderComposer()
+    const dialog = await openCard(user)
+    await within(dialog).findByRole('button', { name: FIXED })
+    await user.click(within(dialog).getAllByRole('button', { name: 'Why this version' })[0] as HTMLElement)
+    const tip = document.querySelector('[role="tooltip"][data-state="open"]') as HTMLElement
+    // Act
+    fireEvent.pointerDown(tip)
+    // Assert
+    expect(dialog).not.toContainElement(tip)
+    expect(screen.getByRole('dialog', { name: 'Rephrase' })).toBeInTheDocument()
+  })
+
   it('stops announcing the replacement at the next edit, so hint counts are announced again', async () => {
     // Arrange
     const { user } = await renderWithDraft('Hoy yo soy feliz y tranquilo con todo.')

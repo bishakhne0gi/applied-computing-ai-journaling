@@ -23,7 +23,9 @@ export function RephrasePopover({ headingId, onClose, onScrollAway, children }: 
   useLayoutEffect(() => ref.current?.querySelector<HTMLElement>('[role="tab"][aria-selected="true"]')?.focus(), [])
   useEffect(() => {
     const onPointerDown = (event: PointerEvent) => {
-      if (event.target instanceof Node && !ref.current?.contains(event.target)) onClose()
+      // A version's info tip is portalled to <body>, so a press on it is outside the card but still part of it.
+      const onTip = event.target instanceof Element && event.target.closest('[role="tooltip"]')
+      if (event.target instanceof Node && !onTip && !ref.current?.contains(event.target)) onClose()
     }
     // On document, not the dialog: a toggletip inside handles its own Esc in React and stops it there, so it never
     // reaches this listener; a dialog-level native listener would fire first and close the card as well.

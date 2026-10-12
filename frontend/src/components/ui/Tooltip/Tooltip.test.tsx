@@ -49,6 +49,25 @@ describe('Tooltip', () => {
     expect(screen.getByRole('tooltip')).not.toHaveClass('pointer-events-none')
   })
 
+  it('opens outside a scrolling container, so the container can never clip it', async () => {
+    // Arrange
+    render(
+      <div data-testid="scroller" className="overflow-y-auto">
+        <Tooltip content={HINT} size="card">
+          <span>Why</span>
+        </Tooltip>
+      </div>,
+    )
+    const user = userEvent.setup()
+    // Act
+    await user.hover(screen.getByText('Why'))
+    // Assert
+    const tip = screen.getByRole('tooltip')
+    expect(tip).toHaveAttribute('data-state', 'open')
+    expect(screen.getByTestId('scroller')).not.toContainElement(tip)
+    expect(screen.getByRole('button', { name: 'Why' })).toHaveAccessibleDescription(HINT)
+  })
+
   it('has a touch-sized trigger', () => {
     // Arrange + Act
     const { trigger } = renderTooltip()
