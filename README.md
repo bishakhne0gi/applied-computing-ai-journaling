@@ -145,7 +145,7 @@ focus never leaves the text:
 - Time to hint is the debounce plus the model call: about 1.2 s + 1.9 s, roughly 3.1 s at p50 on eval-sized entries.
   Demo mode (`AI_PROVIDER=fake`) serves scripted hints, so the feature works without a key.
 
-Why it is in the product, and how it affects insights, is under "Product decisions" and "Known limitations".
+Why it is in the product, and how it affects insights, is under "Product decisions".
 
 ### Writing assist
 
@@ -392,7 +392,16 @@ Standards are enforced by configuration so contributors and tooling follow the s
   index lists status).
 - **Gates**: `make verify` runs every quality gate; `scripts/check-hygiene.sh` fails on leaked keys or private wording.
 
-## Scaling path
+## Trade-offs and scaling path
+
+- **Synchronous analysis**: the request waits for the model (30 s timeout). For one learner this is simpler than a
+  queue; an interrupted request leaves a `pending` analysis that the UI offers to retry.
+- **Insights measure the submitted text**: accepted hints, rewrites and autocomplete are not recorded, so they can
+  lower the measured error rate. Recording accepted categories (no text) would show "caught while writing".
+- **Live help costs model calls**: hints, rephrase and autocomplete each allow at most 2 calls at once and answer 503
+  beyond that; the Live hints and Autocomplete switches turn them off.
+
+To scale beyond one learner:
 
 - **Queue**: `analyses.status` already models `pending/succeeded/failed`. Moving to arq + Redis changes only the
   trigger: `POST …/analyses` returns 202 with the pending row, a worker runs the same `Analyzer`, the UI polls
@@ -401,35 +410,3 @@ Standards are enforced by configuration so contributors and tooling follow the s
 - **Insights**: one query per request is fine for thousands of entries; beyond that, store per-analysis error
   counts at write time.
 - **Users**: `user_id` on entries, scoped repositories, auth at the API edge.
-
-## Known limitations
-
-- Analysis is synchronous: the request waits for the model (30 s timeout, one SDK retry, one parse retry);
-  nginx allows 120 s. A cancelled request can leave one `pending` row, which the UI offers to retry.
-- The demo provider knows only a few rules; real feedback needs a key.
-- The eval set is small (42 cases, two languages) and measures recall against single labelled spans.
-- Langfuse traces are metadata-only by design, so prompts cannot be replayed from Langfuse; `raw_response` in the
-  database is the debugging record.
-- **Live hints and insights:** insights measure the submitted text, so a learner who accepts hints sees their
-  measured error rate fall because a model fixed the text. Accepted hints are not recorded yet; the follow-up is to
-  store accepted-hint categories (no text) and show "caught while writing" beside the rate.
-- **Long entries:** `/check` reuses the full analysis schema and discards `corrected_text` and the summary, so output
-  and latency grow with the entry. The 1.9 s p50 is from eval-sized entries; the 8 s timeout (`AI_LIVE_TIMEOUT_SECONDS`)
-  means a very long entry can answer 503 and simply gets no hints. A mistakes-only live prompt would fix this.
-- **Superseded checks are billed:** a client abort does not cancel the server call. At most 2 run per process; a third
-  answers 503, and the composer keeps the last good hints.
-- **Hint placement:** Hangul conjoining jamo and rare whitespace can make the server's and the browser's text differ;
-  the nearby hints are then dropped, never misplaced. Dismissal is per composer session.
-- **Browsers:** the hint popover, the rephrase pill, the ghost text and the textarea inset are verified in Chromium only. Firefox and WebKit popover
-  behaviour is untested, and the iOS Safari textarea inset is unverified (no WebKit available).
-- **Writing assist scope:** the ghost shows only with the caret at the end of the text; a rephrase covers 3 or more
-  words and at most 500 code points; accepted versions, better words and ghosts are not tracked, so, like accepted
-  hints, they can lower the measured error rate.
-- **Autocomplete cost:** a call per pause that sends the whole entry, and calls the client cancels are still billed
-  (about 15 to 35 Haiku calls per minute of typing). The off switch is the lever; a per-client limiter and sending
-  only the text before the caret are the follow-ups.
-- **Accessibility gap:** the touch Accept button is not in the Tab order (keyboard users have Tab itself).
-- **Demo mode:** rephrase and autocomplete answers are scripted, not real writing help.
-- **Bundle:** the main chunk is 499 kB (157 kB gzip), under Vite's 500 kB warning by less than 1 kB; the rephrase
-  results and recharts are lazy chunks, and the next growth should move more of the card behind them.
-- The nginx image runs its master process as root and the frontend container has no healthcheck.
