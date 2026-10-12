@@ -418,7 +418,7 @@ same gates locally.
 | Vector DB / embeddings | Nothing to retrieve; insights are counts |
 | LangChain / LangGraph | One structured call with one retry; a framework would hide the failure handling |
 | GraphQL | Twelve REST endpoints with stable shapes |
-| Deployment target | Images are built and pushed; choosing a host is outside the slice |
+| Deployment target | The brief marks deployment optional; Docker Compose runs the whole stack with one command, and choosing a host is outside the slice |
 
 ## Scaling path
 
