@@ -52,7 +52,7 @@ Needs Docker with Compose v2, Python 3.13 with [uv](https://docs.astral.sh/uv/),
 | `pnpm -C frontend test` | frontend unit and component tests (Vitest) |
 | `pnpm -C frontend e2e` | browser journeys with accessibility checks (Playwright + axe, desktop and phone) |
 | `make e2e-stack` | the full Compose stack with the demo provider + Playwright smoke |
-| `make verify` | every CI gate in CI order: hygiene → ruff → import-linter → mypy → pytest → offline eval → migrations check → frontend (types, lint, dead code, Vitest + coverage band, Playwright + axe, Lighthouse) |
+| `make verify` | every quality gate in order: hygiene → ruff → import-linter → mypy → pytest → offline eval → migrations check → frontend (types, lint, dead code, Vitest + coverage band, Playwright + axe, Lighthouse) |
 | `make eval` | the eval set against the real model (needs a key) |
 
 ## Correction approach
@@ -310,7 +310,7 @@ Pure functions in `backend/app/services/insights/calculations.py`, every thresho
 | MSW | One in-memory API for dev, Vitest, Playwright and the Lighthouse build |
 | FastAPI + Pydantic v2 | Async, typed request/response models, OpenAPI for free |
 | SQLAlchemy 2 async + asyncpg | Explicit queries (`DISTINCT ON`) without hand-written SQL strings |
-| Alembic | Reviewed migrations; `alembic check` in CI catches model drift |
+| Alembic | Reviewed migrations; `alembic check` in `make verify` catches model drift |
 | Postgres 16 | Real enums and `timestamptz`; tests run on the same engine as production |
 | `anthropic` SDK directly | Structured outputs and effort are first-class; a framework would hide the failure modes we handle |
 | uv workspace | One lockfile for `journal_ai` and the backend; fast, reproducible installs |
@@ -325,7 +325,6 @@ Pure functions in `backend/app/services/insights/calculations.py`, every thresho
 | pytest, Vitest + Testing Library, Playwright + axe | The right tool per layer of the pyramid (below) |
 | ruff, mypy strict, ESLint, import-linter | Rules enforced by tools, not by memory |
 | Docker Compose | One command runs Postgres, migrations, backend and the nginx-served frontend |
-| GitHub Actions | CI per package in parallel; CD to GHCR after green CI |
 
 ## Testing
 
@@ -360,7 +359,7 @@ caught mistakes, false-positive rate on clean entries, p50 latency. Where the ta
 Prompt v2 keeps recall and false positives where v1 had them while adding the unbracketed foreign-word cases (the loanword, cognate and name cases raise no false positive). Low effort scored the same on the 36-case set, so it is a viable cost lever; medium stays the default for headroom on longer entries. The Haiku rows are the live model: it gives up
 six points of recall for a lower latency and cost, and still raises no false positive on a clean entry, which is the
 property that makes quiet underlines acceptable. `make eval args="--limit 6"` samples both languages;
-`make eval-fake` runs the harness offline (CI does too). Rephrase and autocomplete have no eval: their quality is judged by the learner on screen, and their parsers are covered by unit tests.
+`make eval-fake` runs the harness offline (`make verify` does too). Rephrase and autocomplete have no eval: their quality is judged by the learner on screen, and their parsers are covered by unit tests.
 
 ## Observability and privacy
 
@@ -391,19 +390,7 @@ Standards are enforced by configuration so contributors and tooling follow the s
 - **Skills** (`.claude/skills/`): design-system, component, testing and api-integration checklists.
 - **Planning**: design spec in `docs/superpowers/specs/`, one plan per phase in `docs/superpowers/plans/` (the
   index lists status).
-- **Gates**: `make verify` mirrors CI; `scripts/check-hygiene.sh` fails on leaked keys or private wording.
-
-## CI/CD
-
-`.github/workflows/ci.yml` runs `hygiene`, `ai`, `backend` (with a Postgres service), `frontend` and `e2e-stack`
-jobs; `cd.yml` runs after a green CI on `main`, pushes `ghcr.io/<owner>/journal-backend:<sha>` and
-`journal-frontend:<sha>`, and creates a Sentry release when `SENTRY_AUTH_TOKEN` is configured.
-
-Both workflow files exist locally but are not pushed yet: the token used for this repo lacks GitHub's `workflow`
-scope. To enable them: `gh auth refresh -s workflow`, remove `.github/workflows/` from `.git/info/exclude`, commit
-the two files, and set the optional `SENTRY_AUTH_TOKEN` and `HYGIENE_TERMS` secrets and the
-`SENTRY_ORG`/`SENTRY_PROJECT`/`VITE_SENTRY_DSN` variables. Until then, `make verify` + `make e2e-stack` run the
-same gates locally.
+- **Gates**: `make verify` runs every quality gate; `scripts/check-hygiene.sh` fails on leaked keys or private wording.
 
 ## Scaling path
 
